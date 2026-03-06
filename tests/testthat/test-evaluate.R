@@ -49,18 +49,62 @@ test_that("evaluate_lhs",
   it("accepts `~` only for the name",
   {
     expect_no_error(
-      oopr("test",, { ~c <- 1L})
+      oopr("test",, { ~c <- \( ) { } })
     );
     expect_no_error(
-      oopr("test",, { a:~c <- 1L})
+      oopr("test",, { a:~c <- \( ) { } })
     );
     expect_error(
-      oopr("test",, { ~a:~c <- 1L})
+      oopr("test",, { ~a:~c <- \( ) { } })
      ,class = "ooprLHSInvalidCall"
     );
     expect_error(
-      oopr("test",, { a:b~c <- 1L})
+      oopr("test",, { a:b~c <- \( ) { } })
      ,class = "ooprLHSInvalidCall"
     );
   })
+})
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("evaluate_rhs",
+{
+  it("captures error on evaluation",
+  {
+    expect_error(
+      oopr("test",, { a <- 1/"a"; })
+     ,class = "ooprRHSError"
+    );
+  })
+
+  it("can find variables in the parent environment",
+  {
+    blah <- 1L
+    expect_no_error(
+      oopr("test",, { a <- blah; })
+    );
+  })
+
+  it("does now allow duplicate members",
+  {
+    expect_error(
+      oopr("test",, { a <- 1L; a <- 2L; })
+     ,class = "ooprLHSDuplicateMember"
+    );
+  })
+
+  it("enforces a constructor method",
+  {
+    test <- oopr("test",, { a <- 1L; })
+    expect_equal(test$meta$names$get(3L), "test");
+    expect_true(test$meta$method$get(3L));
+    expect_true(is.function(test$this[["test"]]));
+  })
+
+})
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("evaluate_src",
+{
+  oopr("test",, { a <- \( ) { } })
+
 })

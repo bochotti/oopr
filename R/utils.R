@@ -12,4 +12,4 @@ iscall <- \(x, names = character(0L))
 }
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @exportS3Method roxygen2::roxy_tag_parse
-roxy_tag_parse.roxy_tag_hide <- \(x) { return(x); }
+roxy_tag_parse.roxy_tag_intern <- \(x) { return(x); }

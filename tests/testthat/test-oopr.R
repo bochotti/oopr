@@ -10,7 +10,7 @@ test_that("oopr asserts",
     expect_no_error(oopr("class",,{}));
   })
 
-  it("must have a { enclosure for definition"
+  it("must have a { enclosure for definition",
   {
     expect_error(oopr("a"));
     expect_error(oopr("a",,a));

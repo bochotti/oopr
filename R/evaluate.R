@@ -1,48 +1,55 @@
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-#' @hide
+#' @intern
 #' Evaluates the `definition` argument of `oopr` and saves the results within
 #' an environment.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 evaluate <- \(name, expr, parent, err)
 {
-  env <- evaluate_create_env(name, expr, parent, err);
+  env <- evaluate_env(name, expr, err);
   evaluate_expr(env, expr, err);
   evaluate_lhs(env, expr, err);
+  evaluate_rhs(env, expr, parent, err);
+  evaluate_src(env, expr, err);
   return(env);
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-#' @hide
+#' @intern
 #' Create and enclosing environment, it contains:
 #' @field name  `character(1L)` \cr
 #'              The class name.
-#' @field err   `environment` \cr
-#'              Error collection object.
+#' @field names `vector(character)` \cr
+#'              Vector containing the names of each member.
+#' @field spec  `vector(list)` \cr
+#'              Vector containing specifiers for each member.
 #' @field this  `environment` \cr
 #'              To hold members.
-#' @field names `character()` \cr
-#'              Vector containing the names of each member.
-#' @field succ  `logical()` \cr
+#' @field succ  `vector(logical)` \cr
 #'              Vector indicating if member is successful.
+#' @field src   `list()` \cr
+#'              Srcref of `expr`.
 #' @field along `integer()` \cr
-#'              The positions of each successful member.
+#'              The positions of each successful member - allows for skipping
+#'              over them for future operations.
+#' @field size  `integer(1L)` \cr
+#'              The amount of members.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-evaluate_create_env <- \(name, expr, parent, err)
+evaluate_env <- \(name, expr, err)
 {
-  env  <- new.env(parent = topenv());
+  env  <- new.env(parent = baseenv());
   size <- length(expr);
   env$name  <- name;
-  env$names <- vector("character", size);
+  env$meta  <- meta(size);
   env$spec  <- vector("list", size);
-  env$this  <- new.env(parent = parent, size = size);
+  env$this  <- new.env(parent = emptyenv(), size = size);
   env$succ  <- vector("logical", size);
-  env$src   <- attr(expr, "srcref");
+  env$src   <- attr(expr, "srcref", exact = TRUE);
 
   along <- \( ) { return(which(succ$data)); }
   environment(along) <- env;
   makeActiveBinding("along", along, env);
 
-  size <- \( ) { return(names$size); }
+  size <- \( ) { return(succ$size); }
   environment(size) <- env;
   makeActiveBinding("size", size, env);
 
@@ -50,7 +57,7 @@ evaluate_create_env <- \(name, expr, parent, err)
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-#' @hide
+#' @intern
 #' All expressions must be `<-` or `=`.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 evaluate_expr <- \(env, expr, err)
@@ -72,10 +79,11 @@ evaluate_expr <- \(env, expr, err)
       );
     }
   }
+  return();
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-#' @hide
+#' @intern
 #' Grab the names and specifiers for each member, defined on the left-hand
 #' side of an assignment. The name is always the on the right most side.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -91,13 +99,13 @@ evaluate_lhs <- \(env, expr, err)
       }
       else
       {
-        env$names$set(i, as.character(lhs));
+        env$meta$names$set(i, as.character(lhs));
         skip <<- TRUE;
       }
     }
     else if(!skip && iscall(lhs, '~') && length(lhs) == 2L && is.name(lhs[[2L]]))
     {
-      env$names$set(i, paste0('~', as.character(lhs[[2]])));
+      env$meta$names$set(i, sprintf("~%s", as.character(lhs[[2L]])));
       skip <<- TRUE;
     }
     else if(iscall(lhs, ':'))
@@ -118,6 +126,7 @@ evaluate_lhs <- \(env, expr, err)
   i <- 1L;
   for(i in env$along)
   {
+    # collect names and specifiers
     lhs <- expr[[i]][[2L]];
     skip <- FALSE;
     if(iscall(lhs, ':'))
@@ -129,5 +138,83 @@ evaluate_lhs <- \(env, expr, err)
     {
       t(i, lhs, env, err);
     }
+
+    if(!env$succ$get(i))
+    {
+      next;
+    }
+    # check for dupes
+    name <- env$meta$names$get(i);
+    if(!is.na(match(name, env$meta$names$data[seq_len(i - 1L)])))
+    {
+      err$push(
+        cls = "ooprLHSDuplicateMember"
+       ,src = env$src[[i]]
+       ,msg = "Member `%s` has multiple definitions."
+       ,name
+      );
+      env$succ$set(i, FALSE);
+    }
   }
+  return();
+}
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @intern
+#' Evaluates the rhs of `<-`, which gets assigned into `this`.
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+evaluate_rhs <- \(env, expr, parent, err)
+{
+  eenv <- new.env(parent = parent);
+  for(i in env$along)
+  {
+    name <- env$meta$names$get(i);
+    rhs  <- expr[[c(i, 3L)]];
+    #TODO: behaviour for oopr members
+    obj  <- tryCatch(eval(rhs, eenv), error = \(e)
+    {
+      err$push(
+        cls = "ooprRHSError"
+       ,src = env$src[[i]]
+       ,msg = "An error occured while evaluating member `%s`: \"%s\"."
+       ,name, e$message
+      );
+      env$succ$set(i, FALSE);
+      return(NULL);
+    })
+    if(is.function(obj))
+    {
+      env$meta$method$set(i, TRUE);
+    }
+    env$this[[name]] <- obj;
+  }
+
+  # ensure there is a constructor method - should move this after evaluate_src
+  if(is.na(match(env$name, env$meta$names$data)))
+  {
+    obj <- \( ) { };
+    environment(obj)     <- eenv;
+    attr(obj, "srcref")  <- env$src[[1L]];
+    env$this[[env$name]] <- obj;
+    env$meta$push(names = env$name, method = TRUE)
+  }
+  return();
+}
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @intern
+#' Collects srcref
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+evaluate_src <- \(env, expr, err)
+{
+  for(i in env$along)
+  {
+    name <- env$meta$names$get(i);
+    if(env$meta$method$get(i))
+    {
+      attr(env$this[[name]], "srcref") <- env$src[[i]];
+    }
+  }
+  env$src <- attr(expr, "wholeSrcref", exact = TRUE);
+  return();
 }
