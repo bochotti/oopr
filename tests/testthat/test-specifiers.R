@@ -41,3 +41,15 @@ test_that("specifiers_access",
     expect_equal(test$meta$access$get(2L), "private");
   })
 })
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("specifiers_unknown",
+{
+  it("catches any unknown specifiers",
+  {
+    expect_error(
+      oopr("test",, { unknown:a <- 1L} )
+     ,class = "ooprUnknownSpecifier"
+    );
+  })
+})

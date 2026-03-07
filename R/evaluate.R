@@ -8,6 +8,7 @@ evaluate <- \(name, expr, parent, err)
   env <- evaluate_env(name, expr, err);
   evaluate_expr(env, expr, err);
   evaluate_lhs(env, expr, err);
+  evaluate_nme(env, err);
   evaluate_rhs(env, expr, parent, err);
   evaluate_src(env, expr, err);
   return(env);
@@ -62,7 +63,6 @@ evaluate_env <- \(name, expr, err)
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 evaluate_expr <- \(env, expr, err)
 {
-  i <- 1L;
   for(i in seq_len(env$size)[-1L]) # first will always be {
   {
     if(iscall(expr[[i]], c("<-", "=")))
@@ -130,7 +130,6 @@ evaluate_lhs <- \(env, expr, err)
     }
   }
 
-  i <- 1L;
   for(i in env$along)
   {
     # collect names and specifiers
@@ -147,16 +146,38 @@ evaluate_lhs <- \(env, expr, err)
       # when no specifiers are used
       t(i, lhs, env, err);
     }
+  }
+  return();
+}
 
-    if(!env$succ$get(i)) next;
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @intern
+#' Check names of the members
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+evaluate_nme <- \(env, err)
+{
+  for(i in env$along)
+  {
+    name <- env$meta$names$get(i);
+
+    # check for hidden names
+    if(startsWith(name, '.'))
+    {
+      err$push(
+        cls = "ooprHiddenMember"
+       ,src = env$src[[i]]
+       ,msg = "Member `%s` cannot start with \".\"."
+       ,name
+      );
+      env$succ$set(i, FALSE);
+    }
 
     # check for dupes
-    name <- env$meta$names$get(i);
     if(!is.na(match(name, env$meta$names$data[seq_len(i - 1L)])))
     {
       #TODO: allow for properties
       err$push(
-        cls = "ooprLHSDuplicateMember"
+        cls = "ooprDuplicateMember"
        ,src = env$src[[i]]
        ,msg = "Member `%s` has multiple definitions."
        ,name
@@ -164,9 +185,7 @@ evaluate_lhs <- \(env, expr, err)
       env$succ$set(i, FALSE);
     }
   }
-  return();
 }
-
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @intern
 #' Evaluates the rhs of `<-`, which gets assigned into `this`.

@@ -39,10 +39,10 @@ test_that("evaluate_lhs",
     );
 
     expect_no_error(
-      oopr("test",, { a:b <- 1L})
+      oopr("test",, { public:b <- 1L})
     );
     expect_no_error(
-      oopr("test",, { a:b:c <- 1L})
+      oopr("test",, { public:get:c <- \( ) { }})
     );
   })
 
@@ -52,7 +52,7 @@ test_that("evaluate_lhs",
       oopr("test",, { ~c <- \( ) { } })
     );
     expect_no_error(
-      oopr("test",, { a:~c <- \( ) { } })
+      oopr("test",, { public:~c <- \( ) { } })
     );
     expect_error(
       oopr("test",, { ~a:~c <- \( ) { } })
@@ -61,6 +61,26 @@ test_that("evaluate_lhs",
     expect_error(
       oopr("test",, { a:b~c <- \( ) { } })
      ,class = "ooprLHSInvalidCall"
+    );
+  })
+})
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("evaluate_nme",
+{
+  it("does not allow hidden names",
+  {
+    expect_error(
+      oopr("test",, { .a <- 1L })
+     ,class = "ooprHiddenMember"
+    );
+  })
+
+  it("does not allow duplicates",
+  {
+    expect_error(
+      oopr("test",, { a <- 1L; a <- 2L; })
+     ,class = "ooprDuplicateMember"
     );
   })
 })
@@ -81,14 +101,6 @@ test_that("evaluate_rhs",
     blah <- 1L
     expect_no_error(
       oopr("test",, { a <- blah; })
-    );
-  })
-
-  it("does now allow duplicate members",
-  {
-    expect_error(
-      oopr("test",, { a <- 1L; a <- 2L; })
-     ,class = "ooprLHSDuplicateMember"
     );
   })
 

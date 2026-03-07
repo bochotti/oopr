@@ -1,6 +1,8 @@
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @intern
 #' Collect specifiers, which are moved into the `meta` object.
+#' Each function called inside here should amend `meta` accordingly, and
+#' remove that specifier from the `spec` object.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 specifiers <- \(env, err)
 {
@@ -11,6 +13,8 @@ specifiers <- \(env, err)
     name <- meta$names$get(i);
     if(!specifiers_dupes(i, name, spec, meta, env, err)) next;
     if(!specifiers_access(i, name, spec, meta, env, err)) next;
+    if(!specifiers_property(i, name, spec, meta, env, err)) next;
+    specifiers_unknown(i, name, spec, meta, env, err);
   }
   return();
 }
@@ -80,4 +84,25 @@ specifiers_access <- \(i, name, spec, meta, env, err)
     env$succ$set(i, FALSE);
   }
   return(env$succ$get(i));
+}
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @intern
+#' Catch any specifiers that remain
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+specifiers_unknown <- \(i, name, spec, meta, env, err)
+{
+  set <- spec$get(i)[[1L]];
+  if(length(set))
+  {
+    err$push(
+      cls = "ooprUnknownSpecifier"
+     ,src = env$src[[i]]
+     ,msg = "Member `%s` has %s: %s."
+     ,name
+     ,if(length(set) == 1L) "an unknown specifier" else "unknown specifiers"
+     ,deparse1(set)
+    );
+    env$succ$set(i, FALSE);
+  }
 }
