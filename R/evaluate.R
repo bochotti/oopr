@@ -186,6 +186,7 @@ evaluate_nme <- \(env, err)
     }
   }
 }
+
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @intern
 #' Evaluates the rhs of `<-`, which gets assigned into `this`.

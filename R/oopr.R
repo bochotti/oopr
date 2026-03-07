@@ -36,6 +36,7 @@ oopr <- \(name, inherits = NULL, definition, parent = parent.frame())
   env <- evaluate(name, expr, parent, err);
 
   specifiers(env, err);
+  definitions(env, err);
 
   if(err$size)
   {

@@ -2,7 +2,8 @@
 #' @intern
 #' Collect specifiers, which are moved into the `meta` object.
 #' Each function called inside here should amend `meta` accordingly, and
-#' remove that specifier from the `spec` object.
+#' remove that specifier from the `spec` object. It should return `TRUE` if
+#' there are no errors.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 specifiers <- \(env, err)
 {
@@ -11,19 +12,19 @@ specifiers <- \(env, err)
   for(i in env$along)
   {
     name <- meta$names$get(i);
-    if(!specifiers_dupes(i, name, spec, meta, env, err)) next;
-    if(!specifiers_access(i, name, spec, meta, env, err)) next;
+    if(!specifiers_dupes(i, name, spec, env, err))          next;
+    if(!specifiers_access(i, name, spec, meta, env, err))   next;
     if(!specifiers_property(i, name, spec, meta, env, err)) next;
-    specifiers_unknown(i, name, spec, meta, env, err);
+    specifiers_unknown(i, name, spec, env, err);
   }
   return();
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @intern
-#' Check for duplicates
+#' Check for duplicates.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-specifiers_dupes <- \(i, name, spec, meta, env, err)
+specifiers_dupes <- \(i, name, spec, env, err)
 {
   set <- spec$get(i)[[1L]];
   has <- duplicated(set);
@@ -90,7 +91,7 @@ specifiers_access <- \(i, name, spec, meta, env, err)
 #' @intern
 #' Catch any specifiers that remain
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-specifiers_unknown <- \(i, name, spec, meta, env, err)
+specifiers_unknown <- \(i, name, spec, env, err)
 {
   set <- spec$get(i)[[1L]];
   if(length(set))

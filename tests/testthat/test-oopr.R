@@ -12,9 +12,9 @@ test_that("oopr asserts",
 
   it("must have a { enclosure for definition",
   {
-    expect_error(oopr("a"));
-    expect_error(oopr("a",,a));
-    expect_no_error(oopr("a",,{ a <- 1L; }));
+    expect_error(oopr("test"));
+    expect_error(oopr("test",,a));
+    expect_no_error(oopr("test",,{ a <- 1L; }));
   })
 
   it("must have an environment for a parent",
