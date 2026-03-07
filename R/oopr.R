@@ -35,6 +35,8 @@ oopr <- \(name, inherits = NULL, definition, parent = parent.frame())
   err <- error(call("oopr", name = name, quote(`...`)));
   env <- evaluate(name, expr, parent, err);
 
+  specifiers(env, err);
+
   if(err$size)
   {
     err$throw();

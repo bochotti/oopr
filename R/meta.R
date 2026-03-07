@@ -37,6 +37,7 @@ print.oopr_vector <- \(x, ...)
 meta <- \(size = 0L)
 {
   names    <- vector("character", size);
+  access   <- vector("character", size);
   method   <- vector("logical", size);
   property <- vector("character", size);
   static   <- vector("logical", size);

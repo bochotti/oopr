@@ -89,27 +89,33 @@ evaluate_expr <- \(env, expr, err)
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 evaluate_lhs <- \(env, expr, err)
 {
+  # pull names out of `:` calls
   t <- \(i, lhs, env, err)
   {
     if(is.name(lhs))
     {
+      # pure names will be assigned
       if(skip)
       {
+        # as a specifier
         env$spec$set(i, list(c(env$spec$get(i)[[1L]], as.character(lhs))));
       }
       else
       {
+        # or a name if not yet defined
         env$meta$names$set(i, as.character(lhs));
         skip <<- TRUE;
       }
     }
     else if(!skip && iscall(lhs, '~') && length(lhs) == 2L && is.name(lhs[[2L]]))
     {
+      # a name can be prefixed with `~`, for destructor method
       env$meta$names$set(i, sprintf("~%s", as.character(lhs[[2L]])));
       skip <<- TRUE;
     }
     else if(iscall(lhs, ':'))
     {
+      # rhs of `:` are saved a specifier, lhs recurses
       env$spec$set(i, list(c(env$spec$get(i)[[1L]], as.character(lhs[[3L]]))));
       t(i, lhs[[2L]], env, err);
     }
@@ -123,30 +129,32 @@ evaluate_lhs <- \(env, expr, err)
       env$succ$set(i, FALSE);
     }
   }
+
   i <- 1L;
   for(i in env$along)
   {
     # collect names and specifiers
-    lhs <- expr[[i]][[2L]];
+    lhs  <- expr[[i]][[2L]];
     skip <- FALSE;
     if(iscall(lhs, ':'))
     {
+      # do rhs of `:` first, to collect the name of member
       t(i, lhs[[3L]], env, err);
       t(i, lhs[[2L]], env, err);
     }
     else
     {
+      # when no specifiers are used
       t(i, lhs, env, err);
     }
 
-    if(!env$succ$get(i))
-    {
-      next;
-    }
+    if(!env$succ$get(i)) next;
+
     # check for dupes
     name <- env$meta$names$get(i);
     if(!is.na(match(name, env$meta$names$data[seq_len(i - 1L)])))
     {
+      #TODO: allow for properties
       err$push(
         cls = "ooprLHSDuplicateMember"
        ,src = env$src[[i]]
@@ -196,7 +204,7 @@ evaluate_rhs <- \(env, expr, parent, err)
     environment(obj)     <- eenv;
     attr(obj, "srcref")  <- env$src[[1L]];
     env$this[[env$name]] <- obj;
-    env$meta$push(names = env$name, method = TRUE)
+    env$meta$push(names = env$name, access = "private", method = TRUE)
   }
   return();
 }
@@ -215,6 +223,6 @@ evaluate_src <- \(env, expr, err)
       attr(env$this[[name]], "srcref") <- env$src[[i]];
     }
   }
-  env$src <- attr(expr, "wholeSrcref", exact = TRUE);
+  #env$src <- attr(expr, "wholeSrcref", exact = TRUE);
   return();
 }
