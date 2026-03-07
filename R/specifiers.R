@@ -106,4 +106,5 @@ specifiers_unknown <- \(i, name, spec, env, err)
     );
     env$succ$set(i, FALSE);
   }
+  return();
 }

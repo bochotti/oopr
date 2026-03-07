@@ -5,6 +5,7 @@
 definitions <- \(env, err)
 {
   meta <- env$meta;
+  property(env, meta, err);
   for(i in env$along)
   {
     name <- meta$names$get(i);
@@ -101,7 +102,7 @@ definitions_print <- \(i, name, meta, env, err)
 definitions_constructor <- \(i, name, env, err)
 {
   args <- names(formals(env$this[[name]]));
-  if(!is.null(args) && any(!is.na(match(args, c(".", "..")))))
+  if(!is.null(args) && any(match(args, c(".", ".."), 0L)))
   {
     err$push(
       cls = "ooprConstructorBadArgNames"

@@ -16,7 +16,7 @@ vector <- \(mode, size = 0L)
   peek <- \( )    { return(data[size]); }
   pop  <- \( )    { x <- peek(); data <<- data[-size]; return(x); }
 
-  empty <- \( )   { return(size == 0L); }
+  rmve <- \(i)    { data <<- if(is.logical(i)) data[!i] else data[-i]; }
 
   return(structure(environment(), class = "oopr_vector"));
 }
@@ -48,9 +48,9 @@ meta <- \(size = 0L)
   {
     dots <- list(...);
     this <- parent.env(environment());
-    for(nm in names(this)[-c(1:2)])
+    for(nm in names(this)[-c(1:3)])
     {
-      if(!is.na(match(nm, names(dots))))
+      if(match(nm, names(dots), 0L))
       {
         this[[nm]]$push(dots[[nm]]);
       }
@@ -58,6 +58,15 @@ meta <- \(size = 0L)
       {
         this[[nm]]$push(base::vector(typeof(this[[nm]]$data), 1L));
       }
+    }
+  }
+
+  rmve <- \(i)
+  {
+    this <- parent.env(environment());
+    for(nm in names(this)[-c(1:3)])
+    {
+      this[[nm]]$rmve(i);
     }
   }
 
@@ -72,6 +81,6 @@ meta <- \(size = 0L)
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 print.oopr_meta <- \(x, ...)
 {
-  print(list2DF(lapply(rev(eapply(x, identity)[-c(1:2)]), `[[`, "data")));
+  print(list2DF(lapply(rev(eapply(x, identity)[-c(1:3)]), `[[`, "data")));
   return(invisible(x));
 }

@@ -1,0 +1,179 @@
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("evaluate_property",
+{
+  it("makes duplication exception for properties",
+  {
+    expect_error(
+      oopr("test",, { get:a <- 1L; get:a <- 2L; })
+     ,class = "ooprDuplicateMember"
+    );
+    expect_error(
+      oopr("test",, { set:a <- 1L; set:a <- 2L; })
+     ,class = "ooprDuplicateMember"
+    );
+    expect_error(
+      oopr("test",, { a <- 1L; get:a <- 2L; })
+     ,class = "ooprDuplicateMember"
+    );
+    expect_error(
+      oopr("test",, { get:a <- \( ) { }; set:a <- \(x) { }; get:a <- 3L})
+     ,class = "ooprDuplicateMember"
+    );
+    expect_no_error(
+      oopr("test",, { get:a <- \( ) { }; set:a <- \(x) { } })
+    );
+    expect_no_error(
+      oopr("test",, { public:get:a <- \( ) { }; set:a <- \(x) { } })
+    );
+    expect_no_error(
+      oopr("test",, { public:get:a <- \( ) { }; public:set:a <- \(x) { } })
+    );
+  })
+})
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("specifiers_property",
+{
+  it("allows get or set",
+  {
+    test <- oopr("test",, { get:a <- \( ) { } })
+    expect_equal(test$meta$property$get(2L), TRUE);
+    test <- oopr("test",, { set:a <- \(x) { } })
+    expect_equal(test$meta$property$get(2L), TRUE);
+  })
+
+  it("does not allow both get and set",
+  {
+    expect_error(
+      oopr("test",, { set:get:a <- \( ) { } })
+     ,class = "ooprMultiplePropertySpecifiers"
+    );
+  })
+})
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("property_get",
+{
+  it("does not allow get properties with arguments",
+  {
+    expect_error(
+      oopr("test",, { get:a <- 1L })
+     ,class = "ooprGetPropertyHasArgs"
+    );
+    expect_error(
+      oopr("test",, { get:a <- \(x) { } })
+     ,class = "ooprGetPropertyHasArgs"
+    );
+    expect_no_error(
+      oopr("test",, { get:a <- \( ) { } })
+    );
+  })
+
+  fun <- oopr("test",, { get:a <- \( ) { } })$this$a
+  it("creates the property function",
+  {
+    expect_equal(formals(fun), as.pairlist(alist(x=)));
+    expect_true(isname(body(fun)[[c(2, 2, 2)]], "x"));
+    expect_true(iscall(body(fun)[[c(2, 4)]], "stop"));
+  })
+  it("carries the srcref",
+  {
+    expect_false(is.null(attr(fun, "srcref")));
+  })
+
+})
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("property_set",
+{
+  it("does not allow set properties without one argument",
+  {
+    expect_error(
+      oopr("test",, { set:a <- 1L })
+     ,class = "ooprSetPropertyNotOneArg"
+    );
+    expect_error(
+      oopr("test",, { set:a <- \( ) { } })
+     ,class = "ooprSetPropertyNotOneArg"
+    );
+    expect_error(
+      oopr("test",, { set:a <- \(x = 1L) { } })
+     ,class = "ooprSetPropertyNotOneArg"
+    );
+    expect_no_error(
+      oopr("test",, { set:a <- \(x) { } })
+    );
+  })
+
+  fun <- oopr("test",, { set:a <- \(y) { } })$this$a;
+  it("creates the property function",
+  {
+    expect_equal(formals(fun), as.pairlist(alist(y=)));
+    expect_true(isname(body(fun)[[c(2, 2, 2)]], "y"));
+    expect_true(iscall(body(fun)[[c(2, 3)]], "stop"));
+  })
+  it("carries the srcref",
+  {
+    expect_false(is.null(attr(fun, "srcref")));
+  })
+})
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("propert_both",
+{
+  it("enforces get and set seperately",
+  {
+    expect_error(
+      oopr("test",, { get:a <- 1L; set:a <- \(x) { } })
+     ,class = "ooprGetPropertyHasArgs"
+    );
+    expect_error(
+      oopr("test",, { get:a <- \( ) { }; set:a <- 1L })
+     ,class = "ooprSetPropertyNotOneArg"
+    );
+  })
+
+  it("requires set to be defined immediately after get",
+  {
+    expect_error(
+      oopr("test",, { set:a <- \(x) { }; get:a <- \( ) { } })
+     ,class = "ooprBothPropertyNotOrdered"
+    );
+    expect_error(
+      oopr("test",, { get:a <- \(x) { }; b <- 2L; set:a <- \( ) { } })
+     ,class = "ooprBothPropertyNotOrdered"
+    );
+    expect_no_error(
+      oopr("test",, { get:a <- \( ) { }; set:a <- \(x) { } })
+    );
+  })
+
+  it("must have the same access specifier for get & set",
+  {
+    expect_error(
+      oopr("test",, { get:a <- \( ) { }; public:set:a <- \(x) { } })
+     ,class = "ooprBothPropertyNotSameAccess"
+    );
+  })
+
+  fun <- oopr("test",, { get:a <- \( ) { x; }; set:a <- \(y) { z; } })$this$a;
+  it("places get and set in correct spot",
+  {
+    body <- body(fun);
+    expect_equal(formals(fun), as.pairlist(alist(y=)));
+    expect_equal(body[[c(2, 3)]], quote({ x; }));
+    expect_equal(body[[c(2, 4)]], quote({ z; }));
+  })
+  it("carries the srcrefs",
+  {
+    expect_false(is.null(attr(fun, "srcref")))
+  })
+
+  it("removes the set property definition",
+  {
+    test <- oopr("test",, { get:a <- \( ) { x; }; set:a <- \(y) { z; } });
+    expect_false(hasName(test$this, ".a"));
+    expect_disjoint(".a", test$meta$names$data);
+  })
+
+})

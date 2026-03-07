@@ -173,9 +173,12 @@ evaluate_nme <- \(env, err)
     }
 
     # check for dupes
-    if(!is.na(match(name, env$meta$names$data[seq_len(i - 1L)])))
+    dupe <- match(name, env$meta$names$data[seq_len(i - 1L)], 0L);
+    if(dupe != 0)
     {
-      #TODO: allow for properties
+      # exception for properties
+      if(evaluate_property(i, name, dupe, env)) next;
+
       err$push(
         cls = "ooprDuplicateMember"
        ,src = env$src[[i]]
@@ -218,7 +221,7 @@ evaluate_rhs <- \(env, expr, parent, err)
   }
 
   # ensure there is a constructor method - should move this after evaluate_src
-  if(is.na(match(env$name, env$meta$names$data)))
+  if(match(env$name, env$meta$names$data, 0L) == 0L)
   {
     obj <- \( ) { };
     environment(obj)     <- eenv;
