@@ -41,7 +41,7 @@ meta <- \(size = 0L)
   names    <- vector("character", size);
   access   <- vector("character", size);
   method   <- vector("logical",   size);
-  property <- vector("character", size); # Note; gets changes to logical
+  property <- vector("character", size);
   static   <- vector("logical",   size);
   class    <- vector("list",      size);
   inherit  <- vector("character", size);

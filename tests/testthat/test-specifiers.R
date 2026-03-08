@@ -16,7 +16,7 @@ test_that("specifiers_access",
   it("collects the access specifiers into meta",
   {
     test <- oopr("test",, { public:a <- 1L; })
-    expect_equal(test$meta$access$get(2L), "public");
+    expect_equal(test$meta$access$get(1L), "public");
   })
 
   it("does not allow multiple specifiers",
@@ -30,9 +30,9 @@ test_that("specifiers_access",
   it("will use the last specifier if not provided",
   {
     test <- oopr("test",, { public:a <- 1L; b <- 2L; })
-    expect_equal(test$meta$access$get(3L), "public");
+    expect_equal(test$meta$access$get(2L), "public");
     test <- oopr("test",, { public:a <- 1L; b <- 2L; c <- 3L; })
-    expect_equal(test$meta$access$get(4L), "public");
+    expect_equal(test$meta$access$get(3L), "public");
   })
 
   it("will default to private",

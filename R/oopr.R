@@ -37,11 +37,19 @@ oopr <- \(name, inherits = NULL, definition, parent = parent.frame())
 
   specifiers(env, err);
   definitions(env, err);
+  references(env, err);
 
-  if(err$size)
-  {
-    err$throw();
-  }
+  if(err$size) err$throw();
 
-  return(env);
+  env$meta$rmve(1L)$lock();
+  encl <- enclosure(env, parent);
+
+  list(
+    name = name
+   ,inhr = character(0L)
+   ,meta = env$meta
+   ,encl = encl
+   ,src  = NULL
+  );
+  # return(env);
 }

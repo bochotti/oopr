@@ -108,9 +108,9 @@ test_that("evaluate_rhs",
   it("enforces a constructor method",
   {
     test <- oopr("test",, { a <- 1L; })
-    expect_equal(test$meta$names$get(3L), "test");
-    expect_true(test$meta$method$get(3L));
-    expect_true(is.function(test$this[["test"]]));
+    expect_equal(test$meta$names$get(2L), "test");
+    expect_true(test$meta$method$get(2L));
+    expect_true(is.function(test$encl$this[["test"]]));
   })
 
 })

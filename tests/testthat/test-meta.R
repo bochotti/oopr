@@ -84,14 +84,14 @@ test_that("meta",
   {
     meta$push(names = 'a', access = "public");
     meta$push(names = 'b', access = "public", method = TRUE);
-    meta$push(names = 'c', access = "protected", property = TRUE);
+    meta$push(names = 'c', access = "protected", property = "both");
     meta$push(names = 'd', access = "protected", static = TRUE);
-    meta$push(names = 'e', access = "private", property = TRUE);
+    meta$push(names = 'e', access = "private", property = "both");
     meta$push(names = 'f', access = "private", static = TRUE);
     expect_equal(which(meta$subs(access = "public")), 1:2);
     expect_equal(which(meta$subs(method = TRUE)), 2);
     expect_equal(which(meta$subs(static = TRUE)), c(4, 6));
-    expect_equal(meta$subs("names", property = "TRUE"), c('c', 'e'))
+    expect_equal(meta$subs("names", property = "both"), c('c', 'e'))
     expect_equal(meta$subs("names", TRUE, method = FALSE), 'b')
   })
 

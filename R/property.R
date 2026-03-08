@@ -68,6 +68,7 @@ property <- \(env, meta, err)
     {
       jj[[length(jj) + 1L]] <- j;
       property_both(i, name, type, j, meta, env, err);
+      meta$property$set(i, "both");
     }
     else
     {
@@ -84,11 +85,6 @@ property <- \(env, meta, err)
     meta$rmve(jj);
     env$succ$rmve(jj);
     env$src <- env$src[-jj];
-    meta$property$data <- properties[-jj];
-  }
-  else
-  {
-    meta$property$data <- properties;
   }
   return();
 }
@@ -198,6 +194,7 @@ property_create <- \(name, get, set, env)
 
   if(missing(get))
   {
+    # TODO: this will cause issues with lazy loading
     get <- call("stop", call("errorCondition"
       ,sprintf("`%s` is write-only", name)
       ,class = "ooprPropertyWriteOnly"

@@ -19,3 +19,9 @@ roxy_tag_parse.roxy_tag_intern <- \(x) { return(x); }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 `%||%` <- \(x, y) { if(is.null(x)) return(y) else return(x); }
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+symlink <- \(tenv, tname, env, name)
+{
+  .Call("symlink", tenv, tname, env, name, names, PACKAGE = "oopr");
+}

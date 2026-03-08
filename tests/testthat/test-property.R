@@ -37,17 +37,23 @@ test_that("specifiers_property",
   it("allows get or set",
   {
     test <- oopr("test",, { get:a <- \( ) { } })
-    expect_equal(test$meta$property$get(2L), TRUE);
+    expect_equal(test$meta$property$get(1L), "get");
     test <- oopr("test",, { set:a <- \(x) { } })
-    expect_equal(test$meta$property$get(2L), TRUE);
+    expect_equal(test$meta$property$get(1L), "set");
   })
 
-  it("does not allow both get and set",
+  it("does not allow both get and set at the same time",
   {
     expect_error(
       oopr("test",, { set:get:a <- \( ) { } })
      ,class = "ooprMultiplePropertySpecifiers"
     );
+  })
+
+  it("allows get and set with two seperate definitions",
+  {
+    test <- oopr("test",, { get:a <- \( ) { }; set:a <- \(x) { } })
+    expect_equal(test$meta$property$get(1L), "both");
   })
 })
 
@@ -69,7 +75,8 @@ test_that("property_get",
     );
   })
 
-  fun <- oopr("test",, { get:a <- \( ) { } })$this$a
+  test <- oopr("test",, { get:a <- \( ) { } });
+  fun  <- activeBindingFunction('a', test$encl$this);
   it("creates the property function",
   {
     expect_equal(formals(fun), as.pairlist(alist(x=)));
@@ -80,7 +87,6 @@ test_that("property_get",
   {
     expect_false(is.null(attr(fun, "srcref")));
   })
-
 })
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -105,7 +111,8 @@ test_that("property_set",
     );
   })
 
-  fun <- oopr("test",, { set:a <- \(y) { } })$this$a;
+  test <- oopr("test",, { set:a <- \(y) { } })
+  fun  <- activeBindingFunction('a', test$encl$this);
   it("creates the property function",
   {
     expect_equal(formals(fun), as.pairlist(alist(y=)));
@@ -156,7 +163,9 @@ test_that("propert_both",
     );
   })
 
-  fun <- oopr("test",, { get:a <- \( ) { x; }; set:a <- \(y) { z; } })$this$a;
+  test <- oopr("test",, { get:a <- \( ) { x; }; set:a <- \(y) { z; } })
+  fun  <- activeBindingFunction('a', test$encl$this)
+
   it("places get and set in correct spot",
   {
     body <- body(fun);
@@ -164,6 +173,7 @@ test_that("propert_both",
     expect_equal(body[[c(2, 3)]], quote({ x; }));
     expect_equal(body[[c(2, 4)]], quote({ z; }));
   })
+
   it("carries the srcrefs",
   {
     expect_false(is.null(attr(fun, "srcref")))
@@ -171,8 +181,7 @@ test_that("propert_both",
 
   it("removes the set property definition",
   {
-    test <- oopr("test",, { get:a <- \( ) { x; }; set:a <- \(y) { z; } });
-    expect_false(hasName(test$this, ".a"));
+    expect_false(hasName(test$encl$this, ".a"));
     expect_disjoint(".a", test$meta$names$data);
   })
 

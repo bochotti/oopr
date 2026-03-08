@@ -3,6 +3,7 @@
 #' @aliases NULL
 #' Object to collect error information.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+options("ooprCompilationErrorMessages" = TRUE);
 error <- \(call)
 {
   class   <- vector("character");
@@ -19,6 +20,7 @@ error <- \(call)
 
   throw <- \()
   {
+    if(getOption("ooprCompilationErrorMessages", TRUE))
     for(i in seq_len(size))
     {
       msg <- paste(strwrap(message$get(i), prefix = "  "), collapse = '\n');
