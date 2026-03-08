@@ -114,7 +114,7 @@ oopr <- \(name, inherits = NULL, definition, parent = parent.frame())
   env$meta$rmve(1L)$lock();
   encl <- enclosure(env, parent);
 
-  out <- constructor(name, character(0L), env$meta, encl, NULL, parent);
+  out <- constructor(name, character(0L), env$meta, encl, env$wsrc, parent);
   assign(name, out, envir = parent);
   return(out);
 }

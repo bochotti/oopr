@@ -220,7 +220,6 @@ evaluate_rhs <- \(env, expr, parent, err)
     env$this[[name]] <- obj;
   }
 
-  # ensure there is a constructor method - should move this after evaluate_src
   if(match(env$name, env$meta$names$data, 0L) == 0L)
   {
     obj <- \( ) { };
@@ -246,6 +245,14 @@ evaluate_src <- \(env, expr, err)
       attr(env$this[[name]], "srcref") <- env$src[[i]];
     }
   }
-  #env$src <- attr(expr, "wholeSrcref", exact = TRUE);
+  wsrc <- attr(expr, "wholeSrcref", exact = TRUE);
+  if(!is.null(wsrc))
+  {
+    i <- 1:2;
+    if(length(wsrc) == 6L) i <- c(i, 5L);
+    if(length(wsrc) == 8L) i <- c(i, 7L);
+    wsrc[i] <- env$src[[1L]][i];
+  }
+  env$wsrc <- wsrc;
   return();
 }

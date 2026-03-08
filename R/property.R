@@ -167,8 +167,14 @@ property_both <- \(i, name, type, j, meta, env, err)
 
   # merge the srcrefs
   src <- attr(get, "srcref", exact = TRUE);
-  src[c(3:4, 6L, 8L)] <- attr(set, "srcref", exact = TRUE)[c(3:4, 6L, 8L)];
-  attr(get, "srcref") <- src;
+  if(!is.null(src))
+  {
+    i <- 3:4;
+    if(length(src) == 6L) i <- c(i, 6L);
+    if(length(src) == 8L) i <- c(i, 8L);
+    src[i] <- attr(set, "srcref", exact = TRUE)[i];
+    attr(get, "srcref") <- src;
+  }
 
   property_create(name, get, set, env);
   rm(list = sprintf(".%s", name), envir = env$this);
