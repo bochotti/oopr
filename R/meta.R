@@ -5,19 +5,21 @@
 vector <- \(mode, size = 0L)
 {
   data <- base::vector(mode, size);
-
   rm(mode, size);
   makeActiveBinding("size", \( ) { return(length(data)); }, environment());
-
   get  <- \(i)    { return(data[i]); }
   set  <- \(i, x) { data[i] <<- x; }
-
-  push <- \(x)    { data[size + 1L] <<- x; }
-  peek <- \( )    { return(data[size]); }
-  pop  <- \( )    { x <- peek(); data <<- data[-size]; return(x); }
-
+  push <- \(x)    { data <<- c(data, x); }
   rmve <- \(i)    { data <<- if(is.logical(i)) data[!i] else data[-i]; }
-
+  subs <- \(x)    { return(match(data, x, 0L) > 0L); }
+  lock <- \( )
+  {
+    this <- parent.env(environment());
+    keep <- c("data", "get", "size", "subs");
+    rm(list = setdiff(names(this), keep), envir = this);
+    lockEnvironment(this, bindings = TRUE);
+    return(this);
+  }
   return(structure(environment(), class = "oopr_vector"));
 }
 
@@ -38,18 +40,46 @@ meta <- \(size = 0L)
 {
   names    <- vector("character", size);
   access   <- vector("character", size);
-  method   <- vector("logical", size);
-  property <- vector("character", size);
-  static   <- vector("logical", size);
-  class    <- vector("list", size);
+  method   <- vector("logical",   size);
+  property <- vector("character", size); # Note; gets changes to logical
+  static   <- vector("logical",   size);
+  class    <- vector("list",      size);
   inherit  <- vector("character", size);
+  rm(size);
+  makeActiveBinding("size", \( ) { return(names$size); }, environment());
 
-  push     <- \(...)
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  subs <- \(which, inverse = FALSE, ...)
   {
     dots <- list(...);
     this <- parent.env(environment());
-    for(nm in names(this)[-c(1:3)])
+    out  <- !logical(size);
+    for(nm in names(dots))
     {
+      if(match(nm, names(this), 0L) && inherits(this[[nm]], "oopr_vector"))
+      {
+        out <- out & this[[nm]]$subs(dots[[nm]]);
+      }
+    }
+    if(inverse)
+    {
+      out <- !out;
+    }
+    if(!missing(which))
+    {
+      out <- this[[which]]$get(out);
+    }
+    return(out);
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  push <- \(...)
+  {
+    dots <- list(...);
+    this <- parent.env(environment());
+    for(nm in names(this))
+    {
+      if(!inherits(this[[nm]], "oopr_vector")) next;
       if(match(nm, names(dots), 0L))
       {
         this[[nm]]$push(dots[[nm]]);
@@ -59,21 +89,42 @@ meta <- \(size = 0L)
         this[[nm]]$push(base::vector(typeof(this[[nm]]$data), 1L));
       }
     }
+    return(this);
   }
 
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   rmve <- \(i)
   {
     this <- parent.env(environment());
-    for(nm in names(this)[-c(1:3)])
+    for(nm in names(this))
     {
+      if(!inherits(this[[nm]], "oopr_vector")) next;
       this[[nm]]$rmve(i);
     }
+    return(this);
   }
 
-  rm(size);
-  makeActiveBinding("size", \( ) { return(names$size); }, environment());
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  lock <- \( )
+  {
+    this <- parent.env(environment());
+    rm(list = c("push", "rmve", "lock"), envir = this);
+    eapply(this, \(x) if(inherits(x, "oopr_vector")) { x$lock(); });
+    lockEnvironment(this, bindings = TRUE);
+    return(this);
+  }
 
   return(structure(environment(), class = "oopr_meta"));
+}
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @exportS3Method base::as.data.frame oopr_meta
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+as.data.frame.oopr_meta <- \(x, ...)
+{
+  x <- rev(eapply(x, identity));
+  x <- x[vapply(x, inherits, logical(1L), "oopr_vector")];
+  return(list2DF(lapply(x, `[[`, "data")));
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -81,6 +132,6 @@ meta <- \(size = 0L)
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 print.oopr_meta <- \(x, ...)
 {
-  print(list2DF(lapply(rev(eapply(x, identity)[-c(1:3)]), `[[`, "data")));
+  print(as.data.frame(x));
   return(invisible(x));
 }
