@@ -1,18 +1,33 @@
-expect_env <- \(object, expected)
+expect_env <- \(object, expected, inverse = FALSE)
 {
-  act <- quasi_label(rlang::enquo(object));
-  exp <- quasi_label(rlang::enquo(expected));
+  act <- deparse1(substitute(object));
+  exp <- deparse1(substitute(expected));
   if(is.function(object)) object <- environment(object);
   if(!is.environment(object))
   {
     fail(c(
-      sprintf("Expected %s to be an environment", act$lab)
-     ,sprintf("Actual mode: %s", mode(object))
+      sprintf("Expected %s to be an environment", act)
+     ,sprintf("  Actual mode: %s", mode(object))
     ));
-    invisible(object);
+    return(invisible(object));
   }
-  expect_equal(
-    format.default(object)   ,label = act$lab
-   ,format.default(expected) ,expected.label = exp$lab
-  );
+  object   <- format.default(object);
+  expected <- format.default(expected);
+  test     <- identical(object, expected);
+  if(inverse) test <- !test;
+  if(test)
+  {
+    pass();
+  }
+  else
+  {
+    fail(c(
+      sprintf("Expected %s address to %smatch %s"
+              ,act, if(inverse) "not " else "", exp
+      )
+     ,sprintf("  %s: %s", format(c(act, exp))[1L], object)
+     ,sprintf("  %s: %s", format(c(act, exp))[2L], expected)
+    ));
+  }
+  return(invisible(object))
 }

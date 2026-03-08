@@ -19,8 +19,18 @@ test_that("oopr asserts",
 
   it("must have an environment for a parent",
   {
-    expect_error(oopr("class",,{}, parent = NULL));
-    expect_no_error(oopr("class",,{}, parent = emptyenv()));
+    expect_error(oopr("test",,{}, parent = NULL));
+    expect_no_error(oopr("test",,{}, parent = environment()));
   })
 
+})
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("is.oopr",
+{
+  test <- oopr("test",, { })()
+  expect_true(is.oopr(test));
+  expect_true(is.oopr(test, "test"));
+  expect_false(is.oopr(1L));
+  expect_false(is.oopr(test, "test2"));
 })

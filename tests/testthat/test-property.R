@@ -36,10 +36,10 @@ test_that("specifiers_property",
 {
   it("allows get or set",
   {
-    test <- oopr("test",, { get:a <- \( ) { } })
-    expect_equal(test$meta$property$get(1L), "get");
-    test <- oopr("test",, { set:a <- \(x) { } })
-    expect_equal(test$meta$property$get(1L), "set");
+    oopr("test",, { get:a <- \( ) { } })
+    expect_equal(test@meta$property$get(1L), "get");
+    oopr("test",, { set:a <- \(x) { } })
+    expect_equal(test@meta$property$get(1L), "set");
   })
 
   it("does not allow both get and set at the same time",
@@ -52,8 +52,8 @@ test_that("specifiers_property",
 
   it("allows get and set with two seperate definitions",
   {
-    test <- oopr("test",, { get:a <- \( ) { }; set:a <- \(x) { } })
-    expect_equal(test$meta$property$get(1L), "both");
+    oopr("test",, { get:a <- \( ) { }; set:a <- \(x) { } })
+    expect_equal(test@meta$property$get(1L), "both");
   })
 })
 
@@ -75,8 +75,8 @@ test_that("property_get",
     );
   })
 
-  test <- oopr("test",, { get:a <- \( ) { } });
-  fun  <- activeBindingFunction('a', test$encl$this);
+  oopr("test",, { get:a <- \( ) { } });
+  fun  <- activeBindingFunction('a', test@encl$this);
   it("creates the property function",
   {
     expect_equal(formals(fun), as.pairlist(alist(x=)));
@@ -111,8 +111,8 @@ test_that("property_set",
     );
   })
 
-  test <- oopr("test",, { set:a <- \(y) { } })
-  fun  <- activeBindingFunction('a', test$encl$this);
+  oopr("test",, { set:a <- \(y) { } })
+  fun  <- activeBindingFunction('a', test@encl$this);
   it("creates the property function",
   {
     expect_equal(formals(fun), as.pairlist(alist(y=)));
@@ -163,8 +163,8 @@ test_that("propert_both",
     );
   })
 
-  test <- oopr("test",, { get:a <- \( ) { x; }; set:a <- \(y) { z; } })
-  fun  <- activeBindingFunction('a', test$encl$this)
+  oopr("test",, { get:a <- \( ) { x; }; set:a <- \(y) { z; } })
+  fun  <- activeBindingFunction('a', test@encl$this)
 
   it("places get and set in correct spot",
   {
@@ -181,8 +181,8 @@ test_that("propert_both",
 
   it("removes the set property definition",
   {
-    expect_false(hasName(test$encl$this, ".a"));
-    expect_disjoint(".a", test$meta$names$data);
+    expect_false(hasName(test@encl$this, ".a"));
+    expect_disjoint(".a", test@meta$names$data);
   })
 
 })

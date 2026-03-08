@@ -1,3 +1,4 @@
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 test_that("interface",
 {
   env <- new.env();
@@ -67,42 +68,44 @@ test_that("interface",
   })
 })
 
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 test_that("enclosure",
 {
   it("creates the enclosure",
   {
     test <- oopr("test",, { a <- \( ) { } })
-    expect_true(is.environment(test$encl));
-    expect_true(is.environment(test$encl$this));
-    expect_true(is.environment(test$encl$.this));
-    expect_true(environmentIsLocked(test$encl));
-    expect_true(bindingIsLocked('a', test$encl$this));
+    expect_true(is.environment(test@encl));
+    expect_true(is.environment(test@encl$this));
+    expect_true(is.environment(test@encl$.this));
+    expect_true(environmentIsLocked(test@encl));
+    expect_true(bindingIsLocked('a', test@encl$this));
+    expect_env(parent.env(test@encl), environment())
   })
 
   it("changes the environment of functions",
   {
     test <- oopr("test",, { a <- \( ) { } })
-    expect_env(test$encl$this$a, test$encl);
+    expect_env(test@encl$this$a, test@encl);
   })
 
   it("changes the environment of active bindings",
   {
     test <- oopr("test",, { get:a <- \( ) { } })
-    expect_env(activeBindingFunction('a', test$encl$this), test$encl);
+    expect_env(activeBindingFunction('a', test@encl$this), test@encl);
   })
 
   it("keeps fields as-is",
   {
     test <- oopr("test",, { a <- 1L });
-    expect_false(bindingIsActive('a', test$encl$this));
-    expect_equal(test$encl$this$a, 1L);
+    expect_false(bindingIsActive('a', test@encl$this));
+    expect_equal(test@encl$this$a, 1L);
   })
 
   # it("does not lock static and places in .this",
   # {
   #   test <- oopr("test",, { static:a <- 1L });
-  #   expect_false(bindingIsActive('a', test$encl$this));
-  #   expect_equal(test$encl$this$a, 1L);
+  #   expect_false(bindingIsActive('a', test@encl$this));
+  #   expect_equal(test@encl$this$a, 1L);
   # })
 
 })

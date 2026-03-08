@@ -46,7 +46,7 @@ SEXP symlink(SEXP tenv, SEXP tname, SEXP env, SEXP name)
       Rf_error("`tname` must be a symbol or single character vector");
     }
     tname = Rf_installChar(STRING_ELT(tname, 0));
-    if(Rf_findVarInFrame3(ENCLOS(tenv), tname, FALSE) == R_UnboundValue)
+    if(!R_existsVarInFrame(ENCLOS(tenv), tname))
     {
       Rf_error("`tname` does not exist in the parent environment of `tenv`");
     }
@@ -59,11 +59,12 @@ SEXP symlink(SEXP tenv, SEXP tname, SEXP env, SEXP name)
       Rf_error("`name` must be a symbol or single character vector");
     }
     name = Rf_installChar(STRING_ELT(name, 0));
-    if(Rf_findVarInFrame3(tenv, name, FALSE) == R_UnboundValue)
+
+    if(!R_existsVarInFrame(tenv, name))
     {
       Rf_error("`name` does not exist in `tenv`");
     }
-    if(Rf_findVarInFrame3(env, name, FALSE) != R_UnboundValue)
+    if(R_existsVarInFrame(env, name))
     {
       Rf_error("`name` already exists in `env`");
     }
