@@ -16,6 +16,7 @@ public:
   SEXP  name(int& i);
   bool  isMethod(int& i);
   bool  isProperty(int& i);
+  bool  isStatic(int& i);
   pSEXP subName(std::string access, bool inverse = false);
 private:
   std::map<std::string, SEXP> meta;

@@ -186,3 +186,22 @@ test_that("propert_both",
   })
 
 })
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("property static",
+{
+  it("enforces both get and set to be static",
+  {
+    expect_error(
+      oopr("test",, { get:a <- \( ) { }; static:set:a <- \(x) { }})
+     ,class = "ooprBothPropertyNotSameStatic"
+    );
+    expect_error(
+      oopr("test",, { static:get:a <- \( ) { }; set:a <- \(x) { }})
+     ,class = "ooprBothPropertyNotSameStatic"
+    );
+    expect_no_error(
+      oopr("test",, { static:get:a <- \( ) { }; static:set:a <- \(x) { }})
+    );
+  })
+})

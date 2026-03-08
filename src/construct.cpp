@@ -43,15 +43,19 @@ SEXP construct_make(SEXP gen)
     if(meta.isMethod(i))
     {
       funs.emplace_back(Rf_duplicate(Rf_findVar(nm, ithis)));
-      SET_CLOENV(funs.back(), encl);
+      if(!meta.isStatic(i)) SET_CLOENV(funs.back(), encl);
       Rf_defineVar(nm, funs.back(), othis);
       R_LockBinding(nm, othis);
     }
     else if(meta.isProperty(i))
     {
       funs.emplace_back(Rf_duplicate(R_ActiveBindingFunction(nm, ithis)));
-      SET_CLOENV(funs.back(), encl);
+      if(!meta.isStatic(i)) SET_CLOENV(funs.back(), encl);
       R_MakeActiveBinding(nm, funs.back(), othis);
+    }
+    else if(meta.isStatic(i))
+    {
+      symlink(ithis, Rf_install("this"), othis, nm);
     }
     else
     {

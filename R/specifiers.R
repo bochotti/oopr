@@ -15,6 +15,7 @@ specifiers <- \(env, err)
     if(!specifiers_dupes(i, name, spec, env, err))          next;
     if(!specifiers_access(i, name, spec, meta, env, err))   next;
     if(!specifiers_property(i, name, spec, meta, env, err)) next;
+    if(!specifiers_static(i, name, spec, meta, env, err))   next;
     specifiers_unknown(i, name, spec, env, err);
   }
   return();

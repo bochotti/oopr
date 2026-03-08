@@ -159,6 +159,17 @@ property_both <- \(i, name, type, j, meta, env, err)
     env$succ$set(c(i, j), FALSE);
     return(FALSE);
   }
+  if(meta$static$get(i) != meta$static$get(j))
+  {
+    err$push(
+      cls = "ooprBothPropertyNotSameStatic"
+     ,src = env$src[[j]]
+     ,msg = "Property `%s` get and set must both be static/non-static."
+     ,name
+    );
+    env$succ$set(c(i, j), FALSE);
+    return(FALSE);
+  }
 
   get <- env$this[[name]];
   if(!property_get(i, name, get, env, err)) return(FALSE);

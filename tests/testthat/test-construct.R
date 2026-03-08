@@ -13,11 +13,15 @@ test_that("ooprC",
   it("uses $ to access the interface",
   {
     oopr("test",, { a <- 2L })
-    expect_no_error(test$a);
+    expect_error(test$a, "`a` is not a public static member");
     expect_error(
       test$a <- 2L
      ,"cannot add bindings to a locked environment"
-    )
+    );
+    oopr("test",, { static:a <- 2L })
+    expect_no_error(test$a);
+    expect_no_error(test$a <- 2L);
+    expect_true(is.ooprC(test, "test"));
   })
 
   it("can be checked with is.ooprC",

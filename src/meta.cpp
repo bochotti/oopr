@@ -37,6 +37,11 @@ bool ooprMeta::isProperty(int& i)
   return strlen(getStr("property", i)) > 0;
 }
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+bool ooprMeta::isStatic(int& i)
+{
+  return getLgl("static", i);
+}
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 bool ooprMeta::getLgl(std::string x, int& i)
 {
   return LOGICAL_ELT(meta[x], i) == 1;

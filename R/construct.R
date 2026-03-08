@@ -25,7 +25,9 @@ ooprC <- setClass("ooprC", contains = "function", slots = c(
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 `@<-.ooprC` <- \(object, name, value)
 {
-  stop("ooprC objects are immutable", call. = FALSE);
+  sym  <- substitute(value);
+  call <- call("<-", call('@', as.name(object@name), name), sym);
+  stop(simpleError("ooprC objects are immutable", call));
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -33,7 +35,14 @@ ooprC <- setClass("ooprC", contains = "function", slots = c(
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 `$.ooprC` <- \(x, name)
 {
-  return(x@encl$.this[[name]]);
+  .this <- x@encl$.this;
+  if(!hasName(.this, name))
+  {
+    msg  <- sprintf("`%s` is not a public static member", name);
+    call <- call('$', as.name(x@name), name);
+    stop(simpleError(msg, call));
+  }
+  return(.this[[name]]);
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -41,7 +50,17 @@ ooprC <- setClass("ooprC", contains = "function", slots = c(
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 `$<-.ooprC` <- \(x, name, value)
 {
-  x@encl$.this[[name]] <- value;
+  sym <- substitute(value);
+  op <- options(show.error.messages = FALSE, error = \() {
+    msg  <- geterrmessage();
+    call <- deparse1(call("<-", call("$", as.name(x@name), name), sym));
+    msg  <- sub(".this[[name]] <- value", fixed = TRUE, call, msg);
+    cat(msg);
+  })
+  on.exit(options(op));
+  .this <- x@encl$.this;
+  .this[[name]] <- value;
+  return(invisible(x));
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##

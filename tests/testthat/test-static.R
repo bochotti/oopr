@@ -1,0 +1,52 @@
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("specifiers_static",
+{
+  it("saves static in meta",
+  {
+    oopr("test",, { static:a <- 1L; })
+    expect_true(test@meta$static$get(1L));
+  })
+})
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("static",
+{
+  it("creates references to the constructors enclosure",
+  {
+    oopr("test",, {
+      public:
+        static:a     <- 1L;
+        static:b     <- \( ) { }
+        static:get:c <- \( ) { }
+    })
+    expect_false(bindingIsLocked('a', test@encl$this));
+    expect_false(bindingIsLocked('c', test@encl$this));
+    obj <- test();
+    expect_env(activeBindingFunction('a', obj), test@encl);
+    expect_env(obj$b, test@encl);
+    expect_env(activeBindingFunction('c', obj), test@encl);
+  })
+
+  it("shares state between class instances",
+  {
+    oopr("test",, {
+      public:
+        static:a     <- 1L;
+        static:b     <- \( ) { return(this$a); }
+        static:get:c <- \( ) { return(this$c_); }
+        static:set:c <- \(x) { this$c_ <- x; }
+      private:
+        static:c_    <- 'a';
+    })
+    obj1 <- test();
+    obj2 <- test();
+    obj1$a <- 2L;
+    expect_equal(obj2$a, 2L);
+    expect_equal(test$a, 2L);
+    expect_equal(obj2$b(), 2L);
+    expect_equal(test$b(), 2L);
+    obj1$c <- 'b';
+    expect_equal(obj2$c, 'b');
+    expect_equal(test$c, 'b');
+  })
+})
