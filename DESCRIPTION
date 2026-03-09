@@ -16,6 +16,7 @@ Imports:
     methods
 Config/testthat/edition: 3
 Collate: 
+    'oopr.R'
     'construct.R'
     'definition.R'
     'enclosure.R'
@@ -23,7 +24,6 @@ Collate:
     'evaluate.R'
     'install.R'
     'meta.R'
-    'oopr.R'
     'property.R'
     'reference.R'
     'specifiers.R'

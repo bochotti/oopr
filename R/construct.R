@@ -66,6 +66,42 @@ ooprC <- setClass("ooprC", contains = "function", slots = c(
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @exportS3Method base::names ooprC
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+names.ooprC <- \(x) { return(names(x@encl$.this)); }
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @exportS3Method base::format ooprC
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+format.ooprC <- \(x, ...)
+{
+  return(sub(sprintf("(%s)", x@name), "\\1 constructor", format(x@encl$.this)));
+}
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+show <- methods::show;
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @rdname oopr
+#' @keywords internal
+#' @exportMethod show
+#' @param object `ooprC`
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+setMethod("show", c(object = "ooprC"), \(object)
+{
+  bot <- capture.output(str(object@encl$.this));
+  top <- format(object);
+  usg <- deparse(object@.Data, getOption("width"), nlines = 1L);
+  usg <- sub("function ", object@name, usg);
+  cat(sprintf("%s\nUsage:\n  %s\n", top, usg));
+  if(length(bot) > 1L)
+  {
+    bot[1L] <- "Static Members:";
+    cat(bot, sep = '\n');
+  }
+  return(invisible(object))
+})
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @rdname is.oopr
 #' @export
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -87,9 +123,7 @@ constructor <- \(name, inhr, meta, encl, src = NULL, parent)
   args <- formals(encl$this[[name]]);
   formals(fun) <- args;
   body <- body(fun);
-  # body[[c(2:3)]][2:3] <- list(name, parent);
-  # body[[4:3]]         <- name;
-  body <- do.call(substitute, list(body, list(name = name, parent = parent)));
+  body <- do.call(substitute, list(body, list(class = name, within = parent)));
   body[[4L]] <- as.call(c(body[[4L]], lapply(names(args), as.name)));
   body(fun)  <- body;
   attr(fun, "srcref") <- src;
@@ -102,9 +136,9 @@ constructor <- \(name, inhr, meta, encl, src = NULL, parent)
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 construct_fun <- \(...)
 {
-  .  <- base::get(name, envir = parent); #<- any unintended consequences?
+  .  <- base::get(class, envir = within); #<- any unintended consequences?
   .. <- base::.Call("construct_make", ., PACKAGE = "oopr");
-  ..$this[[name]];
+  ..$this[[class]];
   .. <- base::.Call("construct_clean", ., .., PACKAGE = "oopr");
   return(..);
 }

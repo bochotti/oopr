@@ -35,7 +35,7 @@
 #'
 #' @returns
 #' An `ooprC` object with slots below. To construct a new class instance,
-#' call the object as a normal function.
+#' simply call the object as a normal function.
 #'
 #' @examples
 #' ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -117,6 +117,111 @@ oopr <- \(name, inherits = NULL, definition, parent = parent.frame())
   out <- constructor(name, character(0L), env$meta, encl, env$wsrc, parent);
   assign(name, out, envir = parent);
   return(out);
+}
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @exportS3Method base::names oopr
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+names.oopr <- \(x, ...)
+{
+  names <- NextMethod();
+  class <- class(x)[1L];
+  gen   <- get0(class, envir = x);
+  if(is.ooprC(gen, class))
+  {
+    names <- gen@meta$subs("names", names = names);
+  }
+  return(names);
+}
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @exportS3Method base::format oopr
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+format.oopr <- \(x, ...)
+{
+  return(sub("environment", class(x)[1L], format.default(x)))
+}
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @exportS3Method utils::str oopr
+#' @importFrom utils str capture.output
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+str.oopr <- \(
+  object
+ ,max.level     = 5
+ ,give.attr     = FALSE
+ ,width         = getOption("width")
+ ,nest.lev      = 0L
+ ,indent.str    = " "
+ ,comp.str      = "$"
+ ,strict.width  = "cut"
+ ,deparse.lines = 1L
+ ,...
+)
+{
+  short <- \(x)
+  {
+    cut    <- nchar(x) > width;
+    x[cut] <- sprintf("%s .. ", substr(x[cut], 1L, width - 4L));
+    return(x);
+  }
+  str.function <- \(x, ...)
+  {
+    cat(sub("function ", "\\\\", deparse(x, 500L, nlines = 1L)), '\n');
+    return(invisible(x));
+  }
+  out <- capture.output({
+    top <- format(object);
+    cat(top, '\n', sep = "");
+    if(nest.lev < max.level)
+    {
+      nms  <- names(object);
+      wnms <- format(nms);
+      len  <- 1L + nchar(comp.str) + nchar(wnms[1]) + 1L;
+      for(i in seq_along(nms))
+      {
+        if(i == length(nms))
+        {
+          pre <- "\u2514\u2500";
+          ind <- "  "
+        }
+        else
+        {
+          pre <- "\u251c\u2500";
+          ind <- "\u2502 ";
+        }
+        cat(indent.str, pre, comp.str, wnms[i], ":", sep = "");
+        obj <- tryCatch(object[[nms[i]]], error = identity);
+        if(inherits(obj, "error")) { cat("<error>\n"); next; }
+        pre <- sprintf("%s%s%s", indent.str, ind, strrep(' ', len));
+        str(
+          obj
+         ,max.level    = max.level
+         ,give.attr    = give.attr
+         ,width        = width
+         ,nest.lev     = nest.lev + 1L
+         ,indent.str   = pre
+         ,comp.str     = comp.str
+         ,strict.width = strict.width
+        );
+      }
+    }
+  });
+  if(nest.lev == 0L)
+  {
+    out <- short(out);
+  }
+  cat(out, sep = '\n');
+  return(invisible(object));
+}
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @exportS3Method base::print oopr
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+print.oopr <- \(x, ...)
+{
+  if(hasName(x, "print")) x$print(...) else str(x);
+  return(invisible(x))
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##

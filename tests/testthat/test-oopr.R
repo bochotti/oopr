@@ -34,3 +34,24 @@ test_that("is.oopr",
   expect_false(is.oopr(1L));
   expect_false(is.oopr(test, "test2"));
 })
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("str.oopr",
+{
+  test <- oopr("test",, {
+    public:
+      static:very_long <- 1L;
+      member_names <- \(with, some, arguments) { }
+      in_this_class <- list(a=1, b=2, c=3);
+      get:err <- \( ) stop("blah blah")
+      null    <- NULL
+      dbl <-1.0
+      lgl <- TRUE
+      raw <- raw(1)
+      cmp <- complex(1)
+  })
+  obj  <- test();
+  obj$very_long <- test();
+  obj$very_long <- obj;
+  str(obj)
+})
