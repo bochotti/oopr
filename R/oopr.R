@@ -1,5 +1,5 @@
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-#' @name oopr
+#' @rdname oopr
 #' @title oopr
 #' @export
 #' @description
@@ -66,7 +66,7 @@
 #'     greet <- \( )
 #'     {
 #'       cat(sprintf(
-#'         "Hello, my name is %s %s. My age is %i."
+#'         "Hello, my name is %s %s, aged %i.\n"
 #'        ,this$first_, this$last_, this$age_
 #'       ));
 #'       return(invisible(this));

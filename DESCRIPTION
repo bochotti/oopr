@@ -9,5 +9,24 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Suggests: 
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    callr,
+    withr
+Imports:
+    methods
 Config/testthat/edition: 3
+Collate: 
+    'construct.R'
+    'definition.R'
+    'enclosure.R'
+    'error.R'
+    'evaluate.R'
+    'install.R'
+    'meta.R'
+    'oopr.R'
+    'property.R'
+    'reference.R'
+    'specifiers.R'
+    'static.R'
+    'utils.R'
+    'zzz.R'

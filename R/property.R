@@ -181,7 +181,7 @@ property_both <- \(i, name, type, j, meta, env, err)
   if(!is.null(src))
   {
     i <- 3:4;
-    if(length(src) == 6L) i <- c(i, 6L);
+    if(length(src) >= 6L) i <- c(i, 6L);
     if(length(src) == 8L) i <- c(i, 8L);
     src[i] <- attr(set, "srcref", exact = TRUE)[i];
     attr(get, "srcref") <- src;

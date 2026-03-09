@@ -85,19 +85,3 @@ test_that("symlink",
     );
   })
 })
-
-test_that("benchmark",
-{
-  skip("Benchmarking");
-  isname2 <- \(x, names) is.name(x) && !is.na(match(as.character(x), names))
-  microbenchmark::microbenchmark(
-    isname2(quote(a), "a")
-   ,isname(quote(a), "a")
-   ,check = "equal"
-  );
-  microbenchmark::microbenchmark(
-    isname2(quote(a), letters)
-   ,isname(quote(a), letters)
-   ,check = "equal"
-  );
-})

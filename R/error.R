@@ -21,7 +21,7 @@ error <- \(call)
   throw <- \()
   {
     if(getOption("ooprCompilationErrorMessages", TRUE))
-    for(i in seq_len(size))
+    for(i in seq_len(class$size))
     {
       msg <- paste(strwrap(message$get(i), prefix = "  "), collapse = '\n');
       if(!is.null(src <- srcref$get(i)[[1L]]))

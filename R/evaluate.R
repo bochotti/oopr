@@ -46,11 +46,13 @@ evaluate_env <- \(name, expr, err)
   env$succ  <- vector("logical", size);
   env$src   <- attr(expr, "srcref", exact = TRUE);
 
-  along <- \( ) { return(which(succ$data)); }
+  along <- \( ) { }
+  body(along) <- quote({ return(which(succ$data)) })
   environment(along) <- env;
   makeActiveBinding("along", along, env);
 
-  size <- \( ) { return(succ$size); }
+  size <- \( ) { }
+  body(size) <- quote({ return(succ$size); })
   environment(size) <- env;
   makeActiveBinding("size", size, env);
 
@@ -249,7 +251,7 @@ evaluate_src <- \(env, expr, err)
   if(!is.null(wsrc))
   {
     i <- 1:2;
-    if(length(wsrc) == 6L) i <- c(i, 5L);
+    if(length(wsrc) >= 6L) i <- c(i, 5L);
     if(length(wsrc) == 8L) i <- c(i, 7L);
     wsrc[i] <- env$src[[1L]][i];
   }

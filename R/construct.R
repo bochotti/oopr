@@ -1,5 +1,6 @@
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-#' @rdname oopr
+#' @name oopr
+#' @importFrom methods new
 #'
 #' @slot name `character(1L)` \cr
 #'            The name of the class.
@@ -32,11 +33,12 @@ ooprC <- setClass("ooprC", contains = "function", slots = c(
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @export
+#' @importFrom utils hasName
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 `$.ooprC` <- \(x, name)
 {
   .this <- x@encl$.this;
-  if(!hasName(.this, name))
+  if(!utils::hasName(.this, name))
   {
     msg  <- sprintf("`%s` is not a public static member", name);
     call <- call('$', as.name(x@name), name);
@@ -65,6 +67,7 @@ ooprC <- setClass("ooprC", contains = "function", slots = c(
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @rdname is.oopr
+#' @export
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 is.ooprC <- \(x, name = character(0L))
 {
@@ -84,6 +87,8 @@ constructor <- \(name, inhr, meta, encl, src = NULL, parent)
   args <- formals(encl$this[[name]]);
   formals(fun) <- args;
   body <- body(fun);
+  # body[[c(2:3)]][2:3] <- list(name, parent);
+  # body[[4:3]]         <- name;
   body <- do.call(substitute, list(body, list(name = name, parent = parent)));
   body[[4L]] <- as.call(c(body[[4L]], lapply(names(args), as.name)));
   body(fun)  <- body;
