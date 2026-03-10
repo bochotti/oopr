@@ -63,10 +63,10 @@ property <- \(env, meta, err)
     type <- meta$property$get(i);
 
     # check if there are both get & set for the same name
-    j <- which(meta$names$data == sprintf(".%s", name));
+    j <- which(meta$names$subs(sprintf(".%s", name)));
     if(length(j))
     {
-      jj[[length(jj) + 1L]] <- j;
+      jj[length(jj) + 1L] <- j;
       property_both(i, name, type, j, meta, env, err);
       meta$property$set(i, "both");
     }
@@ -121,7 +121,7 @@ property_set <- \(i, name, fun, env, err)
       cls = "ooprSetPropertyNotOneArg"
      ,src = env$src[[i]]
      ,msg = "Set property `%s` must be a function with one argument with no
-             default argument."
+             default value."
      ,name
     );
     env$succ$set(i, FALSE);

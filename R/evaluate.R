@@ -29,6 +29,8 @@ evaluate <- \(name, expr, parent, err)
 #'              Vector indicating if member is successful.
 #' @field src   `list()` \cr
 #'              Srcref of `expr`.
+#' @field wsrc  `srcref` \cr
+#'              wholeSrcref of `expr`.
 #' @field along `integer()` \cr
 #'              The positions of each successful member - allows for skipping
 #'              over them for future operations.
@@ -45,6 +47,7 @@ evaluate_env <- \(name, expr, err)
   env$this  <- new.env(parent = emptyenv(), size = size);
   env$succ  <- vector("logical", size);
   env$src   <- attr(expr, "srcref", exact = TRUE);
+  env$wsrc  <- NULL;
 
   along <- \( ) { }
   body(along) <- quote({ return(which(succ$data)) })
@@ -96,29 +99,29 @@ evaluate_lhs <- \(env, expr, err)
   {
     if(is.name(lhs))
     {
-      # pure names will be assigned
-      if(skip)
+      # symbols will be assigned
+      if(named)
       {
         # as a specifier
-        env$spec$set(i, list(c(env$spec$get(i)[[1L]], as.character(lhs))));
+        specs[length(specs) + 1L] <<- as.character(lhs);
       }
       else
       {
-        # or a name if not yet defined
+        # or the name if not yet defined
         env$meta$names$set(i, as.character(lhs));
-        skip <<- TRUE;
+        named <<- TRUE;
       }
     }
-    else if(!skip && iscall(lhs, '~') && length(lhs) == 2L && is.name(lhs[[2L]]))
+    else if(!named && iscall(lhs, '~') && length(lhs)==2L && is.name(lhs[[2L]]))
     {
       # a name can be prefixed with `~`, for destructor method
       env$meta$names$set(i, sprintf("~%s", as.character(lhs[[2L]])));
-      skip <<- TRUE;
+      named <<- TRUE;
     }
     else if(iscall(lhs, ':'))
     {
-      # rhs of `:` are saved a specifier, lhs recurses
-      env$spec$set(i, list(c(env$spec$get(i)[[1L]], as.character(lhs[[3L]]))));
+      # rhs of `:` is saved as a specifier, lhs recurses
+      specs[length(specs) + 1L] <<- as.character(lhs[[3L]]);
       t(i, lhs[[2L]], env, err);
     }
     else
@@ -134,9 +137,11 @@ evaluate_lhs <- \(env, expr, err)
 
   for(i in env$along)
   {
+    named <- FALSE;
+    specs <- character(0L);
+
     # collect names and specifiers
     lhs  <- expr[[i]][[2L]];
-    skip <- FALSE;
     if(iscall(lhs, ':'))
     {
       # do rhs of `:` first, to collect the name of member
@@ -148,6 +153,7 @@ evaluate_lhs <- \(env, expr, err)
       # when no specifiers are used
       t(i, lhs, env, err);
     }
+    env$spec$set(i, list(specs));
   }
   return();
 }
@@ -175,7 +181,7 @@ evaluate_nme <- \(env, err)
     }
 
     # check for dupes
-    dupe <- match(name, env$meta$names$data[seq_len(i - 1L)], 0L);
+    dupe <- match(name, env$meta$names$get(seq_len(i - 1L)), 0L);
     if(dupe != 0)
     {
       # exception for properties
@@ -222,13 +228,14 @@ evaluate_rhs <- \(env, expr, parent, err)
     env$this[[name]] <- obj;
   }
 
+  # if a constructor method is not defined, create an empty one
   if(match(env$name, env$meta$names$data, 0L) == 0L)
   {
-    obj <- \( ) { };
+    obj <- \( ) { }
     environment(obj)     <- eenv;
     attr(obj, "srcref")  <- env$src[[1L]];
     env$this[[env$name]] <- obj;
-    env$meta$push(names = env$name, access = "private", method = TRUE)
+    env$meta$push(names = env$name, access = "private", method = TRUE);
   }
   return();
 }
@@ -247,9 +254,11 @@ evaluate_src <- \(env, expr, err)
       attr(env$this[[name]], "srcref") <- env$src[[i]];
     }
   }
+
   wsrc <- attr(expr, "wholeSrcref", exact = TRUE);
   if(!is.null(wsrc))
   {
+    # wholeSrcref starts at the beginning of the file - so restrict it to `{`
     i <- 1:2;
     if(length(wsrc) >= 6L) i <- c(i, 5L);
     if(length(wsrc) == 8L) i <- c(i, 7L);
