@@ -95,7 +95,7 @@ evaluate_expr <- \(env, expr, err)
 evaluate_lhs <- \(env, expr, err)
 {
   # pull names out of `:` calls
-  t <- \(i, lhs, env, err)
+  walk <- \(i, lhs, env, err)
   {
     if(is.name(lhs))
     {
@@ -122,7 +122,7 @@ evaluate_lhs <- \(env, expr, err)
     {
       # rhs of `:` is saved as a specifier, lhs recurses
       specs[length(specs) + 1L] <<- as.character(lhs[[3L]]);
-      t(i, lhs[[2L]], env, err);
+      walk(i, lhs[[2L]], env, err);
     }
     else
     {
@@ -145,13 +145,13 @@ evaluate_lhs <- \(env, expr, err)
     if(iscall(lhs, ':'))
     {
       # do rhs of `:` first, to collect the name of member
-      t(i, lhs[[3L]], env, err);
-      t(i, lhs[[2L]], env, err);
+      walk(i, lhs[[3L]], env, err);
+      walk(i, lhs[[2L]], env, err);
     }
     else
     {
       # when no specifiers are used
-      t(i, lhs, env, err);
+      walk(i, lhs, env, err);
     }
     env$spec$set(i, list(specs));
   }
