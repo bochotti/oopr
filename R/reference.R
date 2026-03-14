@@ -78,14 +78,21 @@ references_method <- \(i, name, refs, meta, type = c("this", ".this"), env, err)
     if(!match(ref$encl, type, 0L)) next;
     j <- which(meta$subs(names = ref$memb));
     if(!references_exist(i, name, j, meta, ref, env, err)) next;
-    switch(ref$type,
+    if(nzchar(meta$property$get(j)))
+    {
+      references_property(i, name, j, meta, ref, env, err);
+    }
+    else switch(ref$type,
       assign =
       {
-        references_assign(i, name, j, meta, ref, "method", env, err);
+        if(meta$method$get(j))
+        {
+          references_assign(i, name, j, meta, ref, "method", env, err);
+        }
       }
      ,call   =
       {
-        references_call(i, name, j, meta, ref, env, err);
+        references_call(i, name, j, meta, ref, "method", env, err);
       }
     )
   }
@@ -110,15 +117,14 @@ references_exist <- \(i, name, j, meta, ref, env, err)
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @intern
-#' Must not assign to methods.
+#' Must not access.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-references_assign <- \(i, name, j, meta, ref, type = "method", env, err)
+references_access <- \(i, name, j, meta, ref, type = "method", env, err)
 {
-  if(!meta$method$get(j)) return(TRUE);
   err$push(
-    cls = "ooprRefBadAssignment"
+    cls = "ooprRefBadAccess"
    ,src = ref$src %||% env$src[[i]]
-   ,msg = "Member `%s` is attempting to assign to %s `%s`."
+   ,msg = "Member `%s` is attempting to access %s `%s`."
    ,name, type, ref$memb
   );
   env$succ$set(i, FALSE);
@@ -126,9 +132,24 @@ references_assign <- \(i, name, j, meta, ref, type = "method", env, err)
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @intern
-#' Can only call methods and not fields. Call must match signature.
+#' Must not assign.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-references_call <- \(i, name, j, meta, ref, env, err)
+references_assign <- \(i, name, j, meta, ref, type = "method", env, err)
+{
+  err$push(
+    cls = "ooprRefBadAssignment"
+   ,src = ref$src %||% env$src[[i]]
+   ,msg = "Member `%s` is attempting to assign into %s `%s`."
+   ,name, type, ref$memb
+  );
+  env$succ$set(i, FALSE);
+}
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @intern
+#' Can only call methods, if method then call must match signature.
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+references_call <- \(i, name, j, meta, ref, type = "field", env, err)
 {
   if(meta$method$get(j))
   {
@@ -149,23 +170,23 @@ references_call <- \(i, name, j, meta, ref, env, err)
   else
   {
     err$push(
-      cls = "ooprRefCallingNonMethod"
+      cls = "ooprRefBadCall"
      ,src = ref$src %||% env$src[[i]]
-     ,msg = "Member `%s` is attempting to call non-method `%s`."
-     ,name, ref$memb
+     ,msg = "Member `%s` is attempting to call %s `%s`."
+     ,name, type, ref$memb
     );
     env$succ$set(i, FALSE);
   }
+  return();
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @intern
-#' References to `this`.
+#' References to `this` must not be an assignment or call.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 references_this <- \(i, name, type = c("this", ".this"), env, err)
 {
-  fun  <- env$this[[name]];
-  expr <- body(fun);
+  expr <- body(env$this[[name]]);
   ats  <- findInExpr(expr, \(e) {
     iscall(e, c("<-", "=", "<<-")) && isname(e[[2L]], type)
   });

@@ -205,3 +205,33 @@ test_that("property static",
     );
   })
 })
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("references_property",
+{
+  it("does not allow setting a get-only property",
+  {
+    expect_error(
+      oopr("test",, { get:a <- \( ) { }; b <- \( ) { this$a <- 1L; }})
+     ,class = "ooprRefBadAssignment"
+    );
+  })
+
+  it("does not allow accessing a set-only property",
+  {
+    expect_error(
+      oopr("test",, { set:a <- \(x) { }; b <- \( ) { this$a; }})
+     ,class = "ooprRefBadAccess"
+    );
+  })
+
+  it("does not allow calling a property",
+  {
+    expect_error(
+      oopr("test",, { get:a <- \( ) { }; b <- \( ) { this$a(); }})
+     ,class = "ooprRefBadCall"
+    );
+  })
+
+
+})

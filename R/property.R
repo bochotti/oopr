@@ -1,6 +1,6 @@
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @intern
-#' Check if duplicate name is due to property get/set
+#' Check if duplicate name is due to property get/set.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 evaluate_property <- \(i, name, j, env)
 {
@@ -20,7 +20,7 @@ evaluate_property <- \(i, name, j, env)
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @intern
-#' Collect specifiers for properties
+#' Collect specifiers for properties.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 specifiers_property <- \(i, name, spec, meta, env, err)
 {
@@ -193,7 +193,7 @@ property_both <- \(i, name, type, j, meta, env, err)
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @intern
-#' Create the function for the property
+#' Create the function for the property.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 property_create <- \(name, get, set, env)
 {
@@ -230,3 +230,30 @@ property_create <- \(name, get, set, env)
   return();
 }
 
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @intern
+#' Ensure properties are referred to properly.
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+references_property <- \(i, name, j, meta, ref, env, err)
+{
+  switch(meta$property$get(j),
+    get =
+    {
+      if(ref$type == "assign")
+      {
+        references_assign(i, name, j, meta, ref, "get property", env, err);
+      }
+    }
+   ,set =
+    {
+      if(ref$type != "assign")
+      {
+        references_access(i, name, j, meta, ref, "set property", env, err);
+      }
+    }
+  )
+  if(ref$type == "call")
+  {
+    references_call(i, name, j, meta, ref, "property", env, err);
+  }
+}

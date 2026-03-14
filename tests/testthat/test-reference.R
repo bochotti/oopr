@@ -147,7 +147,6 @@ test_that("references_exist",
      ,class = "ooprRefNotDefined"
     );
   })
-
 })
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -161,6 +160,7 @@ test_that("references_assign",
     );
   })
 })
+
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 test_that("references_call",
 {
@@ -180,14 +180,13 @@ test_that("references_call",
   {
     expect_error(
       oopr("test",, { a <- 1L; b <- \( ) { this$a(); } })
-     ,class = "ooprRefCallingNonMethod"
+     ,class = "ooprRefBadCall"
     );
     expect_error(
       oopr("test",, { get:a <- \( ) { }; b <- \( ) { this$a(); } })
-     ,class = "ooprRefCallingNonMethod"
+     ,class = "ooprRefBadCall"
     );
   })
-
 })
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
