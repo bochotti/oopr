@@ -138,6 +138,40 @@ test_that("findSrcRef",
 })
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("getMissingVars",
+{
+  it("finds variables not defined",
+  {
+    expect_equal(getMissingVars(\( ) { a; })$var, "a");
+    a <- 1L
+    expect_equal(getMissingVars(\( ) { a; })$var, character(0L));
+  })
+
+  it("knows about assigning variables",
+  {
+    expect_equal(getMissingVars(\( ) { a <- 1L; a; })$var, character(0L));
+    expect_equal(getMissingVars(\( ) { a; a <- 1L; })$var, "a");
+  })
+
+  it("will use the formals of a function",
+  {
+    expect_equal(getMissingVars(\(a) { a; })$var, character(0L));
+  })
+
+  it("considers RHS of subsetting expressions",
+  {
+    expect_equal(getMissingVars(\(a) { a$b; })$var, character(0L));
+    expect_equal(getMissingVars(\(a) { a[[b]]; })$var, "b");
+    expect_equal(getMissingVars(\(a) { a[["b"]]; })$var, character(0L));
+  })
+
+  it("knows that loops create new variables",
+  {
+    expect_equal(getMissingVars(\( ) { for(i in 1L) { } })$var, character(0L));
+  })
+
+})
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 test_that("references_exist",
 {
   it("doesnt allow referring to members which do not exist",

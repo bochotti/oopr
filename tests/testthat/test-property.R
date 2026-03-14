@@ -126,7 +126,7 @@ test_that("property_set",
 })
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-test_that("propert_both",
+test_that("property_both",
 {
   it("enforces get and set seperately",
   {
@@ -163,6 +163,7 @@ test_that("propert_both",
     );
   })
 
+  x <- z <- 1L
   oopr("test",, { get:a <- \( ) { x; }; set:a <- \(y) { z; } })
   fun  <- activeBindingFunction('a', test@encl$this)
 

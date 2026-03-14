@@ -46,19 +46,19 @@ bool OoprMeta::isStatic(const int& i)
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-bool OoprMeta::getLgl(const std::string x, const int& i)
+bool OoprMeta::getLgl(const std::string& x, const int& i)
 {
   return LOGICAL_ELT(meta[x], i) == 1;
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-const char* OoprMeta::getStr(const std::string x, const int& i)
+const char* OoprMeta::getStr(const std::string& x, const int& i)
 {
   return CHAR(STRING_ELT(meta[x], i));
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-pSEXP OoprMeta::subName(const std::string access, const bool inverse)
+pSEXP OoprMeta::subName(const std::string& access, const bool& inverse)
 {
   int size = Rf_xlength(meta["names"]);
   std::vector<std::string> names;

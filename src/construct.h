@@ -5,8 +5,6 @@
 #include "utils.h"
 #include "meta.h"
 #include "enclosure.h"
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-void checkOoprConstructor(SEXP gen);
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * This will create a new enclosure for a class instance. It is basically a
  * copy, but with new environments.

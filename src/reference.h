@@ -9,47 +9,6 @@
 #include <map>
 #include <string>
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
- * Locate paths of members (`$` & `[[`) within a function body.
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-class MemberReferences
-{
-public:
-  // for recording matches
-  struct Match
-  {
-    std::vector<int> at;
-    std::string      type;
-    SEXP             oper;
-    SEXP             encl;
-    SEXP             memb;
-    SEXP             expr;
-    SEXP             src;
-  };
-  std::vector<Match> matches;
-  MemberReferences(SEXP expr);
-  ~MemberReferences();
-  SEXP toList();
-
-private:
-  class Symbols;
-  Symbols *sym;
-  std::vector<int>   paths;
-  std::vector<SEXP>  parents;
-
-  // walk over the expression
-  void walk(SEXP e);
-
-  // test for x$ or x[[]]
-  inline bool isMemberRef(SEXP e);
-
-  // classify a reference as access, assign, call
-  std::string classify(SEXP e, Match& m);
-
-  // obtain the srcref of a match
-  SEXP getSrcRef(const Match& m);
-
-};
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Provide a function, expression, list/environment of, to get all
  * members references. Outputs:
  *   at:   the integer position to access via `[[`
@@ -61,11 +20,21 @@ private:
  *   src:  the source reference
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 extern "C" SEXP findMemberRefs(SEXP expr);
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Provide a path and function/expression to obtain the relevant source
  * reference, which identifies the position within the source file.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 extern "C" SEXP findSrcRef(SEXP at, SEXP expr);
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+ * Searches an expression to find missing variables.
+ * Considers variables that are assigned within the expression.
+ * If `expr` is a function, its formals are considered and `env` is
+ * over-ridden to the functions environment.
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+extern "C" SEXP getMissingVars(SEXP expr, SEXP env = R_GlobalEnv);
+
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #endif
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //

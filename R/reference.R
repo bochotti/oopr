@@ -15,6 +15,20 @@ findMemberRefs <- \(x, nms = names(x))
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @intern
+#' Finds variables in a function which wont be defined if evaluated
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+getMissingVars <- \(x, env = globalenv(), nms = names(x))
+{
+  out <- .Call("getMissingVars", x, env, PACKAGE = "oopr");
+  if(!is.null(nms))
+  {
+    out <- out[match(nms, names(out))];
+  }
+  return(out)
+}
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @intern
 #' From a given `at`, get the srcref.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 findSrcRef <- \(at, expr)
@@ -57,6 +71,7 @@ findInExpr <- \(expr, cond)
 references <- \(env, err)
 {
   refs <- findMemberRefs(env$this);
+  miss <- getMissingVars(env$this);
   meta <- env$meta;
 
   for(i in env$along)
@@ -64,6 +79,17 @@ references <- \(env, err)
     if(!(meta$method$get(i) || nzchar(meta$property$get(i)))) next;
     name <- meta$names$get(i);
     references_method(i, name, refs, meta, c("this", ".this"), env, err);
+    for(mis in .mapply(list, miss[[name]], NULL))
+    {
+      if(match(mis$var, c("this", ".this"), 0L)) next;
+      err$push(
+        cls = "ooprRefUndefinedVariable"
+       ,src = mis$src %||% env$src[[i]]
+       ,msg = "Member `%s` is using an undefined variable `%s`."
+       ,name, mis$var
+      );
+      env$succ$set(i, FALSE);
+    }
   }
 }
 
@@ -71,11 +97,11 @@ references <- \(env, err)
 #' @intern
 #' Check the body of each method/property
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-references_method <- \(i, name, refs, meta, type = c("this", ".this"), env, err)
+references_method <- \(i, name, refs, meta, encl, env, err)
 {
   for(ref in .mapply(list, refs[[name]], NULL))
   {
-    if(!match(ref$encl, type, 0L)) next;
+    if(!match(ref$encl, encl, 0L)) next;
     j <- which(meta$subs(names = ref$memb));
     if(!references_exist(i, name, j, meta, ref, env, err)) next;
     if(nzchar(meta$property$get(j)))
@@ -100,7 +126,7 @@ references_method <- \(i, name, refs, meta, type = c("this", ".this"), env, err)
       references_static(i, name, j, meta, ref, env, err);
     }
   }
-  references_this(i, name, type, env, err);
+  references_this(i, name, encl, env, err);
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##

@@ -83,7 +83,6 @@ test_that("evaluate_nme",
      ,class = "ooprDuplicateMember"
     );
   })
-
 })
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -112,12 +111,10 @@ test_that("evaluate_rhs",
     expect_true(test@meta$method$get(2L));
     expect_true(is.function(test@encl$this[["test"]]));
   })
-
 })
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 test_that("evaluate_src",
 {
   oopr("test",, { a <- \( ) { } })
-
 })

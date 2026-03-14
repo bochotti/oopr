@@ -17,11 +17,11 @@ public:
   bool  isMethod(const int& i);
   bool  isProperty(const int& i);
   bool  isStatic(const int& i);
-  pSEXP subName(const std::string access, const bool inverse = false);
+  pSEXP subName(const std::string& access, const bool& inverse = false);
 private:
   std::map<std::string, SEXP> meta;
-  bool        getLgl(const std::string x, const int& i);
-  const char* getStr(const std::string x, const int& i);
+  bool        getLgl(const std::string& x, const int& i);
+  const char* getStr(const std::string& x, const int& i);
 };
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #endif

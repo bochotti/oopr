@@ -9,6 +9,7 @@ void checkOoprConstructor(SEXP gen)
     Rf_error("`gen` is not of class \"ooprC\"");
   }
 }
+
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 SEXP construct_make(SEXP gen)
 {

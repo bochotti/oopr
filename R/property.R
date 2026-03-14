@@ -207,6 +207,7 @@ property_create <- \(name, get, set, env)
     arg <- formals(set);
     src <- attr(set, "srcref", exact = TRUE);
     set <- body(set);
+    cls <- environment(set);
   }
 
   if(missing(get))
@@ -222,10 +223,11 @@ property_create <- \(name, get, set, env)
   {
     src <- attr(get, "srcref", exact = TRUE);
     get <- body(get);
+    cls <- environment(get);
   }
 
   body <- call("if", call("missing", as.name(names(arg))), get, set);
-  fun  <- eval(call("function", arg, call('{', body), src), baseenv());
+  fun  <- eval(call("function", arg, call('{', body), src), cls);
   env$this[[name]] <- fun;
   return();
 }
