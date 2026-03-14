@@ -44,6 +44,16 @@ ooprC <- setClass("ooprC", contains = "function", slots = c(
     call <- call('$', as.name(x@name), name);
     stop(simpleError(msg, call));
   }
+  if(nzchar(x@meta$subs("property", names = name)))
+  {
+    op <- options(show.error.messages = FALSE, error = \() {
+      msg  <- geterrmessage();
+      call <- deparse1(call("$", as.name(x@name), name));
+      msg  <- sub("(Error in )(.*?)( :.*?$)", sprintf("\\1%s\\3", call), msg);
+      cat(msg);
+    });
+    on.exit(options(op));
+  }
   return(.this[[name]]);
 }
 
@@ -53,12 +63,13 @@ ooprC <- setClass("ooprC", contains = "function", slots = c(
 `$<-.ooprC` <- \(x, name, value)
 {
   sym <- substitute(value);
+  `$.ooprC`(x, name);
   op <- options(show.error.messages = FALSE, error = \() {
     msg  <- geterrmessage();
     call <- deparse1(call("<-", call("$", as.name(x@name), name), sym));
     msg  <- sub(".this[[name]] <- value", fixed = TRUE, call, msg);
     cat(msg);
-  })
+  });
   on.exit(options(op));
   .this <- x@encl$.this;
   .this[[name]] <- value;
@@ -100,6 +111,11 @@ setMethod("show", c(object = "ooprC"), \(object)
   }
   return(invisible(object))
 })
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @exportS3Method base::print ooprC
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+print.ooprC <- \(x, ...) show(x);
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @rdname is.oopr

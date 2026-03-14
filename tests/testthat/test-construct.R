@@ -14,14 +14,14 @@ test_that("ooprC",
   {
     oopr("test",, { a <- 2L })
     expect_error(test$a, "`a` is not a public static member");
-    expect_error(
-      test$a <- 2L
-     ,"cannot add bindings to a locked environment"
-    );
-    oopr("test",, { static:a <- 2L })
+    expect_error(test$a <- 2L, "`a` is not a public static member");
+    oopr("test",, { public:static:a <- 2L })
     expect_no_error(test$a);
     expect_no_error(test$a <- 2L);
     expect_true(is.ooprC(test, "test"));
+
+    # how to test this... lol
+    oopr("test",, { public:static:get:a <- \( ) { stop("oh"); }})
   })
 
   it("can be checked with is.ooprC",
@@ -31,6 +31,29 @@ test_that("ooprC",
     expect_true(is.ooprC(test, "test"));
     expect_false(is.ooprC(1L));
     expect_false(is.ooprC(test, "test2"));
+  })
+
+  it("shows the names of static members",
+  {
+    oopr("test",, { public:a <- 1L; static:b <- 2L; })
+    expect_equal(names(test), "b");
+  })
+
+  it("shows the address when format is used",
+  {
+    oopr("test",, {})
+    expect_match(format(test), "^<test constructor: 0x.+>$")
+  })
+
+  it("shows static members in print method",
+  {
+    oopr("test",, { public:a <- 1L; static:b <- 2L; });
+    out <- capture.output(print(test));
+    expect_match(out[1L], "^<test constructor: 0x.+>$")
+    expect_match(out[2L], "^Usage:$")
+    expect_match(out[3L], "^  test\\(\\) $")
+    expect_match(out[4L], "^Static Members:$")
+    expect_match(out[5L], "\\$b: int 2$")
   })
 })
 
