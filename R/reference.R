@@ -95,6 +95,10 @@ references_method <- \(i, name, refs, meta, type = c("this", ".this"), env, err)
         references_call(i, name, j, meta, ref, "method", env, err);
       }
     )
+    if(meta$static$get(i))
+    {
+      references_static(i, name, j, meta, ref, env, err);
+    }
   }
   references_this(i, name, type, env, err);
 }

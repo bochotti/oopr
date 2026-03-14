@@ -50,3 +50,15 @@ test_that("static",
     expect_equal(test$c, 'b');
   })
 })
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("references_static",
+{
+  it("does not allow static members to refer to non-static members",
+  {
+    expect_error(
+      oopr("test",, { a <- 1L; static:b <- \( ) { this$a; }})
+     ,class = "ooprRefNotStatic"
+    );
+  })
+})

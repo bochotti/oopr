@@ -14,3 +14,21 @@ specifiers_static <- \(i, name, spec, meta, env, err)
   }
   return(TRUE);
 }
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @intern
+#' Static methods/properties can only refer to other static members.
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+references_static <- \(i, name, j, meta, ref, env, err)
+{
+  if(!meta$static$get(j))
+  {
+    err$push(
+      cls = "ooprRefNotStatic"
+     ,src = ref$src %||% env$src[[i]]
+     ,msg = "Static member `%s` is attempting to use non-static member `%s`."
+     ,name, ref$memb
+    );
+    env$succ$set(i, FALSE);
+  }
+}
