@@ -1,12 +1,14 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #include "reference.h"
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-class MemberReferences::symbols
+class MemberReferences::Symbols
 {
 public:
-  symbols()
+  Symbols()
   {
-    std::vector<std::string> names = {"$", "[[", "<-", "<<-", "=", "(", "{"};
+    const std::vector<std::string> names = {
+      "$", "[[", "<-", "<<-", "=", "(", "{"
+    };
     for(const std::string& name : names)
     {
       syms.emplace(name, Rf_install(name.c_str()));
@@ -14,7 +16,7 @@ public:
   }
   bool isDollar(SEXP x)  { return isSym(x) && x == syms["$"];  }
   bool isBracket(SEXP x) { return isSym(x) && x == syms["[["]; }
-  bool isParen(SEXP x)  { return isSym(x) && x == syms["("]; }
+  bool isParen(SEXP x)   { return isSym(x) && x == syms["("]; }
   bool isCurly(SEXP x)   { return isSym(x) && x == syms["{"]; }
   bool isAssign(SEXP x)
   {
@@ -26,7 +28,7 @@ private:
 };
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-MemberReferences::MemberReferences(SEXP expr) : sym(new symbols())
+MemberReferences::MemberReferences(SEXP expr) : sym(new Symbols())
 {
   if(TYPEOF(expr) == CLOSXP)
   {
@@ -70,7 +72,7 @@ void MemberReferences::walk(SEXP e)
   }
   case EXPRSXP:
   {
-    R_xlen_t n = XLENGTH(e);
+    const R_xlen_t n = XLENGTH(e);
     for(R_xlen_t i = 0; i < n; ++i)
     {
       paths.push_back((int)(i + 1));
@@ -161,10 +163,11 @@ std::string MemberReferences::classify(SEXP e, Match& m)
   return "access";
 }
 
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 SEXP MemberReferences::getSrcRef(const Match& m)
 {
-  SEXP srcref     = Rf_install("srcref");
-  std::size_t len = m.at.size();
+  SEXP srcref           = Rf_install("srcref");
+  const std::size_t len = m.at.size();
   for(std::size_t i = len; i > 0; --i)
   {
     SEXP src = getAttrib(parents[i - 1], srcref);
@@ -188,20 +191,18 @@ SEXP MemberReferences::toList()
 
   for(R_xlen_t i = 0; i < n; ++i)
   {
-    const Match& m = matches[(size_t)i];
+    const Match& m = matches[(std::size_t)i];
 
     pSEXP iv = Rf_allocVector(INTSXP, (R_xlen_t)m.at.size());
-    for(R_len_t k = 0; k < (R_xlen_t)m.at.size(); ++k)
+    for(R_xlen_t j = 0; j < (R_xlen_t)m.at.size(); ++j)
     {
-      INTEGER(iv)[k] = m.at[(size_t)k];
+      INTEGER(iv)[j] = m.at[(std::size_t)j];
     }
-    SET_VECTOR_ELT(at, i, iv);
-
+    SET_VECTOR_ELT(at,   i, iv);
     SET_STRING_ELT(type, i, Rf_mkChar(m.type.c_str()));
     SET_STRING_ELT(oper, i, Rf_asChar(m.oper));
     SET_STRING_ELT(encl, i, Rf_asChar(m.encl));
     SET_STRING_ELT(memb, i, Rf_asChar(m.memb));
-
     SET_VECTOR_ELT(expr, i, m.expr);
     SET_VECTOR_ELT(src,  i, m.src);
   }
@@ -234,19 +235,17 @@ SEXP findMemberRefs(SEXP expr)
   int type = TYPEOF(expr);
   switch(type)
   {
-  case CLOSXP:
-  {
-    expr = BODY(expr);
-  }
+  case CLOSXP:  expr = BODY(expr);
   case LANGSXP:
   {
     MemberReferences out(expr);
     return out.toList();
   }
+  default:      break;
   }
   if(!(type == ENVSXP || type == VECSXP)) return R_NilValue;
 
-  R_xlen_t len = Rf_xlength(expr);
+  const R_xlen_t len = Rf_xlength(expr);
   pSEXP out = Rf_allocVector(VECSXP, len);
   SEXP names, x;
   switch(type)
@@ -268,6 +267,9 @@ SEXP findMemberRefs(SEXP expr)
       x = VECTOR_ELT(expr, i);
       SET_VECTOR_ELT(out, i, findMemberRefs(x));
     }
+    break;
+  default:
+    break;
   }
   Rf_setAttrib(out, R_NamesSymbol, names);
   return out;
@@ -284,7 +286,7 @@ SEXP findSrcRef(SEXP at, SEXP expr)
   default:      Rf_error("`expr` must be a call object");
   }
 
-  R_xlen_t len = Rf_xlength(at);
+  const R_xlen_t len = Rf_xlength(at);
   std::vector<int> path(len);
   for(R_xlen_t i = 0; i < len; ++i)
   {

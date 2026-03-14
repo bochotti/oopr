@@ -21,7 +21,7 @@ SEXP interface(SEXP env, SEXP nme, SEXP nms, SEXP cls)
     Rf_error("`cls` must be a character vector");
   }
 
-  R_xlen_t len = Rf_xlength(nms);
+  const R_xlen_t len = Rf_xlength(nms);
   pSEXP out = R_NewEnv(ENCLOS(env), 1, (int)len);
   Rf_setAttrib(out, R_ClassSymbol, cls);
 

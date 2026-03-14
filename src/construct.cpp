@@ -26,7 +26,7 @@ SEXP construct_make(SEXP gen)
 
   }
 
-  ooprMeta meta(Rf_getAttrib(gen, Rf_install("meta")));
+  OoprMeta meta(Rf_getAttrib(gen, Rf_install("meta")));
 
   // create the new `this`
   SEXP ithis = Rf_findVar(Rf_install("this"), iencl);
@@ -89,7 +89,7 @@ SEXP construct_clean(SEXP gen, SEXP encl)
 
   // create the interface
   sym = Rf_install(".this");
-  ooprMeta meta(Rf_getAttrib(gen, Rf_install("meta")));
+  OoprMeta meta(Rf_getAttrib(gen, Rf_install("meta")));
   pSEXP nms = meta.subName("public");
   SEXP cls = Rf_getAttrib(
     Rf_findVar(sym, Rf_getAttrib(gen, Rf_install("encl")))

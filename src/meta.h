@@ -1,27 +1,27 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #ifndef META_H
 #define META_H
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
- * Data model for the meta object
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #include "utils.h"
 #include <vector>
 #include <string>
 #include <map>
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-class ooprMeta
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+ * Data model for the meta object
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+class OoprMeta
 {
 public:
-  ooprMeta(SEXP meta);
-  SEXP  name(int& i);
-  bool  isMethod(int& i);
-  bool  isProperty(int& i);
-  bool  isStatic(int& i);
-  pSEXP subName(std::string access, bool inverse = false);
+  OoprMeta(SEXP meta);
+  SEXP  name(const int& i);
+  bool  isMethod(const int& i);
+  bool  isProperty(const int& i);
+  bool  isStatic(const int& i);
+  pSEXP subName(const std::string access, const bool inverse = false);
 private:
   std::map<std::string, SEXP> meta;
-  bool        getLgl(std::string x, int& i);
-  const char* getStr(std::string x, int& i);
+  bool        getLgl(const std::string x, const int& i);
+  const char* getStr(const std::string x, const int& i);
 };
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #endif

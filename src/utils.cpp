@@ -7,7 +7,7 @@ SEXP isname(SEXP x, SEXP names)
   {
     return Rf_ScalarLogical(0);
   }
-  R_xlen_t n = Rf_xlength(names);
+  const R_xlen_t n = Rf_xlength(names);
   if(n == 0)
   {
     return Rf_ScalarLogical(1);
