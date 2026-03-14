@@ -206,8 +206,8 @@ property_create <- \(name, get, set, env)
   {
     arg <- formals(set);
     src <- attr(set, "srcref", exact = TRUE);
-    set <- body(set);
     cls <- environment(set);
+    set <- body(set);
   }
 
   if(missing(get))
@@ -222,8 +222,8 @@ property_create <- \(name, get, set, env)
   else
   {
     src <- attr(get, "srcref", exact = TRUE);
-    get <- body(get);
     cls <- environment(get);
+    get <- body(get);
   }
 
   body <- call("if", call("missing", as.name(names(arg))), get, set);

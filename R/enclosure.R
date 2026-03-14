@@ -32,7 +32,7 @@ enclosure <- \(env, parent)
   lockEnvironment(this);
   encl$this  <- this;
   # the constructors enclosure only reveals static members
-  names <- meta$subs("names", static = TRUE);
+  names <- meta$subs("names", access = "public", static = TRUE);
   class <- c(env$name, "oopr");
   encl$.this <- interface(this, names, class);
   lockEnvironment(encl);

@@ -205,7 +205,7 @@ test_that("references_call",
      ,class = "ooprRefUnmatchedCall"
     );
     expect_no_error(
-      oopr("test",, { a <- \(...) { }; b <- \( ) { this$a(x); } })
+      oopr("test",, { a <- \(...) { }; b <- \( ) { this$a(1L); } })
      ,class = "ooprRefUnmatchedCall"
     );
   })
