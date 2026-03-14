@@ -10,6 +10,10 @@ definitions <- \(env, err)
   {
     name <- meta$names$get(i);
     definitions_special(i, name, meta, env, err);
+    if(meta$method$get(i) || nzchar(meta$property$get(i)))
+    {
+      definitions_return(i, name, env, err);
+    }
   }
 }
 
@@ -136,5 +140,41 @@ definitions_destructor <- \(i, name, env, err)
   formals(fun) <- alist(this=);
   attr(fun, "srcref") <- src;
   env$this[[name]] <- fun;
+  return();
+}
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @intern
+#' Replace `return` of `this` to `.this`.
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+definitions_return <- \(i, name, env, err)
+{
+  fun  <- env$this[[name]];
+  src  <- attr(fun, "srcref", exact = TRUE);
+  expr <- body(fun);
+
+  nbraced <- !iscall(expr, '{');
+  if(nbraced)
+  {
+    expr <- call('{', expr);
+  }
+
+  ats <- findInExpr(expr, \(e) iscall(e, "return"));
+  if(!length(ats)) return();
+
+  sub <- list(this = quote(.this));
+  for(at in ats)
+  {
+    expr[[at]] <- do.call(substitute, list(expr[[at]], sub));
+  }
+
+  if(nbraced)
+  {
+    expr <- expr[[2L]];
+  }
+
+  body(fun)           <- expr;
+  attr(fun, "srcref") <- src;
+  env$this[[name]]    <- fun;
   return();
 }

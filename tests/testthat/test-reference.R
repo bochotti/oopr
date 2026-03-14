@@ -96,9 +96,11 @@ test_that("findMemberRefs",
     env <- new.env();
     env$a <- specifiers_access;
     env$b <- specifiers_dupes;
-    out <- findMemberRefs(env, c("b", "a"));
-    expect_length(out, 2L);
-    expect_named(out, c("b", "a"));
+    env$c <- 1L;
+    out <- findMemberRefs(env, c("b", "c", "a"));
+    expect_length(out, 3L);
+    expect_named(out, c("b", "c", "a"));
+    expect_null(out$c)
   })
 })
 
@@ -132,5 +134,78 @@ test_that("findSrcRef",
     expr <- quote({ a$b; { a$b(a$b); }})
     attr(expr[[c(3L)]], "srcref") <- list(NULL, 1:4);
     expect_equal(findSrcRef(3:2, expr), 1:4);
+  })
+})
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("references_exist",
+{
+  it("doesnt allow referring to members which do not exist",
+  {
+    expect_error(
+      oopr("test",, { a <- \( ) { this$b; } })
+     ,class = "ooprRefNotDefined"
+    );
+  })
+
+})
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("references_assign",
+{
+  it("doesnt allow assigning into methods",
+  {
+    expect_error(
+      oopr("test",, { a <- \( ) { }; b <- \( ) { this$a <- 1L; } })
+     ,class = "ooprRefBadAssignment"
+    );
+  })
+})
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("references_call",
+{
+  it("requires method calls to match definition",
+  {
+    expect_error(
+      oopr("test",, { a <- \( ) { }; b <- \( ) { this$a(x); } })
+     ,class = "ooprRefUnmatchedCall"
+    );
+    expect_no_error(
+      oopr("test",, { a <- \(...) { }; b <- \( ) { this$a(x); } })
+     ,class = "ooprRefUnmatchedCall"
+    );
+  })
+
+  it("doesnt allow calling non-methods",
+  {
+    expect_error(
+      oopr("test",, { a <- 1L; b <- \( ) { this$a(); } })
+     ,class = "ooprRefCallingNonMethod"
+    );
+    expect_error(
+      oopr("test",, { get:a <- \( ) { }; b <- \( ) { this$a(); } })
+     ,class = "ooprRefCallingNonMethod"
+    );
+  })
+
+})
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("references_this",
+{
+  it("doesnt allow assigning into this",
+  {
+    expect_error(
+      oopr("test",, { a <- \( ) { this <- 1L; } })
+     ,class = "ooprRefAssigningThis"
+    );
+  })
+
+  it("doesnt allow calling this",
+  {
+    expect_error(
+      oopr("test",, { a <- \( ) { this(); } })
+     ,class = "ooprRefCallingThis"
+    );
   })
 })

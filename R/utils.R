@@ -25,3 +25,5 @@ symlink <- \(tenv, tname, env, name)
 {
   .Call("symlink", tenv, tname, env, name, names, PACKAGE = "oopr");
 }
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##

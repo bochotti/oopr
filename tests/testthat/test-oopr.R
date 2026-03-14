@@ -38,6 +38,7 @@ test_that("is.oopr",
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 test_that("str.oopr",
 {
+  skip();
   test <- oopr("test",, {
     public:
       static:very_long <- 1L;

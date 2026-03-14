@@ -71,3 +71,22 @@ test_that("definitions_special",
   })
 
 })
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("definitions_return",
+{
+  it("replaces returning this with .this",
+  {
+    oopr("test",, { a <- \( ) return(this) })
+    expect_equal(body(test@encl$this$a), quote(return(.this)))
+
+    oopr("test",, { a <- \( ) { return(this); } })
+    expect_equal(body(test@encl$this$a), quote({ return(.this); }))
+
+    oopr("test",, { a <- \( ) return(invisible(this)) })
+    expect_equal(body(test@encl$this$a), quote(return(invisible(.this))))
+
+    oopr("test",, { a <- \( ) { return(invisible(this)); } })
+    expect_equal(body(test@encl$this$a), quote({ return(invisible(.this)); }))
+  })
+})
