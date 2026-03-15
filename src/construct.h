@@ -14,7 +14,7 @@ extern "C" SEXP construct_make(SEXP gen);
  * This will clean up the new instance after the class' constructor has been
  * run. It removes the constructor/destructor and locks the environments.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-extern "C" SEXP construct_clean(SEXP gen, SEXP encl);
+extern "C" SEXP construct_clean(SEXP gen, SEXP encl, SEXP stack = R_NilValue);
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #endif
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //

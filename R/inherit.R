@@ -198,22 +198,72 @@ definitions_inheritance <- \(i, name, fun, env, err)
     }
     return(out)
   }
+
   for(i in inhr$along)
   {
     name <- inhr$meta$names$get(i);
-    args <- formals(inhr$this[[name]]);
+    init <- inhr$this[[name]];
     ats  <- findInExpr(expr, \(e) iscall(e, name));
-    if(!length(ats) && is.null(args))
+    call <- call(name);
+    if(!length(ats))
     {
-      if(length(expr) == 1L)
+      if(any(vapply(formals(init), isname, logical(1L), "")))
       {
-        expr[[2L]] <- pfx("assign"
-         ,x     = name
-         ,value = pfx("force", call(name))
-         ,envir = pfx("parent.env", pfx("environment", NULL))
-        )
+        err$push(
+          cls = "ooprInheritNotInit"
+         ,src = attr(body(fun), "srcref", exact = TRUE)[[1]] %||% env$src[[i]]
+         ,msg = "Inherited class `%s` must be initialized in the constructor
+                 method `%s` via `%s(...)`."
+         ,name, env$name, name
+        );
+        env$succ$set(i, FALSE);
+        next;
       }
+      # insert into the expression
+      if(length(expr) > 1L)
+      {
+        expr[seq_along(expr) + 1L] <- expr[2:length(expr)];
+      }
+      expr[[2L]] <- call;
+      at <- 2L;
     }
+    else if(length(ats) > 1L)
+    {
+      err$push(
+        cls = "ooprInheritMultipleInit"
+       ,src = findSrcRef(ats[[length(ats)]], fun) %||% env$src[[i]]
+       ,msg = "Inherited class `%s` has been initialized multiple times in
+               the constructor method `%s`."
+       ,name, env$name
+      );
+      env$succ$set(i, FALSE);
+      next;
+    }
+    else
+    {
+      at   <- ats[[1L]];
+      call <- expr[[at]];
+    }
+
+    call <- matchsig(init, call);
+    if(!is.call(call))
+    {
+      err$push(
+        cls = "ooprInheritSignatureNotMatched"
+       ,src = findSrcRef(at, fun) %||% env$src[[i]]
+       ,msg = "Initialization of inherited class `%s` in the constructor method
+               `%s` does not match its signature: \"%s\"."
+       ,name, env$name, call$message
+      );
+      env$succ$set(i, FALSE);
+      next;
+    }
+
+    expr[[at]] <- pfx("assign"
+      ,x     = name
+      ,value = pfx("force", call)
+      ,envir = pfx("parent.env", pfx("environment", NULL))
+    );
   }
   src                  <- attr(fun, "srcref", exact = TRUE);
   body(fun)            <- expr;

@@ -117,6 +117,63 @@ test_that("inheritance_definitions",
     oopr("base",, {})
     oopr("test", { base; }, { })
     expect_identical(body(test@encl$this$test)[[c(2:1)]], quote(base::assign));
+
+    oopr("base",, {})
+    oopr("test", { base; }, { test <- \( ) { 1L; } })
+    expect_identical(body(test@encl$this$test)[[c(2:1)]], quote(base::assign));
+
+    oopr('t', {base; test}, {})
+    body(t@encl$this$t)
+  })
+
+  it("replaces call in place",
+  {
+    oopr("base",, {})
+    oopr("test", { base; }, { test <- \( ) { 1L; base(); } })
+    expect_identical(body(test@encl$this$test)[[c(3, 1)]], quote(base::assign));
+  })
+
+  it("requires initialization if derived class has non-default formals",
+  {
+    oopr("base",, { base <- \(x) { } })
+    expect_error(
+      oopr("test", { base; }, { })
+     ,class = "ooprInheritNotInit"
+    );
+
+    expect_error(
+      oopr("test", { base; }, { test <- \( ) { } })
+     ,class = "ooprInheritNotInit"
+    );
+
+    oopr("base",, { base <- \(x = 1L) { } })
+    expect_no_error(
+      oopr("test", { base; }, { })
+    );
+  })
+
+  it("does not allow multiple initialization of the same class",
+  {
+    oopr("base",, {})
+    expect_error(
+      oopr("test", { base; }, { test <- \( ) { base(); base(); }})
+     ,class = "ooprInheritMultipleInit"
+    );
+  })
+
+  it("requires initialization to match the signature",
+  {
+    oopr("base",, { base <- \(x) { }})
+    expect_error(
+      oopr("test", { base; }, { test <- \( ) { base(y = 1) } })
+     ,class = "ooprInheritSignatureNotMatched"
+    );
+
+    oopr("base",, { base <- \(x, y = 1) { }})
+    expect_error(
+      oopr("test", { base; }, { test <- \( ) { base(y = 1) } })
+     ,class = "ooprInheritSignatureNotMatched"
+    );
   })
 })
 
@@ -128,6 +185,7 @@ test_that("inheritance enclosure",
     oopr("base",, { a <- 1L; protected:b <- 2L; public:c <- 3L})
     oopr("test", { public:base; }, {})
     expect_identical(test@encl$base, base);
+    expect_true(bindingIsLocked("base", test@encl));
   })
 
   it("does not change the environment of inherited methods/properties",
@@ -170,5 +228,16 @@ test_that("inheritance construct",
     obj <- test();
     inhr <- parent.env(obj)$base;
     expect_true(is.oopr(inhr, "base"));
+    expect_true(bindingIsLocked("base", parent.env(obj)));
+    expect_true(environmentIsLocked(inhr));
+  })
+
+  it("exposes inherited protected members",
+  {
+    oopr("base",, { protected:a <- 1L; })
+    oopr("test", { base; }, {})
+    obj  <- test();
+    inhr <- parent.env(obj)$base;
+    expect_named(inhr, "a");
   })
 })

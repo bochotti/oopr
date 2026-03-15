@@ -231,13 +231,14 @@ evaluate_rhs <- \(env, expr, parent, err)
   }
 
   # if a constructor method is not defined, create an empty one
-  if(match(env$name, env$meta$names$data, 0L) == 0L)
+  name <- env$name;
+  if(match(name, env$meta$names$data, 0L) == 0L)
   {
-    obj <- \( ) { }
-    environment(obj)     <- eenv;
-    # attr(obj, "srcref")  <- env$src[[1L]];
-    env$this[[env$name]] <- obj;
-    env$meta$push(names = env$name, access = "private", method = TRUE);
+    obj <- eval(parse(text = "\\() {}", keep.source = FALSE));
+    environment(obj) <- eenv;
+    env$this[[name]] <- obj;
+    env$meta$push(names = name, method = TRUE);
+    env$spec$push(list("private"));
     env$succ$push(TRUE);
     env$src[[length(env$src) + 1L]] <- env$src[[1L]]
   }

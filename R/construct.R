@@ -155,6 +155,6 @@ construct_fun <- \(...)
   .  <- base::get(class, envir = within); #<- any unintended consequences?
   .. <- base::.Call("construct_make", ., PACKAGE = "oopr");
   ..$this[[class]];
-  .. <- base::.Call("construct_clean", ., .., PACKAGE = "oopr");
+  .. <- base::.Call("construct_clean", ., .., sys.calls(), PACKAGE = "oopr");
   return(..);
 }

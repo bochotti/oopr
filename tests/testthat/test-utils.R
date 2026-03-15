@@ -100,3 +100,28 @@ test_that("%||%",
   expect_equal(1L %||% NULL, 1L);
   expect_equal(NULL %||% 1L, 1L);
 })
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("matchsig",
+{
+  it("returns error when arguments dont match",
+  {
+    out <- matchsig(\(){}, quote(a(x)));
+    expect_s3_class(out, "error");
+    expect_equal(out$message, "unused argument (x)");
+  })
+
+  it("returns error when missing non-default argument",
+  {
+    out <- matchsig(\(x){}, quote(a()));
+    expect_s3_class(out, "error");
+    expect_equal(out$message, "missing non-default argument (x)");
+  })
+
+  it("returns the call when matched",
+  {
+    out <- matchsig(\(x){}, quote(a(x = 1L)));
+    expect_true(is.call(out));
+    expect_identical(out, quote(a(x = 1L)));
+  })
+})

@@ -27,3 +27,31 @@ symlink <- \(tenv, tname, env, name)
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @intern
+#' Match a functions signature. If no match returns error object with
+#' reason why it did not match.
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+matchsig <- \(fun, call)
+{
+  ndflt <- vapply(formals(fun), isname, logical(1L), "");
+  ndflt <- names(ndflt)[ndflt];
+  call  <- tryCatch(match.call(fun, call), error = identity);
+  if(is.call(call))
+  {
+    miss <- setdiff(ndflt, names(call)[-1L]);
+    if(length(miss))
+    {
+      plural  <- if(length(miss) > 1) "s" else "";
+      miss    <- sub("^list", "", deparse1(lapply(miss, as.name)))
+      message <- sprintf("missing non-default argument%s %s", plural, miss);
+      call    <- simpleError(message, call = match.call());
+    }
+  }
+  else
+  {
+    call$call <- match.call();
+  }
+  return(call)
+}
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##

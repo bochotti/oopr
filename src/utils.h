@@ -36,7 +36,6 @@ private:
   void prtct(SEXP x) { PROTECT(x);       isProtected = true;  }
   void unprtct()     { UNPROTECT_PTR(x); isProtected = false; }
 };
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Creates a link inside an environment, pointing to another environment.
  * `tenv`  - must be assigned in its parent environment.

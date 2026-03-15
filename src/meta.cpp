@@ -58,7 +58,7 @@ const char* OoprMeta::getStr(const std::string& x, const int& i)
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-pSEXP OoprMeta::subName(const std::string& access, const bool& inverse)
+SEXP OoprMeta::subName(const std::string& access, const bool& inverse)
 {
   int size = Rf_xlength(meta["names"]);
   std::vector<std::string> names;

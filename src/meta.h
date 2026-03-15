@@ -13,11 +13,11 @@ class OoprMeta
 {
 public:
   OoprMeta(SEXP meta);
-  SEXP  name(const int& i);
-  bool  isMethod(const int& i);
-  bool  isProperty(const int& i);
-  bool  isStatic(const int& i);
-  pSEXP subName(const std::string& access, const bool& inverse = false);
+  SEXP name(const int& i);
+  bool isMethod(const int& i);
+  bool isProperty(const int& i);
+  bool isStatic(const int& i);
+  SEXP subName(const std::string& access, const bool& inverse = false);
 private:
   std::map<std::string, SEXP> meta;
   bool        getLgl(const std::string& x, const int& i);

@@ -78,6 +78,10 @@ test_that("enclosure",
     expect_true(is.environment(test@encl$this));
     expect_true(is.environment(test@encl$.this));
     expect_true(environmentIsLocked(test@encl));
+    expect_true(environmentIsLocked(test@encl$this));
+    expect_true(environmentIsLocked(test@encl$.this));
+    expect_true(bindingIsLocked("this", test@encl));
+    expect_true(bindingIsLocked(".this", test@encl));
     expect_true(bindingIsLocked('a', test@encl$this));
     expect_env(parent.env(test@encl), environment())
   })

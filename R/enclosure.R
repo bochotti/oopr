@@ -73,12 +73,13 @@ enclosure <- \(env, parent)
       lockBinding(name, this);
     }
   }
-  lockEnvironment(this);
-  encl$this  <- this;
   # the constructors interface only reveals static members
   names <- meta$subs("names", access = "public", static = TRUE);
   class <- c(env$name, inms, "oopr");
+  encl$this  <- this;
   encl$.this <- interface(this, names, class);
-  lockEnvironment(encl);
+  lockEnvironment(this);
+  lockEnvironment(encl$.this)
+  lockEnvironment(encl, bindings = TRUE);
   return(encl);
 }

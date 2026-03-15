@@ -104,6 +104,7 @@ definitions_print <- \(i, name, meta, env, err)
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @intern
 #' Constructor method cannot have some argument names.
+#' `.this` is not available during construction.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 definitions_constructor <- \(i, name, env, err)
 {
@@ -115,6 +116,17 @@ definitions_constructor <- \(i, name, env, err)
       cls = "ooprConstructorBadArgNames"
      ,src = env$src[[i]]
      ,msg = "Constructor method `%s` cannot have arguments \".\" or \"..\"."
+     ,name
+    );
+    env$succ$set(i, FALSE);
+  }
+  ats <- findInExpr(fun, \(e) isname(e, ".this"));
+  if(length(ats))
+  {
+    err$push(
+      cls = "ooprConstructorRefersToDotThis"
+     ,src = findSrcRef(ats[[length(ats)]], fun) %||% env$src[[i]]
+     ,msg = "Constructor method `%s` cannot refer to `.this`."
      ,name
     );
     env$succ$set(i, FALSE);

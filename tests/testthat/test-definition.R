@@ -51,6 +51,14 @@ test_that("definitions_special",
     );
   })
 
+  it("does not allow `.this` in the constructor",
+  {
+    expect_error(
+      oopr("test",, { test <- \() { .this; }})
+     ,class = "ooprConstructorRefersToDotThis"
+    );
+  })
+
   it("enforces destructor method as private method with no arguments",
   {
     expect_error(

@@ -55,7 +55,7 @@ specifiers_property <- \(i, name, spec, meta, env, err)
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 property <- \(env, meta, err)
 {
-  properties <- nzchar(meta$property$data);
+  properties <- nzchar(meta$property$data) & !nzchar(meta$inherit$data);
   jj <- integer(0L);
   for(i in which(properties))
   {

@@ -21,7 +21,7 @@ SEXP construct_make(SEXP gen)
   SEXP iencl = Rf_getAttrib(gen, Rf_install("encl"));
   pSEXP encl = R_NewEnv(ENCLOS(iencl), 1, 2 + size);
 
-  // do something with inherited classes
+  // assign the inherited constructors
   for(int i = 0; i < size; ++i)
   {
     SEXP nm = Rf_installChar(STRING_ELT(inhr, i));
@@ -69,7 +69,28 @@ SEXP construct_make(SEXP gen)
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-SEXP construct_clean(SEXP gen, SEXP encl)
+bool is_inherited(SEXP stack, std::string& name)
+{
+  const R_xlen_t len = Rf_length(stack);
+  if(len <= 3) return false;
+  for(R_xlen_t i = 0; i < (len - 2); ++i)
+  {
+    stack = CDR(stack);
+  }
+  stack = CAR(stack);
+  if(!(TYPEOF(stack) == LANGSXP && Rf_length(stack) == 2)) return false;
+  SEXP call = CAR(stack);
+  SEXP args = CADR(stack);
+  return    Rf_length(call)     == 3
+         && CAR(call)           == Rf_install("::")
+         && CADR(call)          == Rf_install("base")
+         && CADDR(call)         == Rf_install("force")
+         && TYPEOF(args)        == LANGSXP
+         && CAR(args)           == Rf_install(name.erase(0, 1).c_str());
+}
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+SEXP construct_clean(SEXP gen, SEXP encl, SEXP stack)
 {
   checkOoprConstructor(gen);
   if(!Rf_isEnvironment(encl)) Rf_error("`encl` must be an environment");
@@ -92,7 +113,18 @@ SEXP construct_clean(SEXP gen, SEXP encl)
   // create the interface
   sym = Rf_install(".this");
   OoprMeta meta(Rf_getAttrib(gen, Rf_install("meta")));
-  pSEXP nms = meta.subName("public");
+
+  pSEXP nms;
+  if(is_inherited(stack, name))
+  {
+    // expose protected members
+    nms = meta.subName("private", true);
+  }
+  else
+  {
+    nms = meta.subName("public");
+  }
+
   SEXP cls = Rf_getAttrib(
     Rf_findVar(sym, Rf_getAttrib(gen, Rf_install("encl")))
    ,R_ClassSymbol
@@ -100,7 +132,17 @@ SEXP construct_clean(SEXP gen, SEXP encl)
   pSEXP intf = interface(othis, Rf_install("this"), nms, cls);
   Rf_defineVar(sym, intf, encl);
 
+  // lock
+  SEXP inhr = Rf_getAttrib(gen, Rf_install("inhr"));
+  int size = Rf_xlength(inhr);
+  for(int i = 0; i < size; ++i)
+  {
+    SEXP nm = Rf_installChar(STRING_ELT(inhr, i));
+    R_LockEnvironment(Rf_findVar(nm, encl), FALSE);
+  }
+  R_LockEnvironment(intf, FALSE);
   R_LockEnvironment(othis, FALSE);
   R_LockEnvironment(encl, TRUE);
   return intf;
 }
+

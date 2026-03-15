@@ -103,6 +103,10 @@ oopr <- \(name, inherits = NULL, definition, parent = parent.frame())
    ,is.environment(parent)
    ,!missing(definition)
   );
+  if(match(name, c("this", ".this"), 0L))
+  {
+    stop(sprintf("`name` cannot be \"%s\"", name));
+  }
 
   expr <- substitute(definition);
   inhr <- substitute(inherits);
@@ -124,7 +128,7 @@ oopr <- \(name, inherits = NULL, definition, parent = parent.frame())
   env$meta$rmve(1L)$lock();
   encl <- enclosure(env, parent);
 
-  inhr <- env$inhr$meta$names$data[-1L]; #env$inhr$meta$subs("names", TRUE, names = "");
+  inhr <- env$inhr$meta$names$data[-1L];
   out  <- constructor(name, inhr, env$meta, encl, env$wsrc, parent);
   assign(name, out, envir = parent);
   return(out);
