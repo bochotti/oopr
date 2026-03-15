@@ -14,6 +14,10 @@ inheritance <- \(env, expr, parent, err)
   inhr <- evaluate_env("inhr", expr, err);
   env$inhr <- inhr;
   if(skip) return();
+  if(is.null(inhr$src) && !is.null(env$src[[1L]]))
+  {
+    inhr$src <- list(NULL, env$src[[1L]]);
+  }
   inheritance_yank(inhr, expr, err);
   inheritance_spec(inhr, err);
   inheritance_get(inhr, parent, err);
@@ -98,6 +102,17 @@ inheritance_get<- \(inhr, parent, err)
     pkg   <- inhr$meta$inherit$get(i);
     if(nzchar(pkg))
     {
+      if(!requireNamespace(pkg, quietly = TRUE))
+      {
+        err$push(
+          cls = "ooprInheritPackageNotFound"
+         ,src = inhr$src[[i]]
+         ,"Inherited class `%s` package \"%s\" cannot be found."
+         ,name, pkg
+        );
+        inhr$succ$set(i, FALSE);
+        next;
+      }
       envir    <- getNamespace(pkg);
       inherits <- FALSE;
     }

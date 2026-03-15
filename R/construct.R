@@ -86,17 +86,11 @@ names.ooprC <- \(x) { return(names(x@encl$.this)); }
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 format.ooprC <- \(x, ...)
 {
-  return(sub(sprintf("(%s)", x@name), "\\1 constructor", format(x@encl$.this)));
+  return(sub(sprintf("(%s)", x@name), "\\1 ooprC", format(x@encl$.this)));
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 show <- methods::show;
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-#' @rdname oopr
-#' @keywords internal
-#' @exportMethod show
-#' @param object `ooprC`
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 setMethod("show", c(object = "ooprC"), \(object)
 {
   bot <- capture.output(str.oopr(object@encl$.this));
@@ -135,7 +129,7 @@ is.ooprC <- \(x, name = character(0L))
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 constructor <- \(name, inhr, meta, encl, src = NULL, parent)
 {
-  fun <- construct_fun;
+  fun  <- construct_fun;
   args <- formals(encl$this[[name]]);
   formals(fun) <- args;
   body <- body(fun);
@@ -146,10 +140,10 @@ constructor <- \(name, inhr, meta, encl, src = NULL, parent)
   ooprC(.Data = fun, name = name, inhr = inhr, meta = meta, encl = encl);
 }
 
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @intern
 #' The constructor function that goes into the S4 class.
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 construct_fun <- \(...)
 {
   .  <- base::get(class, envir = within); #<- any unintended consequences?

@@ -42,14 +42,14 @@ test_that("ooprC",
   it("shows the address when format is used",
   {
     oopr("test",, {})
-    expect_match(format(test), "^<test constructor: 0x.+>$")
+    expect_match(format(test), "^<test ooprC: 0x.+>$")
   })
 
   it("shows static members in print method",
   {
     oopr("test",, { public:a <- 1L; static:b <- 2L; });
     out <- capture.output(print(test));
-    expect_match(out[1L], "^<test constructor: 0x.+>$")
+    expect_match(out[1L], "^<test ooprC: 0x.+>$")
     expect_match(out[2L], "^Usage:$")
     expect_match(out[3L], "^  test\\(\\) $")
     expect_match(out[4L], "^Static Members:$")

@@ -52,6 +52,14 @@ test_that("inheritance_get",
     );
   })
 
+  it("throws if no package",
+  {
+    expect_error(
+      oopr("test", pkg::base, {})
+     ,class = "ooprInheritPackageNotFound"
+    );
+  })
+
   it("throws if object is not an ooprC",
   {
     expect_error(
@@ -105,8 +113,6 @@ test_that("inheritance_set",
     oopr("test", { base; }, { a <- 1L; b <- 2L; c <- 3L})
     expect_length(test@meta$subs("names", TRUE, inherits = ""), 0L);
   })
-
-
 })
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -263,8 +269,9 @@ test_that("inheritance construct",
     expect_false(bindingIsLocked("a", this));
     expect_equal(
       body(activeBindingFunction("a", this))
-     ,quote(if(missing(x)) base$a else base$a <- x)
-    )
+     ,quote(if(missing(x)) this$a else this$a <- x)
+    );
+    expect_env(activeBindingFunction("a", this), parent.env(inhr));
 
     expect_false(bindingIsActive("b", this));
     expect_true(bindingIsLocked("b", this));
@@ -272,7 +279,7 @@ test_that("inheritance construct",
 
     expect_true(bindingIsActive("c", this));
     expect_false(bindingIsLocked("c", this));
-    expect_env(activeBindingFunction('c', this), parent.env(inhr));
+    expect_env(activeBindingFunction("c", this), parent.env(inhr));
   })
 })
 
@@ -336,5 +343,4 @@ test_that("inheritance",
     expect_equal(obj$geta(), 3L);
     expect_equal(obj$b, 3L);
   })
-
 })

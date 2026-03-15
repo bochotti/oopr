@@ -101,7 +101,8 @@ SEXP construct_clean(SEXP gen, SEXP encl, SEXP stack)
   checkOoprConstructor(gen);
   if(!Rf_isEnvironment(encl)) Rf_error("`encl` must be an environment");
 
-  SEXP othis = Rf_findVar(Rf_install("this"), encl);
+  SEXP sthis = Rf_install("this");
+  SEXP othis = Rf_findVar(sthis, encl);
   OoprMeta meta(Rf_getAttrib(gen, Rf_install("meta")));
 
   // inherited methods/properties can now be replaced
@@ -123,15 +124,21 @@ SEXP construct_clean(SEXP gen, SEXP encl, SEXP stack)
       R_removeVarFromFrame(nm, othis);
       R_MakeActiveBinding(nm, R_ActiveBindingFunction(nm, inhr), othis);
     }
+    else
+    {
+      R_removeVarFromFrame(nm, othis);
+      symlink(inhr, sthis, othis, nm);
+    }
   }
 
   // remove constructor
-  std::string name(CHAR(STRING_ELT(Rf_getAttrib(gen, Rf_install("name")), 0)));
+  SEXP sym = Rf_install("name");
+  std::string name(CHAR(STRING_ELT(Rf_getAttrib(gen, sym), 0)));
   R_removeVarFromFrame(Rf_install(name.c_str()), othis);
 
   // register & remove destructor
   name.insert(0, 1, '~');
-  SEXP sym = Rf_install(name.c_str());
+  sym = Rf_install(name.c_str());
   if(R_existsVarInFrame(othis, sym))
   {
     R_RegisterFinalizer(othis, Rf_findVar(sym, othis));
@@ -150,12 +157,11 @@ SEXP construct_clean(SEXP gen, SEXP encl, SEXP stack)
   {
     nms = meta.subName("public");
   }
-
   SEXP cls = Rf_getAttrib(
     Rf_findVar(sym, Rf_getAttrib(gen, Rf_install("encl")))
    ,R_ClassSymbol
   );
-  pSEXP intf = interface(othis, Rf_install("this"), nms, cls);
+  pSEXP intf = interface(othis, sthis, nms, cls);
   Rf_defineVar(sym, intf, encl);
 
   // lock
@@ -163,8 +169,8 @@ SEXP construct_clean(SEXP gen, SEXP encl, SEXP stack)
   int size = Rf_xlength(inhr);
   for(int i = 0; i < size; ++i)
   {
-    SEXP nm = Rf_installChar(STRING_ELT(inhr, i));
-    R_LockEnvironment(Rf_findVar(nm, encl), FALSE);
+    sym = Rf_installChar(STRING_ELT(inhr, i));
+    R_LockEnvironment(Rf_findVar(sym, encl), FALSE);
   }
   R_LockEnvironment(intf, FALSE);
   R_LockEnvironment(othis, FALSE);

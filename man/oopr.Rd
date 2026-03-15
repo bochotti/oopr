@@ -4,11 +4,8 @@
 \name{oopr}
 \alias{oopr}
 \alias{ooprC}
-\alias{show,ooprC-method}
 \title{oopr}
 \usage{
-\S4method{show}{ooprC}(object)
-
 oopr(
   name
  ,inherits   = NULL
@@ -17,8 +14,6 @@ oopr(
 )
 }
 \arguments{
-\item{object}{\code{ooprC}}
-
 \item{name}{\code{character(1L)} \cr
 The name of the class.}
 
@@ -63,54 +58,53 @@ A template of what the class looks like.}
 }}
 
 \examples{
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-oopr(
-  name = "human"
- ,definition =
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#  human as a class
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+oopr("human",,
+{
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+human <- \(first, last, age)
+{
+  stopifnot(
+    this$isScalar(first, "character")
+   ,this$isScalar(last,  "character")
+   ,this$isScalar(age,   "integer")
+  );
+  this$first_ <- first;
+  this$last_  <- last;
+  this$age_   <- age;
+}
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+public:
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  get:name <- \( )
   {
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  human <- \(first, last, age)
+    sprintf("\%s \%s", this$first_, this$last_)
+  }
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  greet <- \( )
   {
-    stopifnot(
-      this$isScalar(first, "character")
-     ,this$isScalar(last,  "character")
-     ,this$isScalar(age,   "integer")
-    );
-    this$first_ <- first;
-    this$last_  <- last;
-    this$age_   <- age;
+    cat(sprintf(
+      "Hello, my name is \%s \%s, aged \%i.\n"
+     ,this$first_, this$last_, this$age_
+    ));
+    return(invisible(this));
   }
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  public:
-    ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-    get:name <- \( )
-    {
-      sprintf("\%s \%s", this$first_, this$last_)
-    }
-    ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-    greet <- \( )
-    {
-      cat(sprintf(
-        "Hello, my name is \%s \%s, aged \%i.\n"
-       ,this$first_, this$last_, this$age_
-      ));
-      return(invisible(this));
-    }
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  private:
-    first_ <- character(1L);
-    last_  <- character(1L);
-    age_   <- integer(0L);
-    ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-    isScalar <- \(x, type)
-    {
-      typeof(x) == type && length(x) == 1L;
-    }
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+private:
+  first_ <- character(1L);
+  last_  <- character(1L);
+  age_   <- integer(0L);
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  isScalar <- \(x, type)
+  {
+    typeof(x) == type && length(x) == 1L;
   }
-)
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+})
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 john <- human("john", "smith", 50L);
 print(john);
 john$greet();
 }
-\keyword{internal}

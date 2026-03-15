@@ -228,7 +228,7 @@ property_create <- \(name, get, set, env)
   }
 
   body <- call("if", call("missing", as.name(names(arg))), get, set);
-  fun  <- eval(call("function", arg, call('{', body), src), cls);
+  fun  <- eval(call("function", arg, call('{', body), src), cls, NULL);
   env$this[[name]] <- fun;
   return();
 }

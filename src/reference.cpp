@@ -420,6 +420,7 @@ private:
   Symbols subset{"$", "[[", "["};
   Symbols loop{"for"};
   Symbols fun{"function"};
+  Symbols pkg{"::", ":::"};
 
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   std::vector<int>  paths;
@@ -487,6 +488,15 @@ private:
         // for(i in ...) { ... }, i is now a local
         locals.push_back(CADR(e));
         walk(CADDDR(e), env);
+        return;
+      }
+      else if(pkg.is(CAR(e)))
+      {
+        pSEXP expr = Rf_mkString(CHAR(PRINTNAME(CADR(e))));
+        expr = Rf_lang2(Rf_install("asNamespace"), expr);
+        int err;
+        R_tryEval(expr, R_GlobalEnv, &err);
+        if(err) walk(CADR(e), env);
         return;
       }
       else if(fun.is(CAR(e)))

@@ -212,7 +212,7 @@ evaluate_rhs <- \(env, expr, parent, err)
     name <- env$meta$names$get(i);
     rhs  <- expr[[c(i, 3L)]];
     #TODO: behaviour for oopr members
-    obj  <- tryCatch(eval(rhs, eenv), error = \(e)
+    obj  <- tryCatch(eval(rhs, eenv, NULL), error = \(e)
     {
       err$push(
         cls = "ooprRHSError"
@@ -234,7 +234,8 @@ evaluate_rhs <- \(env, expr, parent, err)
   name <- env$name;
   if(match(name, env$meta$names$data, 0L) == 0L)
   {
-    obj <- eval(parse(text = "\\() {}", keep.source = FALSE));
+    obj <- parse(text = "\\() {}", keep.source = FALSE);
+    obj <- eval(obj, globalenv(), NULL);
     environment(obj) <- eenv;
     env$this[[name]] <- obj;
     env$meta$push(names = name, method = TRUE);
