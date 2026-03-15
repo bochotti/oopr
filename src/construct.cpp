@@ -24,7 +24,8 @@ SEXP construct_make(SEXP gen)
   // do something with inherited classes
   for(int i = 0; i < size; ++i)
   {
-
+    SEXP nm = Rf_installChar(STRING_ELT(inhr, i));
+    Rf_defineVar(nm, Rf_findVar(nm, iencl), encl);
   }
 
   OoprMeta meta(Rf_getAttrib(gen, Rf_install("meta")));

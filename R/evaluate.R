@@ -1,5 +1,7 @@
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @intern
+#' @include utils.R
+#' @include meta.R
 #' Evaluates the `definition` argument of `oopr` and saves the results within
 #' an environment.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -233,9 +235,11 @@ evaluate_rhs <- \(env, expr, parent, err)
   {
     obj <- \( ) { }
     environment(obj)     <- eenv;
-    attr(obj, "srcref")  <- env$src[[1L]];
+    # attr(obj, "srcref")  <- env$src[[1L]];
     env$this[[env$name]] <- obj;
     env$meta$push(names = env$name, access = "private", method = TRUE);
+    env$succ$push(TRUE);
+    env$src[[length(env$src) + 1L]] <- env$src[[1L]]
   }
   return();
 }

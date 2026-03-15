@@ -66,6 +66,9 @@ findInExpr <- \(expr, cond)
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @intern
+#' @include utils.R
+#' @include property.R
+#' @include static.R
 #' Check the references inside methods/properties with other members.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 references <- \(env, err)

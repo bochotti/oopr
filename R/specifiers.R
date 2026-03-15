@@ -1,5 +1,7 @@
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @intern
+#' @include property.R
+#' @include static.R
 #' Collect specifiers, which are moved into the `meta` object.
 #' Each function called inside here should amend `meta` accordingly, and
 #' remove that specifier from the `spec` object. It should return `TRUE` if

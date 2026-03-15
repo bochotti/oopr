@@ -1,6 +1,14 @@
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @rdname oopr
 #' @title oopr
+#' @include error.R
+#' @include evaluate.R
+#' @include specifiers.R
+#' @include definition.R
+#' @include inherit.R
+#' @include reference.R
+#' @include enclosure.R
+#' @include construct.R
 #' @export
 #' @description
 #' Create a class generator.
@@ -97,6 +105,7 @@ oopr <- \(name, inherits = NULL, definition, parent = parent.frame())
   );
 
   expr <- substitute(definition);
+  inhr <- substitute(inherits);
   if(class(expr)[1L] != '{')
   {
     stop("`definition` must be enclosed in brackets, e.g. { ... }");
@@ -106,6 +115,7 @@ oopr <- \(name, inherits = NULL, definition, parent = parent.frame())
   env <- evaluate(name, expr, parent, err);
 
   specifiers(env, err);
+  inheritance(env, inhr, parent, err);
   definitions(env, err);
   references(env, err);
 
@@ -114,7 +124,8 @@ oopr <- \(name, inherits = NULL, definition, parent = parent.frame())
   env$meta$rmve(1L)$lock();
   encl <- enclosure(env, parent);
 
-  out <- constructor(name, character(0L), env$meta, encl, env$wsrc, parent);
+  inhr <- env$inhr$meta$names$data[-1L]; #env$inhr$meta$subs("names", TRUE, names = "");
+  out  <- constructor(name, inhr, env$meta, encl, env$wsrc, parent);
   assign(name, out, envir = parent);
   return(out);
 }

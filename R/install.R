@@ -1,6 +1,7 @@
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @name oopr_onInstall
 #' @title Load oopr in Packages
+#' @include utils.R
 #' @export
 #' @description
 #' Correctly install and load `oopr` classes when developing a package.

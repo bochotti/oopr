@@ -1,43 +1,7 @@
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @intern
-#' Create an enclosure which holds `this`, its interface, and inherited
-#' classes.
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-enclosure <- \(env, parent)
-{
-  encl <- new.env(parent = parent, size = 2L);
-  this <- env$this;
-  parent.env(this) <- encl;
-  meta <- env$meta;
-  for(i in seq_len(meta$size))
-  {
-    name <- meta$names$get(i);
-    if(nzchar(meta$property$get(i)))
-    {
-      fun <- this[[name]];
-      environment(fun) <- encl;
-      rm(list = name, envir = this);
-      makeActiveBinding(name, fun, this);
-    }
-    else if(meta$method$get(i))
-    {
-      environment(this[[name]]) <- encl;
-      lockBinding(name, this);
-    }
-    if(!meta$static$get(i))
-    {
-      lockBinding(name, this);
-    }
-  }
-  lockEnvironment(this);
-  encl$this  <- this;
-  # the constructors enclosure only reveals static members
-  names <- meta$subs("names", access = "public", static = TRUE);
-  class <- c(env$name, "oopr");
-  encl$.this <- interface(this, names, class);
-  lockEnvironment(encl);
-  return(encl);
-}
+#' Creates a new environment, which refers back to the original environment.
+#' Fields specifically have an active binding created.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 interface <- \(env, names = NULL, class = NULL, sym)
 {
@@ -46,4 +10,75 @@ interface <- \(env, names = NULL, class = NULL, sym)
     sym <- substitute(env);
   }
   .Call("interface", env, sym, names, class, PACKAGE = "oopr");
+}
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @intern
+#' Create an enclosure which holds `this`, its interface, and inherited
+#' classes.
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+enclosure <- \(env, parent)
+{
+  inhr <- env$inhr;
+  encl <- new.env(parent = parent, size = 2L + env$inhr$size - 1L);
+  inms <- character(0L);
+  for(i in inhr$along)
+  {
+    # include inherited classes into enclosure
+    name <- inhr$meta$names$get(i);
+    encl[[name]] <- inhr$this[[name]];
+    # collect the names of these classes
+    if(inhr$meta$access$get(i) == "public")
+    {
+      inms <- c(inms, name, encl[[name]]@inhr);
+    }
+  }
+
+  this <- env$this;
+  parent.env(this) <- encl;
+  meta <- env$meta;
+  for(i in seq_len(meta$size))
+  {
+    inhr   <- meta$inherit$get(i);
+    name <- meta$names$get(i);
+    if(nzchar(meta$property$get(i)))
+    {
+      # property funds need to be converted to active bindings
+      fun <- this[[name]];
+      # TODO: will inherited properties break on install?
+      if(!nzchar(inhr))
+      {
+        environment(fun) <- encl;
+      }
+      rm(list = name, envir = this);
+      makeActiveBinding(name, fun, this);
+    }
+    else if(meta$method$get(i))
+    {
+      # methods need a change in environment
+      if(!nzchar(inhr))
+      {
+        environment(this[[name]]) <- encl;
+      }
+      lockBinding(name, this);
+    }
+    else if(nzchar(inhr))
+    {
+      # inherited fields refer to their own enclosure
+      rm(list = name, envir = this);
+      symlink(encl[[inhr]]@encl$this, "this", this, name);
+    }
+    if(!meta$static$get(i))
+    {
+      lockBinding(name, this);
+    }
+  }
+  lockEnvironment(this);
+  encl$this  <- this;
+  # the constructors interface only reveals static members
+  names <- meta$subs("names", access = "public", static = TRUE);
+  class <- c(env$name, inms, "oopr");
+  encl$.this <- interface(this, names, class);
+  lockEnvironment(encl);
+  return(encl);
 }

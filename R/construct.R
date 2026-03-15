@@ -99,7 +99,7 @@ show <- methods::show;
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 setMethod("show", c(object = "ooprC"), \(object)
 {
-  bot <- capture.output(str(object@encl$.this));
+  bot <- capture.output(str.oopr(object@encl$.this));
   top <- format(object);
   usg <- deparse(object@.Data, getOption("width"), nlines = 1L);
   usg <- sub("function ", object@name, usg);

@@ -16,17 +16,18 @@ Imports:
     methods
 Config/testthat/edition: 3
 Collate: 
-    'oopr.R'
     'construct.R'
+    'utils.R'
+    'property.R'
     'definition.R'
     'enclosure.R'
+    'meta.R'
     'error.R'
     'evaluate.R'
+    'inherit.R'
     'install.R'
-    'meta.R'
-    'property.R'
+    'static.R'
     'reference.R'
     'specifiers.R'
-    'static.R'
-    'utils.R'
+    'oopr.R'
     'zzz.R'

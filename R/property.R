@@ -20,6 +20,7 @@ evaluate_property <- \(i, name, j, env)
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @intern
+#' @include utils.R
 #' Collect specifiers for properties.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 specifiers_property <- \(i, name, spec, meta, env, err)

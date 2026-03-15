@@ -23,7 +23,7 @@ roxy_tag_parse.roxy_tag_intern <- \(x) { return(x); }
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 symlink <- \(tenv, tname, env, name)
 {
-  .Call("symlink", tenv, tname, env, name, names, PACKAGE = "oopr");
+  .Call("symlink", tenv, tname, env, name, PACKAGE = "oopr");
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##

@@ -1,5 +1,7 @@
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @intern
+#' @include utils.R
+#' @include property.R
 #' Enforces definitions of members.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 definitions <- \(env, err)
@@ -105,7 +107,8 @@ definitions_print <- \(i, name, meta, env, err)
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 definitions_constructor <- \(i, name, env, err)
 {
-  args <- names(formals(env$this[[name]]));
+  fun  <- env$this[[name]];
+  args <- names(formals(fun));
   if(!is.null(args) && any(match(args, c(".", ".."), 0L)))
   {
     err$push(
@@ -116,6 +119,7 @@ definitions_constructor <- \(i, name, env, err)
     );
     env$succ$set(i, FALSE);
   }
+  definitions_inheritance(i, name, fun, env, err);
   return();
 }
 

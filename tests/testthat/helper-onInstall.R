@@ -32,7 +32,7 @@ local_packageInstall <- \(
   # install recent development version of oopr
   libs <- withr::local_tempdir(.local_envir = envir);
   withr::local_libpaths(libs, "prefix", .local_envir = envir);
-  callr::rcmd("INSTALL", c(ns, sprintf("--library=%s", libs)));
+  callr::rcmd("INSTALL", c(ns, sprintf("--library=%s", libs)), stderr = stdout());
   on.exit(remove.packages("oopr", libs), envir);
 
   # create new directory to put simulated package into
@@ -58,7 +58,7 @@ local_packageInstall <- \(
   }
 
   # install simulated package
-  callr::rcmd("INSTALL", c(dir, sprintf("--library=%s", libs)));
+  callr::rcmd("INSTALL", c(dir, sprintf("--library=%s", libs)), stderr = stdout());
   on.exit(remove.packages(name, libs), envir);
   on.exit(unloadNamespace(name), envir);
   withr::local_package(name, lib.loc = libs, .local_envir = envir);
