@@ -43,7 +43,9 @@ private:
  * `env`   - environment to assign the link
  * `name`  - the element in `tenv`, assigned link will have this name
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-extern "C" SEXP symlink(SEXP tenv, SEXP tname, SEXP env, SEXP name);
+extern "C" SEXP symlink(
+    SEXP tenv, SEXP tname, SEXP env, SEXP name, bool check = false
+);
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #endif
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //

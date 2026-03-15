@@ -60,5 +60,8 @@ test_that("references_static",
       oopr("test",, { a <- 1L; static:b <- \( ) { this$a; }})
      ,class = "ooprRefNotStatic"
     );
+    expect_no_error(
+      oopr("test",, { static:a <- 1L; static:b <- \( ) { this$a; }})
+    );
   })
 })

@@ -240,4 +240,101 @@ test_that("inheritance construct",
     inhr <- parent.env(obj)$base;
     expect_named(inhr, "a");
   })
+
+  it("gives the inherited class a seperate enclosure",
+  {
+    oopr("base",, { protected:a <- 1L; })
+    oopr("test", { base; }, {})
+    obj  <- test();
+    inhr <- parent.env(obj)$base;
+    expect_env(parent.env(inhr), parent.env(obj), inverse = TRUE);
+    expect_env(parent.env(inhr), base@encl, inverse = TRUE);
+  })
+
+  it("gives inherited members the inherited classes environment",
+  {
+    oopr("base",, { public:a <- 1L; b <- \( ) { }; get:c <- \( ) { } })
+    oopr("test", { public:base; }, {})
+    obj  <- test();
+    this <- parent.env(obj)$this;
+    inhr <- parent.env(obj)$base;
+
+    expect_true(bindingIsActive("a", this));
+    expect_false(bindingIsLocked("a", this));
+    expect_equal(
+      body(activeBindingFunction("a", this))
+     ,quote(if(missing(x)) base$a else base$a <- x)
+    )
+
+    expect_false(bindingIsActive("b", this));
+    expect_true(bindingIsLocked("b", this));
+    expect_env(this$b, parent.env(inhr));
+
+    expect_true(bindingIsActive("c", this));
+    expect_false(bindingIsLocked("c", this));
+    expect_env(activeBindingFunction('c', this), parent.env(inhr));
+  })
+})
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("inheritance",
+{
+  oopr("base",,
+  {
+    public:
+      a     <- 1L;
+      geta  <- \( ) { this$a; }
+      seta  <- \(x) { this$a <- x; }
+      get:b <- \( ) { this$a; }
+      set:b <- \(x) { this$a <- x; }
+  })
+
+  it("public members",
+  {
+    oopr("test", { public:base; }, { public:a <- 1L; })
+    obj <- test();
+    obj$a <- 0L;
+    expect_equal(obj$a, 0L);
+    expect_equal(obj$geta(), 1L);
+    expect_equal(obj$b, 1L);
+
+    obj$seta(2L);
+    expect_equal(obj$a, 0L);
+    expect_equal(obj$geta(), 2L);
+    expect_equal(obj$b, 2L);
+
+    obj$b <- 3L;
+    expect_equal(obj$a, 0L);
+    expect_equal(obj$geta(), 3L);
+    expect_equal(obj$b, 3L);
+  })
+
+  it("protected members",
+  {
+    oopr("test", { protected:base; },
+    {
+    public:
+      a <- 1L;
+      geta  <- \( ) { base$a; }
+      seta  <- \(x) { base$a <- x; }
+      get:b <- \( ) { base$a; }
+      set:b <- \(x) { base$a <- x; }
+    })
+    obj <- test();
+    obj$a <- 0L;
+    expect_equal(obj$a, 0L);
+    expect_equal(obj$geta(), 1L);
+    expect_equal(obj$b, 1L);
+
+    obj$seta(2L);
+    expect_equal(obj$a, 0L);
+    expect_equal(obj$geta(), 2L);
+    expect_equal(obj$b, 2L);
+
+    obj$b <- 3L;
+    expect_equal(obj$a, 0L);
+    expect_equal(obj$geta(), 3L);
+    expect_equal(obj$b, 3L);
+  })
+
 })

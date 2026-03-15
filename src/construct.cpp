@@ -16,13 +16,13 @@ SEXP construct_make(SEXP gen)
   checkOoprConstructor(gen);
 
   SEXP inhr = Rf_getAttrib(gen, Rf_install("inhr"));
-  int size = Rf_xlength(inhr);
+  int len = Rf_xlength(inhr);
   // create a new enclosure
   SEXP iencl = Rf_getAttrib(gen, Rf_install("encl"));
-  pSEXP encl = R_NewEnv(ENCLOS(iencl), 1, 2 + size);
+  pSEXP encl = R_NewEnv(ENCLOS(iencl), 1, 2 + len);
 
   // assign the inherited constructors
-  for(int i = 0; i < size; ++i)
+  for(int i = 0; i < len; ++i)
   {
     SEXP nm = Rf_installChar(STRING_ELT(inhr, i));
     Rf_defineVar(nm, Rf_findVar(nm, iencl), encl);
@@ -31,18 +31,24 @@ SEXP construct_make(SEXP gen)
   OoprMeta meta(Rf_getAttrib(gen, Rf_install("meta")));
 
   // create the new `this`
-  SEXP ithis = Rf_findVar(Rf_install("this"), iencl);
-  size = Rf_xlength(ithis);
-  pSEXP othis = R_NewEnv(encl, 1, size);
+  SEXP sthis = Rf_install("this");
+  SEXP ithis = Rf_findVar(sthis, iencl);
+  len = Rf_xlength(ithis);
+  pSEXP othis = R_NewEnv(encl, 1, len);
 
   // protect funs if created
   std::vector<pSEXP> funs;
-  funs.reserve(size);
+  funs.reserve(len);
 
-  for(int i = 0; i < size; ++i)
+  for(int i = 0; i < len; ++i)
   {
     SEXP nm = meta.name(i);
-    if(meta.isMethod(i))
+    // inherited members link to inherited class, the enclosure does not exist
+    if(meta.isInherit(i))
+    {
+      symlink(othis, meta.inherit(i), othis, nm, false);
+    }
+    else if(meta.isMethod(i))
     {
       funs.emplace_back(Rf_duplicate(Rf_findVar(nm, ithis)));
       if(!meta.isStatic(i)) SET_CLOENV(funs.back(), encl);
@@ -57,36 +63,36 @@ SEXP construct_make(SEXP gen)
     }
     else if(meta.isStatic(i))
     {
-      symlink(ithis, Rf_install("this"), othis, nm);
+      symlink(ithis, sthis, othis, nm);
     }
     else
     {
       Rf_defineVar(nm, Rf_findVar(nm, ithis), othis);
     }
   }
-  Rf_defineVar(Rf_install("this"), othis, encl);
+  Rf_defineVar(sthis, othis, encl);
   return encl;
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 bool is_inherited(SEXP stack, std::string& name)
 {
-  const R_xlen_t len = Rf_length(stack);
+  const R_xlen_t len = Rf_xlength(stack);
   if(len <= 3) return false;
   for(R_xlen_t i = 0; i < (len - 2); ++i)
   {
     stack = CDR(stack);
   }
   stack = CAR(stack);
-  if(!(TYPEOF(stack) == LANGSXP && Rf_length(stack) == 2)) return false;
+  if(!(TYPEOF(stack) == LANGSXP && Rf_xlength(stack) == 2)) return false;
   SEXP call = CAR(stack);
   SEXP args = CADR(stack);
-  return    Rf_length(call)     == 3
-         && CAR(call)           == Rf_install("::")
-         && CADR(call)          == Rf_install("base")
-         && CADDR(call)         == Rf_install("force")
-         && TYPEOF(args)        == LANGSXP
-         && CAR(args)           == Rf_install(name.erase(0, 1).c_str());
+  return    Rf_xlength(call)     == 3
+         && CAR(call)            == Rf_install("::")
+         && CADR(call)           == Rf_install("base")
+         && CADDR(call)          == Rf_install("force")
+         && TYPEOF(args)         == LANGSXP
+         && CAR(args)            == Rf_install(name.erase(0, 1).c_str());
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
@@ -96,6 +102,28 @@ SEXP construct_clean(SEXP gen, SEXP encl, SEXP stack)
   if(!Rf_isEnvironment(encl)) Rf_error("`encl` must be an environment");
 
   SEXP othis = Rf_findVar(Rf_install("this"), encl);
+  OoprMeta meta(Rf_getAttrib(gen, Rf_install("meta")));
+
+  // inherited methods/properties can now be replaced
+  const R_xlen_t len = Rf_xlength(othis);
+  for(R_xlen_t i = 0; i < len; ++i)
+  {
+    if(!meta.isInherit(i)) continue;
+    SEXP nm   = meta.name(i);
+    SEXP inhr = Rf_findVar(meta.inherit(i), encl);
+    if(meta.isMethod(i))
+    {
+      R_unLockBinding(nm, othis);
+      R_removeVarFromFrame(nm, othis);
+      Rf_defineVar(nm, Rf_findVar(nm, inhr), othis);
+      R_LockBinding(nm, othis);
+    }
+    else if(meta.isProperty(i))
+    {
+      R_removeVarFromFrame(nm, othis);
+      R_MakeActiveBinding(nm, R_ActiveBindingFunction(nm, inhr), othis);
+    }
+  }
 
   // remove constructor
   std::string name(CHAR(STRING_ELT(Rf_getAttrib(gen, Rf_install("name")), 0)));
@@ -112,8 +140,6 @@ SEXP construct_clean(SEXP gen, SEXP encl, SEXP stack)
 
   // create the interface
   sym = Rf_install(".this");
-  OoprMeta meta(Rf_getAttrib(gen, Rf_install("meta")));
-
   pSEXP nms;
   if(is_inherited(stack, name))
   {

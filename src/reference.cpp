@@ -238,7 +238,7 @@ private:
     {
       if(!(
            (sym.is(CAR(parent), "(") && paths[i] == 2)
-        || (sym.is(CAR(parent), "{") && paths[i] == Rf_length(parent))
+        || (sym.is(CAR(parent), "{") && paths[i] == Rf_xlength(parent))
       )) break;
       --i;
       parent = parents[i];

@@ -34,14 +34,14 @@ SEXP iscall(SEXP x, SEXP names)
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-SEXP symlink(SEXP tenv, SEXP tname, SEXP env, SEXP name)
+SEXP symlink(SEXP tenv, SEXP tname, SEXP env, SEXP name, bool check)
 {
   if(!Rf_isEnvironment(tenv)) Rf_error("`tenv` must be an environment");
   if(!Rf_isEnvironment(env))  Rf_error("`env` must be an environment");
 
   if(!Rf_isSymbol(tname))
   {
-    if(!(Rf_isString(tname) && Rf_length(tname) == 1L))
+    if(!(Rf_isString(tname) && Rf_xlength(tname) == 1L))
     {
       Rf_error("`tname` must be a symbol or single character vector");
     }
@@ -54,17 +54,17 @@ SEXP symlink(SEXP tenv, SEXP tname, SEXP env, SEXP name)
 
   if(!Rf_isSymbol(name))
   {
-    if(!(Rf_isString(name) && Rf_length(name) == 1L))
+    if(!(Rf_isString(name) && Rf_xlength(name) == 1L))
     {
       Rf_error("`name` must be a symbol or single character vector");
     }
     name = Rf_installChar(STRING_ELT(name, 0));
   }
-  if(!R_existsVarInFrame(tenv, name))
+  if(check && !R_existsVarInFrame(tenv, name))
   {
     Rf_error("`name` does not exist in `tenv`");
   }
-  if(R_existsVarInFrame(env, name))
+  if(check && R_existsVarInFrame(env, name))
   {
     Rf_error("`name` already exists in `env`");
   }

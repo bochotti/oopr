@@ -28,6 +28,12 @@ SEXP OoprMeta::name(const int& i)
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+SEXP OoprMeta::inherit(const int& i)
+{
+  return Rf_install(getStr("inherit", i));
+}
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 bool OoprMeta::isMethod(const int& i)
 {
   return getLgl("method", i);
@@ -45,6 +51,11 @@ bool OoprMeta::isStatic(const int& i)
   return getLgl("static", i);
 }
 
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+bool OoprMeta::isInherit(const int& i)
+{
+  return strlen(getStr("inherit", i)) > 0;
+}
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 bool OoprMeta::getLgl(const std::string& x, const int& i)
 {
