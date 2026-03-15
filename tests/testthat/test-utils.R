@@ -1,3 +1,4 @@
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 test_that("isname",
 {
   it("knows about symbols",
@@ -13,9 +14,9 @@ test_that("isname",
     expect_true(isname(quote(a), c("a", "b")));
     expect_true(isname(quote(a), c("b", "a")));
   })
-
 })
 
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 test_that("iscall",
 {
   it("knows about language",
@@ -33,6 +34,7 @@ test_that("iscall",
   })
 })
 
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 test_that("symlink",
 {
   target <- new.env();
@@ -84,4 +86,17 @@ test_that("symlink",
      ,parent.env(target)
     );
   })
+})
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("roxy_tag_parse.roxy_tag_intern",
+{
+  expect_equal(roxy_tag_parse.roxy_tag_intern(1L), 1L);
+})
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("%||%",
+{
+  expect_equal(1L %||% NULL, 1L);
+  expect_equal(NULL %||% 1L, 1L);
 })

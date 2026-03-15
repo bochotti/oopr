@@ -91,7 +91,7 @@ test_that("findMemberRefs",
     expect_equal(out$type, rep("access", 2L))
   })
 
-  it("supports environments",
+  it("supports environments/lists",
   {
     env <- new.env();
     env$a <- specifiers_access;
@@ -101,7 +101,14 @@ test_that("findMemberRefs",
     expect_length(out, 3L);
     expect_named(out, c("b", "c", "a"));
     expect_null(out$c)
+    list <- as.list(env);
+    out <- findMemberRefs(list, c("b", "c", "a"));
+    expect_length(out, 3L);
+    expect_named(out, c("b", "c", "a"));
+    expect_null(out$c);
+    expect_null(findMemberRefs(1L));
   })
+
 })
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -134,6 +141,20 @@ test_that("findSrcRef",
     expr <- quote({ a$b; { a$b(a$b); }})
     attr(expr[[c(3L)]], "srcref") <- list(NULL, 1:4);
     expect_equal(findSrcRef(3:2, expr), 1:4);
+  })
+
+  it("return NULL when no srcref",
+  {
+    fun <- \( ) { a$b; }
+    attr(fun, "srcref") <- NULL;
+    attr(body(fun), "srcref") <- NULL;
+    expect_null(findSrcRef(2L, fun));
+  })
+
+  it("asserts",
+  {
+    expect_error(findSrcRef("a", "a"), "`at` must be an integer");
+    expect_error(findSrcRef(1L, "a"), "`expr` must be a call object");
   })
 })
 
@@ -168,6 +189,11 @@ test_that("getMissingVars",
   it("knows that loops create new variables",
   {
     expect_equal(getMissingVars(\( ) { for(i in 1L) { } })$var, character(0L));
+  })
+
+  it("does not collect items inside a function",
+  {
+    expect_equal(getMissingVars(\( ) { f <- \( ) { a <- 1L; }; a})$var, "a");
   })
 
 })

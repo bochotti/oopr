@@ -171,19 +171,6 @@ private:
       }
       break;
     }
-    case EXPRSXP:
-    {
-      const R_xlen_t n = XLENGTH(e);
-      for(R_xlen_t i = 0; i < n; ++i)
-      {
-        paths.push_back((int)(i + 1));
-        parents.push_back(e);
-        walk(VECTOR_ELT(e, i));
-        parents.pop_back();
-        paths.pop_back();
-      }
-      break;
-    }
     default:
       break;
     }
@@ -429,7 +416,7 @@ public:
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 private:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  Symbols assign{"<-", "="};
+  Symbols assign{"<-", "=", "<<-"};
   Symbols subset{"$", "[[", "["};
   Symbols loop{"for"};
   Symbols fun{"function"};

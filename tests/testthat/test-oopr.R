@@ -38,7 +38,6 @@ test_that("is.oopr",
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 test_that("str.oopr",
 {
-  skip();
   test <- oopr("test",, {
     public:
       static:very_long <- 1L;
@@ -51,8 +50,26 @@ test_that("str.oopr",
       raw <- raw(1)
       cmp <- complex(1)
   })
-  obj  <- test();
-  obj$very_long <- test();
-  obj$very_long <- obj;
-  str(obj)
+  obj <- test();
+  out <- capture.output(str(obj));
+  it("replaces `function ` with `\\`",
+  {
+    expect_no_match(out[3L], "function");
+    expect_match(out[3L], "\\\\");
+  })
+  it("displays errors",
+  {
+    expect_match(out[8], "<error>")
+  })
+})
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("oopr.print",
+{
+  it("uses print method if defined",
+  {
+    oopr("test",, { public:print <- \( ) { cat("a"); }})
+    obj <- test();
+    expect_output(print(obj), "^a$");
+  })
 })
