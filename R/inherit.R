@@ -94,12 +94,12 @@ inheritance_spec <- \(inhr, err)
 #' @intern
 #' Make sure that the objects provided are indeed `oopr` classes.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-inheritance_get<- \(inhr, parent, err)
+inheritance_get <- \(inhr, parent, err)
 {
   for(i in inhr$along)
   {
-    name  <- inhr$meta$names$get(i);
-    pkg   <- inhr$meta$inherit$get(i);
+    name <- inhr$meta$names$get(i);
+    pkg  <- inhr$meta$inherit$get(i);
     if(nzchar(pkg))
     {
       if(!requireNamespace(pkg, quietly = TRUE))
@@ -161,12 +161,12 @@ inheritance_set <- \(env, inhr, err)
     iname <- inhr$meta$names$get(i);
     ispec <- inhr$meta$access$get(i);
     ithis <- inhr$this[[iname]];
-    imeta <- ithis@meta;
+    imeta <- as.data.frame.oopr_meta(ithis@meta);
     ithis <- ithis@encl$this;
-    for(j in seq_len(imeta$size))
+    for(j in seq_len(nrow(imeta)))
     {
-      name <- imeta$names$get(j);
-      spec <- imeta$access$get(j);
+      name <- imeta[["names"]][j];
+      spec <- imeta[["access"]][j];
 
       # private members are not inherited
       if(spec == "private") next;
@@ -175,7 +175,7 @@ inheritance_set <- \(env, inhr, err)
       if(length(meta$subs("names", names = name))) next;
 
       # get the meta information of inherited member
-      new <- as.data.frame(imeta)[j, ];
+      new <- imeta[j, ];
       new[["inherit"]] <- iname;
       new[["access"]]  <- ispec;
       # protecting a class does not expose its public members
@@ -183,6 +183,7 @@ inheritance_set <- \(env, inhr, err)
       {
         new[["access"]] <- "protected";
       }
+
       do.call(meta$push, new)
       if(nzchar(new$property))
       {
@@ -202,19 +203,12 @@ inheritance_set <- \(env, inhr, err)
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 definitions_inheritance <- \(i, name, fun, env, err)
 {
-  inhr <- env$inhr;
+  inhr  <- env$inhr;
   if(!inhr$size) return();
-  expr <- body(fun);
-  bsrc <- attr(expr, "srcref", exact = TRUE);
-  pfx  <- \(., ...) {
-    out <- call("::", quote(base), as.name(.));
-    if(...length())
-    {
-      out <- as.call(c(out, ...));
-    }
-    return(out)
-  }
-
+  expr  <- body(fun);
+  bsrc  <- attr(expr, "srcref", exact = TRUE);
+  pfx   <- \(., ...) as.call(c(call("::", quote(base), as.name(.)), ...));
+  envir <- pfx("parent.env", quote(this));
   for(i in rev(inhr$along))
   {
     name <- inhr$meta$names$get(i);
@@ -227,7 +221,7 @@ definitions_inheritance <- \(i, name, fun, env, err)
       {
         err$push(
           cls = "ooprInheritNotInit"
-         ,src = attr(body(fun), "srcref", exact = TRUE)[[1]] %||% env$src[[i]]
+         ,src = attr(body(fun), "srcref", exact = TRUE)[[1L]] %||% env$src[[i]]
          ,msg = "Inherited class `%s` must be initialized in the constructor
                  method `%s` via `%s(...)`."
          ,name, env$name, name
@@ -287,11 +281,7 @@ definitions_inheritance <- \(i, name, fun, env, err)
       next;
     }
 
-    expr[[at]] <- pfx("assign"
-      ,x     = name
-      ,value = call
-      ,envir = pfx("parent.env", pfx("environment", NULL))
-    );
+    expr[[at]] <- pfx("assign", x = name, value = call, envir = envir);
   }
   src                  <- attr(fun, "srcref", exact = TRUE);
   attr(expr, "srcref") <- bsrc;

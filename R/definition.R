@@ -14,6 +14,7 @@ definitions <- \(env, err)
     definitions_special(i, name, meta, env, err);
     if(meta$method$get(i) || nzchar(meta$property$get(i)))
     {
+      definitions_args(i, name, env, err);
       definitions_return(i, name, env, err);
     }
   }
@@ -88,6 +89,7 @@ definitions_print <- \(i, name, meta, env, err)
     env$succ$set(i, FALSE);
   }
   ndflt <- vapply(formals(env$this[[name]]), isname, logical(1L), "");
+  ndflt <- ndflt[match(names(ndflt), "...", 0L) == 0L];
   if(any(ndflt))
   {
     err$push(
@@ -198,4 +200,26 @@ definitions_return <- \(i, name, env, err)
   attr(fun, "srcref") <- src;
   env$this[[name]]    <- fun;
   return();
+}
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @intern
+#' Ensure arguments do not overwrite any enclosure.
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+definitions_args <- \(i, name, env, err)
+{
+  if(startsWith(name, '~')) return();
+  args <- names(formals(env$this[[name]]));
+  bad <- c("this", ".this", env$inhr$meta$names$data);
+  m   <- match(bad, args, 0L) > 0L;
+  if(any(m))
+  {
+    err$push(
+      cls = "ooprDefinitionBadArgs"
+     ,src = env$src[[i]]
+     ,"Member `%s` cannot have %s as %s."
+     ,name, deparse1(bad[m]), if(sum(m) == 1L) "an argument" else "arguments"
+    );
+    env$succ$set(i, FALSE);
+  }
 }

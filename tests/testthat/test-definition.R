@@ -22,6 +22,9 @@ test_that("definitions_special",
     expect_no_error(
       oopr("test",, { public:print <- \(a = 1, b = 1) { } })
     );
+    expect_no_error(
+      oopr("test",, { public:print <- \(a = 1, ...) { } })
+    );
   })
 
   it("enforces constructor method as private method without '.', '..' args",
@@ -96,5 +99,28 @@ test_that("definitions_return",
 
     oopr("test",, { a <- \( ) { return(invisible(this)); } })
     expect_equal(body(test@encl$this$a), quote({ return(invisible(.this)); }))
+  })
+})
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("definitions_args",
+{
+  it("does not allow argument names of enclosures",
+  {
+    expect_error(
+      oopr("test",, { a <- \(this) { } })
+     ,class = "ooprDefinitionBadArgs"
+    );
+
+    expect_error(
+      oopr("test",, { a <- \(this, .this) { } })
+     ,class = "ooprDefinitionBadArgs"
+    );
+
+    oopr("base",, { a <- \( ) { }})
+    expect_error(
+      oopr("test", base, { a <- \(base) { } })
+     ,class = "ooprDefinitionBadArgs"
+    );
   })
 })

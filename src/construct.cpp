@@ -98,7 +98,7 @@ bool is_inherited(SEXP frame, std::string& name)
   frame = CAR(frame);
   if(!Rf_isEnvironment(frame)) return false;
 
-  // if this is a base class, then it will be in the enclosure of derived class
+  // if this is a base class, it will be in the enclosure of the derived class
   frame = ENCLOS(frame);
   pSEXP sym = Rf_install(name.c_str());
   if(!R_existsVarInFrame(frame, sym)) return false;
@@ -144,12 +144,12 @@ SEXP oopr_tidy(SEXP gen, SEXP encl, SEXP frame)
     }
   }
 
-  // remove constructor
+  // remove constructor method
   SEXP sym = Rf_install("name");
   std::string name(CHAR(STRING_ELT(Rf_getAttrib(gen, sym), 0)));
   R_removeVarFromFrame(Rf_install(name.c_str()), othis);
 
-  // register & remove destructor
+  // register & remove destructor method
   name.insert(0, 1, '~');
   sym = Rf_install(name.c_str());
   if(R_existsVarInFrame(othis, sym))
