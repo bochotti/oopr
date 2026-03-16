@@ -1,5 +1,5 @@
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-test_that("benchmark", {
+test_that("R6 comparison", {
 skip();
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 R6q <- quote({
@@ -60,4 +60,16 @@ microbenchmark::microbenchmark(
  ,r6i$inc(),  opi$inc()
 )
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+})
+
+test_that("Rprof",
+{
+  skip()
+  tmp <- tempfile();
+  on.exit(unlink(tmp));
+  Rprof(file = tmp, interval = 1e-2, memory.profiling = TRUE, line.profiling = TRUE);
+  for(i in 1:1e3)
+    oopr("test",,{})
+  Rprof(NULL);
+  print(summaryRprof(tmp, memory = "both", lines = "show"));
 })

@@ -112,24 +112,6 @@ test_that("findMemberRefs",
 })
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-test_that("findInExpr",
-{
-  it("can find expressions",
-  {
-    expr <- quote({
-      a$b$c$d
-      {
-        a$b$c$d
-      }
-    });
-    out <- findInExpr(expr, \(e) iscall(e, "$") && isname(e[[2L]], "a"));
-    out <- findInExpr(expr, \(e) identical(e, quote(a$b)));
-    expect_equal(expr[[out[[1]]]], quote(a$b));
-    expect_equal(out, list(c(2,2,2), c(3,2,2,2)));
-  })
-})
-
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 test_that("findSrcRef",
 {
   it("gets the srcref",
@@ -155,6 +137,36 @@ test_that("findSrcRef",
   {
     expect_error(findSrcRef("a", "a"), "`at` must be an integer");
     expect_error(findSrcRef(1L, "a"), "`expr` must be a call object");
+  })
+})
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("findInExpr",
+{
+  it("can find expressions",
+  {
+    expr <- quote({
+      a$b$c$d
+      {
+        a$b$c$d
+      }
+    });
+    out <- findInExpr(expr, \(e) iscall(e, "$") && isname(e[[2L]], "a"));
+    out <- findInExpr(expr, \(e) identical(e, quote(a$b)));
+    expect_equal(expr[[out[[1]]]], quote(a$b));
+    expect_equal(out, list(c(2,2,2), c(3,2,2,2)));
+  })
+})
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("at_lt",
+{
+  it("knows if an integer position is above another",
+  {
+    expect_true(at_lt(1L, 2L));
+    expect_true(at_lt(1L, 1:2));
+    expect_true(at_lt(1:2, c(1, 3)));
+    expect_true(at_lt(1:2, 2L));
   })
 })
 
@@ -227,7 +239,7 @@ test_that("references_call",
   it("requires method calls to match definition",
   {
     expect_error(
-      oopr("test",, { a <- \( ) { }; b <- \( ) { this$a(x); } })
+      oopr("test",, { a <- \( ) { }; b <- \( ) { this$a(1L); } })
      ,class = "ooprRefUnmatchedCall"
     );
     expect_no_error(

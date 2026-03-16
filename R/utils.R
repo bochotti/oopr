@@ -35,6 +35,7 @@ matchsig <- \(fun, call)
 {
   ndflt <- vapply(formals(fun), isname, logical(1L), "");
   ndflt <- names(ndflt)[ndflt];
+  ndflt <- ndflt[match(ndflt, "...", 0L) == 0L];
   call  <- tryCatch(match.call(fun, call), error = identity);
   if(is.call(call))
   {

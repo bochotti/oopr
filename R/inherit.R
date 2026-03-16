@@ -205,6 +205,7 @@ definitions_inheritance <- \(i, name, fun, env, err)
   inhr <- env$inhr;
   if(!inhr$size) return();
   expr <- body(fun);
+  bsrc <- attr(expr, "srcref", exact = TRUE);
   pfx  <- \(., ...) {
     out <- call("::", quote(base), as.name(.));
     if(...length())
@@ -214,7 +215,7 @@ definitions_inheritance <- \(i, name, fun, env, err)
     return(out)
   }
 
-  for(i in inhr$along)
+  for(i in rev(inhr$along))
   {
     name <- inhr$meta$names$get(i);
     init <- inhr$this[[name]];
@@ -237,7 +238,16 @@ definitions_inheritance <- \(i, name, fun, env, err)
       # insert into the expression
       if(length(expr) > 1L)
       {
-        expr[seq_along(expr) + 1L] <- expr[2:length(expr)];
+        expr[seq_along(expr) + 1L] <- expr[seq_along(expr)];
+        bsrc[seq_along(bsrc) + 1L] <- bsrc[seq_along(bsrc)];
+        # adjust any prior positions
+        for(j in rev(inhr$along))
+        {
+          if(j <= i) break;
+          at <- inhr$spec$get(j);
+          at[[c(1, 1)]] <- at[[c(1, 1)]] + 1L;
+          inhr$spec$set(j, at);
+        }
       }
       expr[[2L]] <- call;
       at <- 2L;
@@ -260,6 +270,9 @@ definitions_inheritance <- \(i, name, fun, env, err)
       call <- expr[[at]];
     }
 
+    # record the position of initialization
+    inhr$spec$set(i, list(at));
+
     call <- matchsig(init, call);
     if(!is.call(call))
     {
@@ -276,13 +289,52 @@ definitions_inheritance <- \(i, name, fun, env, err)
 
     expr[[at]] <- pfx("assign"
       ,x     = name
-      ,value = pfx("force", call)
+      ,value = call
       ,envir = pfx("parent.env", pfx("environment", NULL))
     );
   }
   src                  <- attr(fun, "srcref", exact = TRUE);
+  attr(expr, "srcref") <- bsrc;
   body(fun)            <- expr;
   attr(fun, "srcref")  <- src;
   env$this[[env$name]] <- fun;
   return();
+}
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @intern
+#' Check references to inherited classes.
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+references_inheritance <- \(refs, meta, env, err)
+{
+  inhr   <- env$inhr;
+  access <- c("public", "protected");
+  for(i in env$along)
+  {
+    if(!(meta$method$get(i) || nzchar(meta$property$get(i)))) next;
+    name <- meta$names$get(i);
+    for(j in inhr$along)
+    {
+      encl  <- inhr$meta$names$get(j);
+      imeta <- inhr$this[[encl]]@meta;
+      references_method(i, name, refs, imeta, access, encl, env, err);
+
+      # check if member used before initialization
+      if(name == env$name) for(ref in .mapply(list, refs[[name]], NULL))
+      {
+        table <- c(ref$encl, env$meta$subs("inherit", names = ref$memb));
+        if(match(encl, table, 0L) && at_lt(ref$at, inhr$spec$get(j)[[1L]]))
+        {
+          err$push(
+            cls = "ooprInheritUsageBeforeInit"
+           ,src = ref$src %||% env$src[[i]]
+           ,msg = "Constructor method `%s` is using an inherited member `%s`
+                   prior to initializing the inherited class `%s`."
+           ,name, deparse1(ref$expr), encl
+          );
+          env$succ$set(i, FALSE);
+        }
+      }
+    }
+  }
 }

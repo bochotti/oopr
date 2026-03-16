@@ -66,6 +66,26 @@ findInExpr <- \(expr, cond)
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @intern
+#' Check if vector of integers `x` is above `y` in an expression.
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+at_lt <- \(x, y)
+{
+  lx <- l <- length(x);
+  ly <- length(y);
+  if(lx > ly)
+  {
+    y[(ly + 1L):lx] <- 0L;
+  }
+  else if (lx < ly)
+  {
+    x[(lx + 1L):ly] <- 0L;
+    l <- ly;
+  }
+  return(sum(x * 10^((l - 1L):0)) < sum(y * 10^((l - 1L):0)));
+}
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @intern
 #' @include utils.R
 #' @include property.R
 #' @include static.R
@@ -77,11 +97,15 @@ references <- \(env, err)
   miss <- getMissingVars(env$this);
   meta <- env$meta;
 
+  references_inheritance(refs, meta, env, err);
+
+  access <- c("public", "protected", "private");
+  encl   <- c("this", ".this")
   for(i in env$along)
   {
     if(!(meta$method$get(i) || nzchar(meta$property$get(i)))) next;
     name <- meta$names$get(i);
-    references_method(i, name, refs, meta, c("this", ".this"), env, err);
+    references_method(i, name, refs, meta, access, encl, env, err);
     for(mis in .mapply(list, miss[[name]], NULL))
     {
       if(match(mis$var, c("this", ".this"), 0L)) next;
@@ -100,12 +124,12 @@ references <- \(env, err)
 #' @intern
 #' Check the body of each method/property
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-references_method <- \(i, name, refs, meta, encl, env, err)
+references_method <- \(i, name, refs, meta, access, encl, env, err)
 {
   for(ref in .mapply(list, refs[[name]], NULL))
   {
     if(!match(ref$encl, encl, 0L)) next;
-    j <- which(meta$subs(names = ref$memb));
+    j <- which(meta$subs(names = ref$memb, access = access));
     if(!references_exist(i, name, j, meta, ref, env, err)) next;
     if(nzchar(meta$property$get(j)))
     {
@@ -124,8 +148,9 @@ references_method <- \(i, name, refs, meta, encl, env, err)
         references_call(i, name, j, meta, ref, "method", env, err);
       }
     )
-    if(meta$static$get(i))
+    if(env$meta$static$get(i))
     {
+      # if static, check to make sure ref is also static
       references_static(i, name, j, meta, ref, env, err);
     }
   }
@@ -143,7 +168,7 @@ references_exist <- \(i, name, j, meta, ref, env, err)
     cls = "ooprRefNotDefined"
    ,src = ref$src %||% env$src[[i]]
    ,msg = "Member `%s` is attempting to refer to non-defined member `%s`."
-   ,name, ref$memb
+   ,name, deparse1(ref$expr)
   );
   env$succ$set(i, FALSE);
 }
@@ -158,7 +183,7 @@ references_access <- \(i, name, j, meta, ref, type = "method", env, err)
     cls = "ooprRefBadAccess"
    ,src = ref$src %||% env$src[[i]]
    ,msg = "Member `%s` is attempting to access %s `%s`."
-   ,name, type, ref$memb
+   ,name, type, deparse1(ref$expr)
   );
   env$succ$set(i, FALSE);
 }
@@ -173,7 +198,7 @@ references_assign <- \(i, name, j, meta, ref, type = "method", env, err)
     cls = "ooprRefBadAssignment"
    ,src = ref$src %||% env$src[[i]]
    ,msg = "Member `%s` is attempting to assign into %s `%s`."
-   ,name, type, ref$memb
+   ,name, type, deparse1(ref$expr)
   );
   env$succ$set(i, FALSE);
 }
@@ -186,17 +211,14 @@ references_call <- \(i, name, j, meta, ref, type = "field", env, err)
 {
   if(meta$method$get(j))
   {
-    match <- tryCatch(
-      match.call(env$this[[ref$memb]], ref$expr)
-     ,error = identity
-    );
-    if(!inherits(match, "error")) return(TRUE);
+    call <- matchsig(env$this[[ref$memb]], ref$expr);
+    if(is.call(call)) return(TRUE);
     err$push(
       cls = "ooprRefUnmatchedCall"
      ,src = ref$src %||% env$src[[i]]
      ,msg = "Member `%s` call to method `%s` does not match its signature:
              \"%s\"."
-     ,name, ref$memb, match$message
+     ,name, deparse1(ref$expr), call$message
     );
     env$succ$set(i, FALSE);
   }
@@ -206,7 +228,7 @@ references_call <- \(i, name, j, meta, ref, type = "field", env, err)
       cls = "ooprRefBadCall"
      ,src = ref$src %||% env$src[[i]]
      ,msg = "Member `%s` is attempting to call %s `%s`."
-     ,name, type, ref$memb
+     ,name, type, deparse1(ref$expr)
     );
     env$succ$set(i, FALSE);
   }
@@ -220,6 +242,8 @@ references_call <- \(i, name, j, meta, ref, type = "field", env, err)
 references_this <- \(i, name, type = c("this", ".this"), env, err)
 {
   expr <- body(env$this[[name]]);
+
+  # make sure enclosures are not being over-written
   ats  <- findInExpr(expr, \(e) {
     iscall(e, c("<-", "=", "<<-")) && isname(e[[2L]], type)
   });
@@ -228,11 +252,15 @@ references_this <- \(i, name, type = c("this", ".this"), env, err)
     err$push(
       cls = "ooprRefAssigningThis"
      ,src = findSrcRef(at, expr) %||% env$src[[i]]
-     ,msg = "Member `%s` is attempting assign into `%s`."
+     ,msg = "Member `%s` is attempting to overwrite `%s`."
      ,name, type[1L]
     );
     env$succ$set(i, FALSE);
   }
+  # skip initialization call for inherited classes
+  if(type[1L] != "this" && env$name == name) return();
+
+  # make sure enclosures are not being called
   ats  <- findInExpr(expr, \(e) iscall(e, type));
   for(at in ats)
   {

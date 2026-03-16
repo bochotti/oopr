@@ -264,7 +264,8 @@ private:
     for(std::size_t i = len; i > 0; --i)
     {
       SEXP src = getAttrib(parents[i - 1], srcref);
-      if(src != R_NilValue) return VECTOR_ELT(src, (R_xlen_t)paths[i - 1] - 1);
+      const R_xlen_t j = (R_xlen_t)paths[i - 1] - 1;
+      if(src != R_NilValue && j < Rf_xlength(src)) return VECTOR_ELT(src, j);
     }
     return R_NilValue;
   }
@@ -365,7 +366,8 @@ SEXP findSrcRef(SEXP at, SEXP expr)
   for(std::size_t i = len; i > 0; --i)
   {
     SEXP src = getAttrib(parents[i - 1], srcref);
-    if(src != R_NilValue) return VECTOR_ELT(src, (R_xlen_t)path[i - 1] - 1);
+    const R_xlen_t j = (R_xlen_t)path[i - 1] - 1;
+    if(src != R_NilValue && j < Rf_xlength(src)) return VECTOR_ELT(src, j);
   }
   return R_NilValue;
 }
@@ -544,7 +546,8 @@ private:
     for(std::size_t i = len; i > 0; --i)
     {
       SEXP src = getAttrib(parents[i - 1], srcref);
-      if(src != R_NilValue) return VECTOR_ELT(src, (R_xlen_t)paths[i - 1] - 1);
+      const R_xlen_t j = (R_xlen_t)paths[i - 1] - 1;
+      if(src != R_NilValue && j < Rf_xlength(src)) return VECTOR_ELT(src, j);
     }
     return R_NilValue;
   }

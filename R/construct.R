@@ -147,8 +147,8 @@ constructor <- \(name, inhr, meta, encl, src = NULL, parent)
 construct_fun <- \(...)
 {
   .  <- base::get(class, envir = within); #<- any unintended consequences?
-  .. <- base::.Call("construct_make", ., PACKAGE = "oopr");
+  .. <- base::.Call("oopr_make", ., PACKAGE = "oopr");
   ..$this[[class]];
-  .. <- base::.Call("construct_clean", ., .., sys.calls(), PACKAGE = "oopr");
+  .. <- base::.Call("oopr_tidy", ., .., base::sys.frames(), PACKAGE = "oopr");
   return(..);
 }

@@ -1,19 +1,31 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #include "construct.h"
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-void checkOoprConstructor(SEXP gen)
+bool isOoprC(SEXP gen)
 {
+  if(!Rf_isS4(gen)) return false;
   const char* cls = CHAR(STRING_ELT(Rf_getAttrib(gen, R_ClassSymbol), 0));
-  if(!(Rf_isS4(gen) && strcmp(cls, "ooprC") == 0))
-  {
-    Rf_error("`gen` is not of class \"ooprC\"");
-  }
+  if(strcmp(cls, "ooprC") != 0) return false;
+
+  SEXP name = Rf_getAttrib(gen, Rf_install("name"));
+  if(!(Rf_isString(name) && Rf_xlength(name) == 1)) return false;
+
+  SEXP inhr = Rf_getAttrib(gen, Rf_install("inhr"));
+  if(!Rf_isString(inhr)) return false;
+
+  SEXP meta = Rf_getAttrib(gen, Rf_install("meta"));
+  if(!Rf_isEnvironment(meta)) return false;
+
+  SEXP encl = Rf_getAttrib(gen, Rf_install("encl"));
+  if(!Rf_isEnvironment(encl)) return false;
+
+  return true;
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-SEXP construct_make(SEXP gen)
+SEXP oopr_make(SEXP gen)
 {
-  checkOoprConstructor(gen);
+  if(!isOoprC(gen)) Rf_error("ooprC not called correctly");
 
   SEXP inhr = Rf_getAttrib(gen, Rf_install("inhr"));
   int len = Rf_xlength(inhr);
@@ -75,30 +87,31 @@ SEXP construct_make(SEXP gen)
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-bool is_inherited(SEXP stack, std::string& name)
+bool is_inherited(SEXP frame, std::string& name)
 {
-  const R_xlen_t len = Rf_xlength(stack);
-  if(len <= 3) return false;
-  for(R_xlen_t i = 0; i < (len - 2); ++i)
-  {
-    stack = CDR(stack);
-  }
-  stack = CAR(stack);
-  if(!(TYPEOF(stack) == LANGSXP && Rf_xlength(stack) == 2)) return false;
-  SEXP call = CAR(stack);
-  SEXP args = CADR(stack);
-  return    Rf_xlength(call)     == 3
-         && CAR(call)            == Rf_install("::")
-         && CADR(call)           == Rf_install("base")
-         && CADDR(call)          == Rf_install("force")
-         && TYPEOF(args)         == LANGSXP
-         && CAR(args)            == Rf_install(name.erase(0, 1).c_str());
+  if(!Rf_isPairList(frame)) return false;
+  const R_xlen_t len = Rf_xlength(frame);
+  if(len < 2) return false;
+
+  // get the callers environment
+  for(R_xlen_t i = 0; i < (len - 3); ++i, frame = CDR(frame)) { }
+  frame = CAR(frame);
+  if(!Rf_isEnvironment(frame)) return false;
+
+  // if this is a base class, then it will be in the enclosure of derived class
+  frame = ENCLOS(frame);
+  pSEXP sym = Rf_install(name.c_str());
+  if(!R_existsVarInFrame(frame, sym)) return false;
+  SEXP base = Rf_findVar(sym, frame);
+  if(!isOoprC(base)) return false;
+  sym = Rf_getAttrib(base, Rf_install("name"));
+  return strcmp(name.c_str(), CHAR(STRING_ELT(sym, 0))) == 0;
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-SEXP construct_clean(SEXP gen, SEXP encl, SEXP stack)
+SEXP oopr_tidy(SEXP gen, SEXP encl, SEXP frame)
 {
-  checkOoprConstructor(gen);
+  if(!isOoprC(gen)) Rf_error("ooprC not called correctly");
   if(!Rf_isEnvironment(encl)) Rf_error("`encl` must be an environment");
 
   SEXP sthis = Rf_install("this");
@@ -144,11 +157,12 @@ SEXP construct_clean(SEXP gen, SEXP encl, SEXP stack)
     R_RegisterFinalizer(othis, Rf_findVar(sym, othis));
     R_removeVarFromFrame(sym, othis);
   }
+  name.erase(0, 1);
 
   // create the interface
   sym = Rf_install(".this");
   pSEXP nms;
-  if(is_inherited(stack, name))
+  if(is_inherited(frame, name))
   {
     // expose protected members
     nms = meta.subName("private", true);

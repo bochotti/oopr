@@ -184,6 +184,82 @@ test_that("inheritance_definitions",
 })
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("inheritance references",
+{
+  it("does not allow referring to non-existant inherited classes members",
+  {
+    oopr("base",, { public:a <- 1L; })
+    expect_error(
+      oopr("test", { public:base; }, { b <- \( ) { base$b; } })
+     ,class = "ooprRefNotDefined"
+    );
+    expect_no_error(
+      oopr("test", { public:base; }, { b <- \( ) { base$a; } })
+    );
+  })
+
+  it("does not allow accessing inherited classes private members",
+  {
+    oopr("base",, { private:a <- 1L; })
+    expect_error(
+      oopr("test", { public:base; }, { b <- \( ) { base$a; } })
+     ,class = "ooprRefNotDefined"
+    );
+  })
+
+  it("allows accessing inherited classes protected members",
+  {
+    oopr("base",, { protected:a <- 1L; })
+    expect_no_error(
+      oopr("test", { public:base; }, { b <- \( ) { base$a; } })
+    );
+  })
+
+  it("follows same logic for properties, static, etc",
+  {
+    oopr("base",, { public:get:a <- \( ) { }; static:b <- 1L;})
+
+    expect_error(
+      oopr("test", { public:base; }, { c <- \( ) { base$a <- 1L; } })
+     ,class = "ooprRefBadAssignment"
+    );
+    expect_no_error(
+      oopr("test", { public:base; }, { c <- \( ) { base$a; } })
+    );
+
+    expect_error(
+      oopr("test", { public:base; }, { static:c <- \( ) { base$a; } })
+     ,class = "ooprRefNotStatic"
+    );
+    expect_no_error(
+      oopr("test", { public:base; }, { static:c <- \( ) { base$b; } })
+    );
+    expect_no_error(
+      oopr("test", { public:base; }, { c <- \( ) { base$b; } })
+    );
+  })
+
+  it("does not allow use of inherited class prior to initialization",
+  {
+    oopr("base",, { public:a <- 1L; })
+
+    expect_error(
+      oopr("test", { public:base; }, { test <- \( ) { base$a; base(); }})
+     ,class = "ooprInheritUsageBeforeInit"
+    );
+    expect_error(
+      oopr("test", { public:base; }, { test <- \( ) { this$a; base(); }})
+     ,class = "ooprInheritUsageBeforeInit"
+    );
+
+    oopr("base2",, { public:b <- 1L; })
+    expect_no_error(
+      oopr("test", { base; base2; }, { test <- \( ) { this$b; base(); } })
+    );
+  })
+})
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 test_that("inheritance enclosure",
 {
   it("includes the inherited class in the enclosure",
@@ -241,9 +317,40 @@ test_that("inheritance construct",
   it("exposes inherited protected members",
   {
     oopr("base",, { protected:a <- 1L; })
-    oopr("test", { base; }, {})
+    oopr("test", { protected:base; }, {})
     obj  <- test();
     inhr <- parent.env(obj)$base;
+    expect_named(inhr, "a");
+
+    oopr("test2", { test; }, {})
+    obj  <- test2();
+    inhr <- parent.env(obj)$test;
+    expect_named(inhr, "a");
+
+    inhr <- parent.env(inhr)$base;
+    expect_named(inhr, "a");
+
+    old1 <- str.oopr;
+    old2 <- is.oopr;
+    unlockBinding("str.oopr", asNamespace("oopr"));
+    unlockBinding("is.oopr",  asNamespace("oopr"));
+    on.exit({
+      assign("str.oopr", old1, asNamespace("oopr"));
+      lockBinding("str.oopr",  asNamespace("oopr"));
+      assign("is.oopr", old2,  asNamespace("oopr"));
+      lockBinding("is.oopr",  asNamespace("oopr"));
+    })
+    oopr("str.oopr", , { protected:a <- 1L; }, parent = asNamespace("oopr"))
+    oopr("is.oopr", { oopr:::str.oopr; }, { }, parent = asNamespace("oopr"))
+
+    # access via package / namespace
+    obj  <- oopr:::is.oopr();
+    inhr <- parent.env(obj)$str.oopr;
+    expect_named(inhr, "a");
+
+    # evaluate from a package namespace
+    obj  <- evalq(is.oopr(), asNamespace("oopr"), NULL);
+    inhr <- parent.env(obj)$str.oopr;
     expect_named(inhr, "a");
   })
 
