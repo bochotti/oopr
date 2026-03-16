@@ -95,6 +95,7 @@ references <- \(env, err)
 {
   refs <- findMemberRefs(env$this);
   miss <- getMissingVars(env$this);
+  skip <- c("this", ".this", env$inhr$meta$subs("names", TRUE, names = ""));
   meta <- env$meta;
 
   references_inheritance(refs, meta, env, err);
@@ -108,7 +109,7 @@ references <- \(env, err)
     references_method(i, name, refs, meta, access, encl, env, err);
     for(mis in .mapply(list, miss[[name]], NULL))
     {
-      if(match(mis$var, c("this", ".this"), 0L)) next;
+      if(match(mis$var, skip, 0L)) next;
       err$push(
         cls = "ooprRefUndefinedVariable"
        ,src = mis$src %||% env$src[[i]]
