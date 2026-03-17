@@ -1,49 +1,5 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #include "reference.h"
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
- * Easy way to collect and compare symbols.
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-class Symbols
-{
-public:
-  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  Symbols(std::initializer_list<std::string> syms)
-  {
-    for(const std::string& sym : syms)
-    {
-      this->syms.emplace(sym, Rf_install(sym.c_str()));
-    }
-  }
-  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  bool is(SEXP x)
-  {
-    if(TYPEOF(x) != SYMSXP) return false;
-    for(const auto& [key, val] : syms) if(x == val) return true;
-    return false;
-  }
-  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  bool is(SEXP x, const std::initializer_list<std::string>& keys)
-  {
-    if(TYPEOF(x) != SYMSXP) return false;
-    for(const std::string& key : keys) if(x == get(key)) return true;
-    return false;
-  }
-  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  bool is(SEXP x, const std::string& key)
-  {
-    if(TYPEOF(x) != SYMSXP) return false;
-    return x == get(key);
-  }
-  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  SEXP get(const std::string& key)
-  {
-    if(syms.find(key) == syms.end()) Rf_error("`%s` not a key", key.c_str());
-    return syms[key];
-  }
-  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  std::map<std::string, SEXP> syms;
-};
-
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Locate paths of members (`$` & `[[`) within a function body.
@@ -185,17 +141,17 @@ private:
     if(TYPEOF(e) != LANGSXP)      return false;
 
     SEXP oper = CAR(e);
-    if(TYPEOF(oper) != SYMSXP)    return false;
+    if(!Rf_isSymbol(oper))    return false;
 
     // lhs must be a symbol
-    if(TYPEOF(CADR(e)) != SYMSXP) return false;
+    if(!Rf_isSymbol(CADR(e))) return false;
 
     // dollar can have symbol or char
     if(sym.is(oper, "$"))       return true;
 
     // brackets can vary, but I do not want to consider symbols
     SEXP rhs  = CADDR(e);
-    return sym.is(oper, "[[") && TYPEOF(rhs) == STRSXP && Rf_xlength(rhs) == 1;
+    return sym.is(oper, "[[") && Rf_isString(rhs) && Rf_xlength(rhs) == 1;
   }
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
    * classify a reference as access, assign, call.
@@ -234,7 +190,7 @@ private:
       return "call";
     }
     i = len - 1;
-    while(i > 0 && TYPEOF(parent) == LANGSXP)
+    while(i > 0 && Rf_isLanguage(parent))
     {
       if(!(
            (sym.is(CAR(parent), "(") && paths[i] == 2)
@@ -334,7 +290,7 @@ SEXP findMemberRefs(SEXP expr)
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 SEXP findSrcRef(SEXP at, SEXP expr)
 {
-  if(TYPEOF(at) != INTSXP) Rf_error("`at` must be an integer");
+  if(!Rf_isInteger(at)) Rf_error("`at` must be an integer");
   switch(TYPEOF(expr))
   {
   case CLOSXP:  expr = BODY(expr);
@@ -389,7 +345,7 @@ public:
       env = CLOENV(x);
       x   = BODY(x);
     }
-    if(TYPEOF(env) != ENVSXP) Rf_error("`env` must be an environment");
+    if(!Rf_isEnvironment(env)) Rf_error("`env` must be an environment");
     walk(x, env);
   }
 
@@ -454,7 +410,7 @@ private:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
   bool exists(SEXP e, SEXP env)
   {
-    if(TYPEOF(e) != SYMSXP) return false;
+    if(!Rf_isSymbol(e)) return false;
     for(const SEXP x : locals) if(e == x) return true;
     while(env != R_EmptyEnv)
     {
@@ -469,9 +425,9 @@ private:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
   void walk(SEXP e, SEXP env)
   {
-    if(TYPEOF(e) == LANGSXP)
+    if(Rf_isLanguage(e))
     {
-      if(assign.is(CAR(e)) && TYPEOF(CADR(e)) == SYMSXP)
+      if(assign.is(CAR(e)) && Rf_isSymbol(CADR(e)))
       {
         // LHS are now local
         locals.push_back(CADR(e));
@@ -494,8 +450,8 @@ private:
       }
       else if(pkg.is(CAR(e)))
       {
-        pSEXP expr = Rf_mkString(CHAR(PRINTNAME(CADR(e))));
-        expr = Rf_lang2(Rf_install("asNamespace"), expr);
+        pSEXP expr = Rf_lang2(Rf_install("quote"), CADR(e));
+        expr = Rf_lang2(Rf_install("getNamespace"), expr);
         int err;
         R_tryEval(expr, R_GlobalEnv, &err);
         if(err) walk(CADR(e), env);

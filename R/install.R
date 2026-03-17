@@ -58,11 +58,7 @@ oopr_onLoad <- \(libname, pkgname, refhook = NULL)
   if(!utils::hasName(ns, ".__OOPR__.")) return();
 
   env <- unserialize(ns[[".__OOPR__."]], refhook = refhook);
-  for(nm in names(env))
-  {
-    # TODO: using classes from different packages
-    ns[[nm]] <- env[[nm]];
-  }
-  # TODO: what happens if a package is unloaded?
+  out <- .Call("on_load", env, ns, PACKAGE = "oopr");
   rm(list = ".__OOPR__.", envir = ns);
+  return(out);
 }

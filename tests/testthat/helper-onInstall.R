@@ -2,15 +2,12 @@
 #' Simulate installing another package
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 local_packageInstall <- \(
-  name = "ooprTest"
- ,description = sprintf(
-    "Package: %s\nTitle:T\nVersion: 0.1\nDescription:T\nImports:\n    %s"
-   ,name, pkg
-  )
- ,namespace   = ""
+  name      = "ooprTest"
+ ,imports   = pkg
+ ,namespace = ""
  ,files
- ,envir = parent.frame()
- ,pkg   = "oopr"
+ ,envir     = parent.frame()
+ ,pkg       = "oopr"
 )
 {
   ns <- getNamespaceInfo(pkg, "path");
@@ -32,7 +29,12 @@ local_packageInstall <- \(
   # install recent development version of oopr
   libs <- withr::local_tempdir(.local_envir = envir);
   withr::local_libpaths(libs, "prefix", .local_envir = envir);
-  callr::rcmd("INSTALL", c(ns, sprintf("--library=%s", libs)));
+  o <- callr::rcmd("INSTALL", c(ns, sprintf("--library=%s", libs)));
+  if(o$status)
+  {
+    print(o);
+    stop(sprintf("Error installing package `%s`", pkg));
+  }
   on.exit(remove.packages("oopr", libs), envir);
 
   # create new directory to put simulated package into
@@ -42,6 +44,10 @@ local_packageInstall <- \(
 
   # create description
   desc <- withr::local_file(file.path(dir, "DESCRIPTION"), .local_envir = envir);
+  description <- sprintf(
+    "Package: %s\nTitle:T\nVersion: 0.1\nDescription:T\nImports:%s"
+   ,name, paste0("\n    ", imports, collapse = ',')
+  );
   writeLines(description, desc);
 
   # create namespace
@@ -58,7 +64,12 @@ local_packageInstall <- \(
   }
 
   # install simulated package
-  callr::rcmd("INSTALL", c(dir, sprintf("--library=%s", libs)));
+  o <- callr::rcmd("INSTALL", c(dir, sprintf("--library=%s", libs)));
+  if(o$status)
+  {
+    print(o);
+    stop(sprintf("Error installing package `%s`", name));
+  }
   on.exit(remove.packages(name, libs), envir);
   on.exit(unloadNamespace(name), envir);
   withr::local_package(name, lib.loc = libs, .local_envir = envir);

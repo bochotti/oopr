@@ -1,31 +1,9 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #include "construct.h"
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-bool isOoprC(SEXP gen)
-{
-  if(!Rf_isS4(gen)) return false;
-  const char* cls = CHAR(STRING_ELT(Rf_getAttrib(gen, R_ClassSymbol), 0));
-  if(strcmp(cls, "ooprC") != 0) return false;
-
-  SEXP name = Rf_getAttrib(gen, Rf_install("name"));
-  if(!(Rf_isString(name) && Rf_xlength(name) == 1)) return false;
-
-  SEXP inhr = Rf_getAttrib(gen, Rf_install("inhr"));
-  if(!Rf_isString(inhr)) return false;
-
-  SEXP meta = Rf_getAttrib(gen, Rf_install("meta"));
-  if(!Rf_isEnvironment(meta)) return false;
-
-  SEXP encl = Rf_getAttrib(gen, Rf_install("encl"));
-  if(!Rf_isEnvironment(encl)) return false;
-
-  return true;
-}
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 SEXP oopr_make(SEXP gen)
 {
-  if(!isOoprC(gen)) Rf_error("ooprC not called correctly");
+  if(!is_ooprC(gen)) Rf_error("ooprC not called correctly");
 
   SEXP inhr = Rf_getAttrib(gen, Rf_install("inhr"));
   int len = Rf_xlength(inhr);
@@ -103,15 +81,13 @@ bool is_inherited(SEXP frame, std::string& name)
   pSEXP sym = Rf_install(name.c_str());
   if(!R_existsVarInFrame(frame, sym)) return false;
   SEXP base = Rf_findVar(sym, frame);
-  if(!isOoprC(base)) return false;
-  sym = Rf_getAttrib(base, Rf_install("name"));
-  return strcmp(name.c_str(), CHAR(STRING_ELT(sym, 0))) == 0;
+  return is_ooprC(base, name);
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 SEXP oopr_tidy(SEXP gen, SEXP encl, SEXP frame)
 {
-  if(!isOoprC(gen)) Rf_error("ooprC not called correctly");
+  if(!is_ooprC(gen)) Rf_error("ooprC not called correctly");
   if(!Rf_isEnvironment(encl)) Rf_error("`encl` must be an environment");
 
   SEXP sthis = Rf_install("this");

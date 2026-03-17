@@ -13,12 +13,14 @@ class OoprMeta
 {
 public:
   OoprMeta(SEXP meta);
+  R_xlen_t size();
   SEXP name(const int& i);
   SEXP inherit(const int& i);
   bool isMethod(const int& i);
   bool isProperty(const int& i);
   bool isStatic(const int& i);
   bool isInherit(const int& i);
+  bool isAccess(const int& i, const char* access);
   SEXP subName(const std::string& access, const bool& inverse = false);
 private:
   std::map<std::string, SEXP> meta;

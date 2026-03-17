@@ -1,9 +1,36 @@
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-test_that("onInstall",
+test_that("oopr_onInstall",
+{
+  it("asserts arguments",
+  {
+    expect_error(oopr_onInstall(globalenv()), "`ns` must be a namespace");
+    expect_error(oopr:::.onLoad("aaaa", "aaaa"), "there is no package")
+  })
+
+  it("allows for missing arguments",
+  {
+    wrap <- \() {
+      libname <- pkgname <- "aaaa";
+      oopr_onLoad();
+    }
+    expect_error(wrap(), "there is no package called 'aaaa'")
+
+    wrap <- \() {
+      oopr_onInstall();
+    }
+    environment(wrap) <- globalenv();
+    expect_error(wrap(), "`ns` must be a namespace");
+  })
+
+})
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("oopr_onLoad",
 {
   testthat::skip_on_cran();
+  testthat::skip_if_not_installed(c("withr", "callr"));
   local_packageInstall(files = c(code = r"{
-  oopr::oopr("test",,  { public:get:a <- \( ) { }; })
+  oopr::oopr("test",,  { public:get:a    <- \( ) { } })
   oopr::oopr("test2",, { public:static:a <- 1L; })
   .onLoad <- \(libname, pkgname)
   {
@@ -29,29 +56,85 @@ test_that("onInstall",
     expect_env(parent.env(test@encl$this), test@encl);
     expect_env(activeBindingFunction('a', test@encl$this), test@encl);
   })
+
+  it("can be reloaded",
+  {
+    expect_no_error(detach(ooprTest));
+    expect_no_error(attach(ooprTest));
+    expect_true(bindingIsActive("a", ooprTest:::test2@encl$.this))
+  })
 })
 
-test_that("oopr_onInstall",
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("oopr_onLoad inherit",
 {
-  it("asserts arguments",
+  testthat::skip_on_cran();
+  testthat::skip_if_not_installed(c("withr", "callr"));
+
+  local_packageInstall(
+    name      = "ooprA"
+   ,namespace = "export(A)"
+   ,files     = c(
+      code = r"{
+      oopr::oopr("A",,
+      {
+      public:
+        Af        <- 1L;
+        get:Ap    <- \( ) { }
+        Am        <- \( ) { }
+        static:As <- 1L;
+      })
+      .onLoad <- \(libname, pkgname)
+      {
+        oopr::oopr_onLoad();
+      }
+      oopr::oopr_onInstall();
+      }"
+    )
+  )
+
+  local_packageInstall(
+    name      = "ooprB"
+   ,namespace = "import(ooprA)\nexport(B)"
+   ,imports   = c("oopr", "ooprA")
+   ,files     = c(
+      code = r"{
+      oopr::oopr("B", public:ooprA::A,
+      {
+      public:
+        Bf        <- 1L;
+        get:Bp    <- \( ) { }
+        Bm        <- \( ) { }
+        static:Bs <- 1L;
+      })
+      .onLoad <- \(libname, pkgname)
+      {
+        oopr::oopr_onLoad();
+      }
+      oopr::oopr_onInstall();
+      }"
+    )
+  )
+
+  it("carries over inherited classes from other packages",
   {
-    expect_error(oopr_onInstall(globalenv()), "`ns` must be a namespace");
-    expect_error(oopr:::.onLoad("aaaa", "aaaa"), "there is no package")
+    A <- ooprA::A;
+    B <- ooprB::B;
+    expect_env(B@encl$A@encl, A@encl);
+    expect_env(activeBindingFunction("Af", B@encl$this), A@encl);
+    expect_env(activeBindingFunction("Ap", B@encl$this), A@encl);
+    expect_env(B@encl$this$Am, A@encl);
+    expect_env(activeBindingFunction("As", B@encl$this), A@encl);
   })
 
-  it("allows for missing arguments",
+  it("refers static members to original package env",
   {
-    wrap <- \() {
-      libname <- pkgname <- "aaaa";
-      oopr_onLoad();
-    }
-    expect_error(wrap(), "there is no package called 'aaaa'")
-
-    wrap <- \() {
-      oopr_onInstall();
-    }
-    environment(wrap) <- globalenv();
-    expect_error(wrap(), "`ns` must be a namespace");
+    A <- ooprA::A;
+    B <- ooprB::B;
+    B$As   <- 2L;
+    expect_equal(A$As, 2L);
+    obj    <- B();
+    obj$As <- 3L;
+    expect_equal(A$As, 3L);
   })
-
 })

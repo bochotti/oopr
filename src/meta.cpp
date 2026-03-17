@@ -3,12 +3,10 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 OoprMeta::OoprMeta(SEXP meta)
 {
-  const char* cls = CHAR(STRING_ELT(Rf_getAttrib(meta, R_ClassSymbol), 0));
-  if(strcmp(cls, "oopr_meta") != 0)
+  if(!Rf_inherits(meta, "oopr_meta"))
   {
     Rf_error("`meta` is not of class \"oopr_meta\"");
   }
-
   const std::vector<std::string> nms = {
     "names", "access", "method", "property", "static", "class", "inherit"
   };
@@ -22,6 +20,12 @@ OoprMeta::OoprMeta(SEXP meta)
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+R_xlen_t OoprMeta::size()
+{
+  return Rf_xlength(meta["names"]);
+}
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 SEXP OoprMeta::name(const int& i)
 {
   return Rf_install(getStr("names", i));
@@ -30,7 +34,8 @@ SEXP OoprMeta::name(const int& i)
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 SEXP OoprMeta::inherit(const int& i)
 {
-  return Rf_install(getStr("inherit", i));
+  const char* out = getStr("inherit", i);
+  if(strlen(out)) { return Rf_install(out); } else { return R_NilValue; }
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
@@ -56,6 +61,13 @@ bool OoprMeta::isInherit(const int& i)
 {
   return strlen(getStr("inherit", i)) > 0;
 }
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+bool OoprMeta::isAccess(const int& i, const char* access)
+{
+  return strcmp(getStr("access", i), access) == 0;
+}
+
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 bool OoprMeta::getLgl(const std::string& x, const int& i)
 {
@@ -71,7 +83,7 @@ const char* OoprMeta::getStr(const std::string& x, const int& i)
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 SEXP OoprMeta::subName(const std::string& access, const bool& inverse)
 {
-  int size = Rf_xlength(meta["names"]);
+  const int size = Rf_xlength(meta["names"]);
   std::vector<std::string> names;
   names.reserve(size);
   for(int i = 0; i < size; ++i)
@@ -81,7 +93,7 @@ SEXP OoprMeta::subName(const std::string& access, const bool& inverse)
     if(match)    names.push_back(getStr("names", i));
   }
   pSEXP out = Rf_allocVector(STRSXP, names.size());
-  for(int i = 0; i < (int) names.size(); ++i)
+  for(int i = 0; i < (int)names.size(); ++i)
   {
     SET_STRING_ELT(out, i, Rf_mkChar(names[i].c_str()));
   }
