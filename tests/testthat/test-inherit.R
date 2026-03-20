@@ -144,12 +144,12 @@ test_that("inheritance_definitions",
     oopr("base",, { base <- \(x) { } })
     expect_error(
       oopr("test", { base; }, { })
-     ,class = "ooprInheritNotInit"
+     ,class = "ooprDefNoInit"
     );
 
     expect_error(
       oopr("test", { base; }, { test <- \( ) { } })
-     ,class = "ooprInheritNotInit"
+     ,class = "ooprDefNoInit"
     );
 
     oopr("base",, { base <- \(x = 1L) { } })
@@ -163,7 +163,7 @@ test_that("inheritance_definitions",
     oopr("base",, {})
     expect_error(
       oopr("test", { base; }, { test <- \( ) { base(); base(); }})
-     ,class = "ooprInheritMultipleInit"
+     ,class = "ooprDefMultipleInit"
     );
   })
 
@@ -172,13 +172,13 @@ test_that("inheritance_definitions",
     oopr("base",, { base <- \(x) { }})
     expect_error(
       oopr("test", { base; }, { test <- \( ) { base(y = 1) } })
-     ,class = "ooprInheritSignatureNotMatched"
+     ,class = "ooprDefInitSignatureNotMatched"
     );
 
     oopr("base",, { base <- \(x, y = 1) { }})
     expect_error(
       oopr("test", { base; }, { test <- \( ) { base(y = 1) } })
-     ,class = "ooprInheritSignatureNotMatched"
+     ,class = "ooprDefInitSignatureNotMatched"
     );
   })
 })

@@ -133,10 +133,95 @@ definitions_constructor <- \(i, name, env, err)
     );
     env$succ$set(i, FALSE);
   }
-  definitions_inheritance(i, name, fun, env, err);
+  definitions_inheritance(i, name, env, err);
   return();
 }
 
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @intern
+#' Make amendments for the initialization of inherited classes and
+#' class members.
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+definitions_init <- \(i, name, ats, call, envir, along, fun, env, err)
+{
+  expr  <- body(fun);
+  bsrc  <- attr(expr, "srcref", exact = TRUE);
+  init  <- env$this[[name]];
+  if(!length(ats))
+  {
+    if(any(vapply(formals(init), isname, logical(1L), "")))
+    {
+      err$push(
+        cls = "ooprDefNoInit"
+       ,src = attr(body(fun), "srcref", exact = TRUE)[[1L]] %||% env$src[[i]]
+       ,msg = "Inherited class `%s` must be initialized in the constructor
+               method `%s` via `%s(...)`."
+       ,name, env$name, name
+      );
+      env$succ$set(i, FALSE);
+      return(fun);
+    }
+    # insert into the expression
+    if(length(expr) > 1L)
+    {
+      expr[seq_along(expr) + 1L] <- expr[seq_along(expr)];
+      bsrc[seq_along(bsrc) + 1L] <- bsrc[seq_along(bsrc)];
+      # adjust any prior positions
+      for(j in rev(along))
+      {
+        if(j <= i) break;
+        at <- env$spec$get(j);
+        at[[c(1, 1)]] <- at[[c(1, 1)]] + 1L;
+        env$spec$set(j, at);
+      }
+    }
+    expr[[2L]] <- call;
+    at <- 2L;
+  }
+  else if(length(ats) > 1L)
+  {
+    err$push(
+      cls = "ooprDefMultipleInit"
+     ,src = findSrcRef(ats[[length(ats)]], fun) %||% env$src[[i]]
+     ,msg = "Inherited class `%s` has been initialized multiple times in
+             the constructor method `%s`."
+     ,name, env$name
+    );
+    env$succ$set(i, FALSE);
+    return(fun);
+  }
+  else
+  {
+    at   <- ats[[1L]];
+    call <- expr[[at]];
+  }
+
+  # record the position of initialization
+  env$spec$set(i, list(at));
+
+  call <- matchsig(init, call);
+  if(!is.call(call))
+  {
+    err$push(
+      cls = "ooprDefInitSignatureNotMatched"
+     ,src = findSrcRef(at, fun) %||% env$src[[i]]
+     ,msg = "Initialization of inherited class `%s` in the constructor method
+             `%s` does not match its signature: \"%s\"."
+     ,name, env$name, call$message
+    );
+    env$succ$set(i, FALSE);
+    return(fun);
+  }
+
+  assign     <- call("::", quote(base), quote(assign));
+  expr[[at]] <- as.call(c(assign, x = name, value = call, envir = envir));
+
+  src                  <- attr(fun, "srcref", exact = TRUE);
+  attr(expr, "srcref") <- bsrc;
+  body(fun)            <- expr;
+  attr(fun, "srcref")  <- src;
+  return(fun);
+}
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @intern
 #' Destructor method cannot have any arguments.

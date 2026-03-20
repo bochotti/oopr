@@ -201,94 +201,20 @@ inheritance_set <- \(env, inhr, err)
 #' @intern
 #' Enforces initialization of inherited class/s.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-definitions_inheritance <- \(i, name, fun, env, err)
+definitions_inheritance <- \(i, name, env, err)
 {
+  fun   <- env$this[[name]];
   inhr  <- env$inhr;
-  if(!inhr$size) return();
-  expr  <- body(fun);
-  bsrc  <- attr(expr, "srcref", exact = TRUE);
-  pfx   <- \(., ...) as.call(c(call("::", quote(base), as.name(.)), ...));
-  envir <- pfx("parent.env", quote(this));
-  for(i in rev(inhr$along))
+  envir <- as.call(c(call("::", quote(base), quote(parent.env)), quote(this)));
+  along <- rev(inhr$along);
+  for(i in along)
   {
-    name <- inhr$meta$names$get(i);
-    init <- inhr$this[[name]];
-    ats  <- findInExpr(expr, \(e) iscall(e, name));
-    call <- call(name);
-    if(!length(ats))
-    {
-      if(any(vapply(formals(init), isname, logical(1L), "")))
-      {
-        err$push(
-          cls = "ooprInheritNotInit"
-         ,src = attr(body(fun), "srcref", exact = TRUE)[[1L]] %||% env$src[[i]]
-         ,msg = "Inherited class `%s` must be initialized in the constructor
-                 method `%s` via `%s(...)`."
-         ,name, env$name, name
-        );
-        env$succ$set(i, FALSE);
-        next;
-      }
-      # insert into the expression
-      if(length(expr) > 1L)
-      {
-        expr[seq_along(expr) + 1L] <- expr[seq_along(expr)];
-        bsrc[seq_along(bsrc) + 1L] <- bsrc[seq_along(bsrc)];
-        # adjust any prior positions
-        for(j in rev(inhr$along))
-        {
-          if(j <= i) break;
-          at <- inhr$spec$get(j);
-          at[[c(1, 1)]] <- at[[c(1, 1)]] + 1L;
-          inhr$spec$set(j, at);
-        }
-      }
-      expr[[2L]] <- call;
-      at <- 2L;
-    }
-    else if(length(ats) > 1L)
-    {
-      err$push(
-        cls = "ooprInheritMultipleInit"
-       ,src = findSrcRef(ats[[length(ats)]], fun) %||% env$src[[i]]
-       ,msg = "Inherited class `%s` has been initialized multiple times in
-               the constructor method `%s`."
-       ,name, env$name
-      );
-      env$succ$set(i, FALSE);
-      next;
-    }
-    else
-    {
-      at   <- ats[[1L]];
-      call <- expr[[at]];
-    }
-
-    # record the position of initialization
-    inhr$spec$set(i, list(at));
-
-    call <- matchsig(init, call);
-    if(!is.call(call))
-    {
-      err$push(
-        cls = "ooprInheritSignatureNotMatched"
-       ,src = findSrcRef(at, fun) %||% env$src[[i]]
-       ,msg = "Initialization of inherited class `%s` in the constructor method
-               `%s` does not match its signature: \"%s\"."
-       ,name, env$name, call$message
-      );
-      env$succ$set(i, FALSE);
-      next;
-    }
-
-    expr[[at]] <- pfx("assign", x = name, value = call, envir = envir);
+    name  <- inhr$meta$names$get(i);
+    ats   <- findInExpr(body(fun), \(e) iscall(e, name));
+    call  <- call(name);
+    fun   <- definitions_init(i, name, ats, call, envir, along, fun, inhr, err);
   }
-  src                  <- attr(fun, "srcref", exact = TRUE);
-  attr(expr, "srcref") <- bsrc;
-  body(fun)            <- expr;
-  attr(fun, "srcref")  <- src;
   env$this[[env$name]] <- fun;
-  return();
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
