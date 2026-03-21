@@ -16,6 +16,7 @@ Imports:
     methods
 Config/testthat/edition: 3
 Collate: 
+    'classmem.R'
     'construct.R'
     'utils.R'
     'property.R'

@@ -59,8 +59,9 @@ test_that("oopr_onLoad",
 
   it("can be reloaded",
   {
-    expect_no_error(detach(ooprTest));
-    expect_no_error(attach(ooprTest));
+    library(ooprTest);
+    expect_no_error(detach("package:ooprTest", unload = TRUE));
+    expect_no_error(library(ooprTest));
     expect_true(bindingIsActive("a", ooprTest:::test2@encl$.this))
   })
 })

@@ -7,7 +7,7 @@
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 evaluate <- \(name, expr, parent, err)
 {
-  env <- evaluate_env(name, expr, err);
+  env <- evaluate_env(name, expr, parent, err);
   evaluate_expr(env, expr, err);
   evaluate_lhs(env, expr, err);
   evaluate_nme(env, err);
@@ -39,9 +39,9 @@ evaluate <- \(name, expr, parent, err)
 #' @field size  `integer(1L)` \cr
 #'              The amount of members.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-evaluate_env <- \(name, expr, err)
+evaluate_env <- \(name, expr, parent, err)
 {
-  env  <- new.env(parent = baseenv());
+  env  <- new.env(parent = baseenv(), size = 10L);
   size <- length(expr);
   env$name  <- name;
   env$meta  <- meta(size);
@@ -50,6 +50,7 @@ evaluate_env <- \(name, expr, err)
   env$succ  <- vector("logical", size);
   env$src   <- attr(expr, "srcref", exact = TRUE);
   env$wsrc  <- NULL;
+  env$prnt  <- parent;
 
   along <- \( ) { }
   body(along) <- quote({ return(which(succ$data)) })
@@ -211,7 +212,6 @@ evaluate_rhs <- \(env, expr, parent, err)
   {
     name <- env$meta$names$get(i);
     rhs  <- expr[[c(i, 3L)]];
-    #TODO: behaviour for oopr members
     obj  <- tryCatch(eval(rhs, eenv, NULL), error = \(e)
     {
       err$push(
@@ -223,7 +223,12 @@ evaluate_rhs <- \(env, expr, parent, err)
       env$succ$set(i, FALSE);
       return(NULL);
     })
-    if(is.function(obj))
+    if(is.ooprC(obj) || is.oopr(obj))
+    {
+      obj <- rhs;
+      env$meta$class$set(i, TRUE);
+    }
+    else if(is.function(obj))
     {
       env$meta$method$set(i, TRUE);
     }

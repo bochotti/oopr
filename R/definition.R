@@ -133,6 +133,7 @@ definitions_constructor <- \(i, name, env, err)
     );
     env$succ$set(i, FALSE);
   }
+  definitions_classmem(i, name, env, err);
   definitions_inheritance(i, name, env, err);
   return();
 }
@@ -149,14 +150,14 @@ definitions_init <- \(i, name, ats, call, envir, along, fun, env, err)
   init  <- env$this[[name]];
   if(!length(ats))
   {
-    if(any(vapply(formals(init), isname, logical(1L), "")))
+    if(any(vapply(formals(init), isname, logical(1L), ""))&&length(call) == 1L)
     {
       err$push(
         cls = "ooprDefNoInit"
        ,src = attr(body(fun), "srcref", exact = TRUE)[[1L]] %||% env$src[[i]]
-       ,msg = "Inherited class `%s` must be initialized in the constructor
-               method `%s` via `%s(...)`."
-       ,name, env$name, name
+       ,msg = "Class `%s` must be initialized in the constructor
+               method via `%s(...)`."
+       ,name, deparse1(call[[1L]])
       );
       env$succ$set(i, FALSE);
       return(fun);
@@ -183,9 +184,9 @@ definitions_init <- \(i, name, ats, call, envir, along, fun, env, err)
     err$push(
       cls = "ooprDefMultipleInit"
      ,src = findSrcRef(ats[[length(ats)]], fun) %||% env$src[[i]]
-     ,msg = "Inherited class `%s` has been initialized multiple times in
-             the constructor method `%s`."
-     ,name, env$name
+     ,msg = "Class `%s` has been initialized multiple times in
+             the constructor method."
+     ,deparse1(call[[1L]])
     );
     env$succ$set(i, FALSE);
     return(fun);
@@ -205,9 +206,9 @@ definitions_init <- \(i, name, ats, call, envir, along, fun, env, err)
     err$push(
       cls = "ooprDefInitSignatureNotMatched"
      ,src = findSrcRef(at, fun) %||% env$src[[i]]
-     ,msg = "Initialization of inherited class `%s` in the constructor method
-             `%s` does not match its signature: \"%s\"."
-     ,name, env$name, call$message
+     ,msg = "Initialization of class `%s` in the constructor method
+             does not match its signature: \"%s\"."
+     ,name, call$message
     );
     env$succ$set(i, FALSE);
     return(fun);
@@ -222,6 +223,7 @@ definitions_init <- \(i, name, ats, call, envir, along, fun, env, err)
   attr(fun, "srcref")  <- src;
   return(fun);
 }
+
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @intern
 #' Destructor method cannot have any arguments.

@@ -146,7 +146,14 @@ references_method <- \(i, name, refs, meta, access, encl, env, err)
       }
      ,call   =
       {
-        references_call(i, name, j, meta, ref, "method", env, err);
+        # skip first init call of a class member
+        if(!(
+             name == env$name   && meta$class$get(j)
+          && ref$type == "call" && identical(ref$at, refs[[name]]$at[[1L]])
+        ))
+        {
+          references_call(i, name, j, meta, ref, "non-method", env, err);
+        }
       }
     )
     if(env$meta$static$get(i))
@@ -155,6 +162,7 @@ references_method <- \(i, name, refs, meta, access, encl, env, err)
       references_static(i, name, j, meta, ref, env, err);
     }
   }
+  references_classmem(i, name, refs[[name]], meta, access, encl, env, err);
   references_this(i, name, encl, env, err);
 }
 

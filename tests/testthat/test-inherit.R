@@ -15,12 +15,6 @@ test_that("inheritance_yank",
     );
   })
 
-  it("allows for packages",
-  {
-    #oopr("test", pkg::base, {})
-  })
-
-
 })
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
