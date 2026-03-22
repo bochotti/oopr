@@ -39,7 +39,7 @@ enclosure <- \(env, parent)
   meta <- env$meta;
   for(i in seq_len(meta$size))
   {
-    inhr   <- meta$inherit$get(i);
+    inhr <- meta$inherit$get(i);
     name <- meta$names$get(i);
     if(nzchar(meta$property$get(i)))
     {
@@ -67,6 +67,10 @@ enclosure <- \(env, parent)
       # inherited fields refer to their own enclosure
       rm(list = name, envir = this);
       symlink(encl[[inhr]]@encl$this, "this", this, name);
+    }
+    else if(meta$class$get(i) && meta$static$get(i))
+    {
+      this[[name]] <- eval(this[[name]], parent, NULL);
     }
     if(!meta$static$get(i))
     {

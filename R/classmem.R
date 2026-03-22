@@ -13,16 +13,45 @@ definitions_classmem <- \(i, name, env, err)
   for(i in along)
   {
     name  <- env$meta$names$get(i);
+    call  <- env$this[[name]];
+    if(!is.call(call) || iscall(call, c("::", ":::")))
+    {
+      call <- as.call(c(call));
+    }
     ats   <- findInExpr(body(fun), \(e) {
       is.call(e) && (
            identical(e[[1L]], call("$",  quote(this), as.name(name)))
         || identical(e[[1L]], call("[[", quote(this), as.name(name)))
       )
     });
-    call  <- env$this[[name]];
-    if(!is.call(call) || iscall(call, c("::", ":::")))
+    if(env$meta$static$get(i))
     {
-      call <- as.call(c(call));
+      if(length(ats))
+      {
+        err$push(
+          cls = "ooprStaticClassMemInitializedInConstructor"
+         ,src = findSrcRef(ats[[1L]], fun) %||% env$src[[i]]
+         ,"Static class member `%s` cannot be initialized in the
+           constructor method, it must be initialized where defined."
+         ,name
+        );
+        env$succ$set(i, FALSE);
+      }
+      fun  <- eval(call[[1L]], env$prnt, NULL);
+      call <- matchsig(fun, call);
+      if(!is.call(call))
+      {
+        err$push(
+          cls = "ooprStaticClassMemSignatureUnmatched"
+         ,src = env$src[[i]]
+         ,"Initialization of static class member `%s` does not match its
+           signature \"%s\"."
+         ,name, call$message
+        );
+        env$succ$set(i, FALSE);
+      }
+      env$this[[name]] <- call;
+      next;
     }
     env$this[[name]] <- eval(call[[1L]], env$prnt, NULL);
     call[[1L]] <- call("$", quote(this), as.name(name));
@@ -63,11 +92,13 @@ references_classmem <- \(i, name, refs, meta, access, encl, this, env, err)
     }
   }
   if(!length(refs$at)) return();
+
+  # recreate the class members own member usage
   expr <- do.call(call, c('{', refs$expr), TRUE)
   nest <- rep(list(NULL), length(refs$at));
   for(j in seq_along(refs$at))
   {
-    # be careful of calls
+    # be careful of calls within access
     adj <- refs$at[[j]] == 1L;
     if(any(adj))
     {
@@ -75,6 +106,7 @@ references_classmem <- \(i, name, refs, meta, access, encl, this, env, err)
     }
     else
     {
+      # 2L identifies LHS of assignment, or $ access - get the last one
       adj <- refs$at[[j]] != 2L;
       if(any(adj))
       {
@@ -82,11 +114,13 @@ references_classmem <- \(i, name, refs, meta, access, encl, this, env, err)
       }
       else
       {
+        # if all assignment/access, then pull from back of expr
         adj <- if(refs$type[[j]] == "assign") 3L else 2L;
         adj <- tail(refs$at[[j]], min(adj, length(refs$at[[j]]) - 1L));
       }
     }
     nest[[j]] <- expr[[c(j + 1L, adj)]];
+    # replace encl$memb with memb
     expr[[c(j + 1L, adj)]] <- as.name(refs$memb[[j]]);
   }
   refs2 <- findMemberRefs(expr);
@@ -96,10 +130,23 @@ references_classmem <- \(i, name, refs, meta, access, encl, this, env, err)
   {
     refs <- lapply(refs2, `[`, match(refs2$encl, class, 0L) > 0L);
     oopr <- this[[class]];
-    meta <- oopr@meta;
-    this <- oopr@encl$this;
-    #TODO: error messages to include prefixed this, this$mem, ..., etc.
-    references_method(i, name, refs, meta, "public", class, this, env, err);
+    # static members are not ooprC, but oopr
+    if(meta$subs("static", names = class))
+    {
+      if(is.oopr(oopr))
+      {
+        oopr <- get(class(oopr)[1L], envir = parent.env(parent.env(oopr)));
+      }
+      else if(is.call(oopr))
+      {
+        # if this class is being constructed, it will be a call
+        oopr <- eval(oopr[[1L]], env$prnt, NULL);
+      }
+      if(!is.ooprC(oopr)) next;
+    }
+    cmeta <- oopr@meta;
+    cthis <- oopr@encl$this;
+    references_method(i, name, refs, cmeta, "public", class, cthis, env, err);
   }
   return();
 }

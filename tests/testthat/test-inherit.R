@@ -175,6 +175,34 @@ test_that("inheritance_definitions",
      ,class = "ooprDefInitSignatureNotMatched"
     );
   })
+
+  it("supports multiple inheritance",
+  {
+    oopr("base",,  { public:a <- 1L; })
+    oopr("base2",, { public:b <- 1L; })
+    oopr("test", { base; base2; }, {} )
+    body <- body(test@encl$this$test);
+    expect_identical(body[[2]], quote(
+      base::assign(x = "base", value = base(), envir = base::parent.env(this))
+    ));
+    expect_identical(body[[3]], quote(
+      base::assign(x = "base2", value = base2(), envir = base::parent.env(this))
+    ));
+
+    expect_error(
+      oopr("test", { base; base2; }, { test <- \( ) { 1; base2$b; base2(); }} )
+     ,class = "ooprInheritUsageBeforeInit"
+    );
+
+    oopr("test", { base; base2; }, { test <- \( ) { 1; base2(); }} )
+    body <- body(test@encl$this$test);
+    expect_identical(body[[2]], quote(
+      base::assign(x = "base", value = base(), envir = base::parent.env(this))
+    ));
+    expect_identical(body[[4]], quote(
+      base::assign(x = "base2", value = base2(), envir = base::parent.env(this))
+    ));
+  })
 })
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##

@@ -23,13 +23,24 @@ references_static <- \(i, name, j, meta, ref, env, err)
 {
   if(!meta$static$get(j))
   {
+    if(is.null(ref$nest))
+    {
+      call <- ref$expr;
+    }
+    else
+    {
+      call <- ref$nest;
+      at   <- ref$at[-1L];
+      if(length(at))
+      {
+        call <- call[[at]];
+      }
+    }
     err$push(
       cls = "ooprRefNotStatic"
      ,src = ref$src %||% env$src[[i]]
      ,msg = "Static member `%s` is attempting to use non-static member `%s`."
-     ,name, deparse1(
-       ref$nest %||% call(ref$oper, as.name(ref$encl), as.name(ref$memb))
-      )
+     ,name, deparse1(call)
     );
     env$succ$set(i, FALSE);
   }

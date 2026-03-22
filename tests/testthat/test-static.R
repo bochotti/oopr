@@ -81,3 +81,64 @@ test_that("static inheritance",
   expect_env(activeBindingFunction("a", parent.env(obj)$base), base@encl);
   expect_env(obj$b, base@encl)
 })
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("static classmem",
+{
+  it("shares its state across instances",
+  {
+    oopr("memb",, { public:a <- 1L; })
+    oopr("test",, { public:static:a <- memb; })
+    expect_true(is.oopr(test@encl$this$a, "memb"));
+
+    obj1 <- test();
+    obj2 <- test();
+
+    test$a$a <- 2L;
+    expect_equal(obj1$a$a, 2L);
+    expect_equal(obj2$a$a, 2L);
+
+    obj1$a$a <- 3L;
+    expect_equal(test$a$a, 3L);
+    expect_equal(obj2$a$a, 3L);
+  })
+
+  it("asserts the class members signature",
+  {
+    oopr("memb",, { memb <- \(x) { this$a <- x; }; public:a <- 0L; })
+    expect_error(
+      oopr("test",, { public:static:a <- memb; })
+     ,class = "ooprStaticClassMemSignatureUnmatched"
+    );
+  })
+
+  it("does not allow initialization inside constructor method",
+  {
+    oopr("memb",, { a <- 1L; });
+    expect_error(
+      oopr("test",, { test <- \( ) { this$a(); }; static:a <- memb; })
+     ,class = "ooprStaticClassMemInitializedInConstructor"
+    );
+  })
+
+  it("identifies non-static references",
+  {
+    oopr("memb",,  { public:a <- 1L; });
+    expect_error(
+      oopr("test",,  { static:b <- memb; static:z <- \( ) { this$b$a; }})
+     ,class = "ooprRefNotStatic"
+    );
+
+    oopr("memb2",, { public:b <- memb; });
+    expect_error(
+      oopr("test",,  { static:c <- memb2; static:z <- \( ) { this$c$b$a; }})
+     ,class = "ooprRefNotStatic"
+    );
+
+    oopr("memb2",, { static:public:b <- memb; });
+    expect_error(
+      oopr("test",,  { static:c <- memb2; static:z <- \( ) { this$c$b$a; }})
+     ,class = "ooprRefNotStatic"
+    );
+  })
+})

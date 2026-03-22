@@ -249,6 +249,7 @@ test_that("classmem",
 {
   oopr("memb",, { public:a <- 1L; });
   oopr("test",, { public:a <- memb; })
+  expect_true(is.ooprC(test@encl$this$a, "memb"));
   obj <- test();
   expect_true(is.oopr(obj$a, "memb"));
   obj$a$a <- 2L;
