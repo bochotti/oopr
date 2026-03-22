@@ -41,7 +41,7 @@ test_that("symlink",
   target$a <- 1L;
   link <- new.env();
 
-  it("assets",
+  it("asserts",
   {
     expect_error(
       symlink(1L, "target", link, "a")

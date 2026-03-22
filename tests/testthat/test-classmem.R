@@ -81,25 +81,167 @@ test_that("references_classmem",
   {
     oopr("memb",, { public:a <- 1L; })
     expect_error(
-       oopr("test",, { test <- \( ) { this$a$a; this$a(); }; a <- memb; })
+       oopr("test",, { a <- memb; test <- \( ) { this$a$a; this$a(); } })
       ,class = "ooprClassMemUsageBeforeInit"
     );
     expect_no_error(
-       oopr("test",, { test <- \( ) { this$a(); this$a$a; }; a <- memb; })
+       oopr("test",, { a <- memb; test <- \( ) { this$a(); this$a$a; } })
     );
   })
 
-  # it("does not allow usage of undefined members",
-  # {
-  #   oopr("memb",, { public:a <- 1L; })
-  #   expect_error(
-  #      oopr("test",, { test <- \( ) { this$a$b; }; a <- memb; })
-  #     ,class = "ooprClassMemUsageBeforeInit"
-  #   );
-  #   expect_no_error(
-  #      oopr("test",, { test <- \( ) { this$a(); this$a$a; }; a <- memb; })
-  #   );
-  # })
+  it("does not allow usage of undefined members",
+  {
+    oopr("memb",, { public:a <- 1L; })
+    expect_error(
+       oopr("test",, { a <- memb; test <- \( ) { this$a$b; } })
+      ,class = "ooprRefNotDefined"
+    );
+    expect_error(
+       oopr("test",, { a <- memb; b <- \( ) { this$a$b; } })
+      ,class = "ooprRefNotDefined"
+    );
+
+    expect_no_error(
+       oopr("test",, { a <- memb; test <- \( ) { this$a(); this$a$a; } })
+    );
+    expect_no_error(
+       oopr("test",, { a <- memb; b <- \( ) { this$a$a; } })
+    );
+  })
+
+  it("does not allow usage of non-public members",
+  {
+    oopr("memb",, { protected:a <- 1L; })
+    expect_error(
+       oopr("test",, { b <- \( ) { this$a$a; }; a <- memb; })
+      ,class = "ooprRefNotDefined"
+    );
+  })
+
+  it("does not allow access / call / assign if not allowed",
+  {
+    oopr("memb",, { public:a <- 1L; })
+    expect_error(
+      oopr("test",, { a <- memb; b <- \( ) { this$a$a(); }})
+     ,class = "ooprRefBadCall"
+    );
+
+    oopr("memb",, { public:a <- \(x) { }; })
+    expect_error(
+      oopr("test",, { a <- memb; b <- \( ) { this$a$a(); }})
+     ,class = "ooprRefUnmatchedCall"
+    );
+    expect_error(
+      oopr("test",, { a <- memb; b <- \( ) { this$a$a <- 1L; }})
+     ,class = "ooprRefBadAssignment"
+    );
+
+    oopr("memb",, { public:get:a <- \( ) { }; })
+    expect_error(
+      oopr("test",, { a <- memb; b <- \( ) { this$a$a <- 1L; }})
+     ,class = "ooprRefBadAssignment"
+    );
+
+    oopr("memb",, { public:set:a <- \(x) { }; })
+    expect_error(
+      oopr("test",, { a <- memb; b <- \( ) { this$a$a; }})
+     ,class = "ooprRefBadAccess"
+    );
+
+    oopr("memb",, { public:a <- 1L; })
+    expect_error(
+      oopr("test",, { static:a <- memb; static:b <- \( ) { this$a$a; }})
+     ,class = "ooprRefNotStatic"
+    );
+  })
+
+  it("continues to disallow when nested",
+  {
+    oopr("memb",,
+    {
+    public:
+      a        <- 1L;
+      get:b    <- \( ) { }
+      set:c    <- \(x) { }
+      d        <- \(x) { }
+      static:e <- 1L;
+    })
+    oopr("memb2",, { public:b <- memb; })
+
+    expect_error(
+      oopr("test",, { a <- memb2;  b <- \( ) { this$a$b$z; } })
+     ,class = "ooprRefNotDefined"
+    );
+    expect_error(
+      oopr("test",, { a <- memb2; b <- \( ) { this$a$b$a() } })
+     ,class = "ooprRefBadCall"
+    );
+    expect_error(
+      oopr("test",, { a <- memb2; b <- \( ) { this$a$b$b <- 1L } })
+     ,class = "ooprRefBadAssignment"
+    );
+    expect_error(
+      oopr("test",, { a <- memb2; b <- \( ) { this$a$b$c; } })
+     ,class = "ooprRefBadAccess"
+    );
+    expect_error(
+      oopr("test",, { a <- memb2; b <- \( ) { this$a$b$d() } })
+     ,class = "ooprRefUnmatchedCall"
+    );
+    expect_error(
+      oopr("test",, { a <- memb2; b <- \( ) { ((this$a$b$d))() } })
+     ,class = "ooprRefUnmatchedCall"
+    );
+    expect_error(
+      oopr("test",, { a <- memb2; static:b <- \( ) { this$a$b; } })
+     ,class = "ooprRefNotStatic"
+    );
+  })
+
+  it("continues to disallow when members are not used at the top-level",
+  {
+    oopr("memb",, { public:get:a <- \( ) { }; public:set:b <- \(x) { }})
+
+    expect_error(
+      oopr("test",, { a <- memb2;  b <- \( ) { t(,this$a$z); } })
+     ,class = "ooprRefNotDefined"
+    );
+    expect_error(
+      oopr("test",, { a <- memb2;  b <- \( ) { t(t(,this$a$z)); } })
+     ,class = "ooprRefNotDefined"
+    );
+    expect_error(
+      oopr("test",, { a <- memb; b <- \( ) { t(,this$a$a()); }})
+     ,class = "ooprRefBadCall"
+    );
+    expect_error(
+      oopr("test",, { a <- memb; b <- \( ) { t(t(,this$a$a())); }})
+     ,class = "ooprRefBadCall"
+    );
+
+    expect_error(
+      oopr("test",, { a <- memb; b <- \( ) { t(,this$a$a <- 1L); }})
+     ,class = "ooprRefBadAssignment"
+    );
+    expect_error(
+      oopr("test",, { a <- memb; b <- \( ) { t(t(,this$a$a <- 1L)); } })
+     ,class = "ooprRefBadAssignment"
+    );
+
+    expect_error(
+      oopr("test",, { a <- memb; b <- \( ) { t(,this$a$b); }})
+     ,class = "ooprRefBadAccess"
+    );
+    expect_error(
+      oopr("test",, { a <- memb; b <- \( ) { t(t(,this$a$b)); }})
+     ,class = "ooprRefBadAccess"
+    );
+
+    expect_error(
+      oopr("test",, { a <- memb; b <- \( ) { ((this$a$b))(); }})
+     ,class = "ooprRefBadCall"
+    );
+  })
 })
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##

@@ -257,6 +257,6 @@ references_property <- \(i, name, j, meta, ref, env, err)
   )
   if(ref$type == "call")
   {
-    references_call(i, name, j, meta, ref, "property", env, err);
+    references_call(i, name, j, meta, ref, "property", NULL, env, err);
   }
 }

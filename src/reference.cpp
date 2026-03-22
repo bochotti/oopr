@@ -1,26 +1,94 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #include "reference.h"
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+ * Template for AST walking classes.
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+class ExprWalker
+{
+public:
+  virtual SEXP toList() = 0;
+protected:
+  std::vector<int>  paths;
+  std::vector<SEXP> parents;
+  virtual void walk(SEXP e) = 0;
+  /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+   * obtain the srcref of a match.
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+  SEXP getSrcRef()
+  {
+    SEXP srcref           = Rf_install("srcref");
+    const std::size_t len = paths.size();
+    for(std::size_t i = len; i > 0; --i)
+    {
+      SEXP src = getAttrib(parents[i - 1], srcref);
+      const R_xlen_t j = (R_xlen_t)paths[i - 1] - 1;
+      if(src != R_NilValue && j < Rf_xlength(src)) return VECTOR_ELT(src, j);
+    }
+    return R_NilValue;
+  }
+};
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+ * Gives the ability to loop over lists/environments.
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+template<typename T, typename... Args>
+SEXP recurseExpr(SEXP expr, Args... args)
+{
+  static_assert(
+    std::is_base_of<ExprWalker, T>::value, "T must derive ExprWalker"
+  );
+  int type = TYPEOF(expr);
+  switch(type)
+  {
+  case CLOSXP:
+  case LANGSXP:
+  {
+    T out(expr, args...);
+    return out.toList();
+  }
+  default:      break;
+  }
+  if(!(type == ENVSXP || type == VECSXP)) return R_NilValue;
+
+  const R_xlen_t len = Rf_xlength(expr);
+  pSEXP out = Rf_allocVector(VECSXP, len);
+  SEXP names, x;
+  switch(type)
+  {
+  case ENVSXP:
+  {
+    names = R_lsInternal3(expr, TRUE, FALSE);
+    for(R_xlen_t i = 0; i < len; ++i)
+    {
+      x = Rf_findVar(Rf_installChar(STRING_ELT(names, i)), expr);
+      SET_VECTOR_ELT(out, i, recurseExpr<T>(x, args...));
+    }
+    break;
+  }
+  case VECSXP:
+    names = Rf_getAttrib(expr, R_NamesSymbol);
+    for(R_xlen_t i = 0; i < len; ++i)
+    {
+      x = VECTOR_ELT(expr, i);
+      SET_VECTOR_ELT(out, i, recurseExpr<T>(x, args...));
+    }
+    break;
+  default:
+    break;
+  }
+  Rf_setAttrib(out, R_NamesSymbol, names);
+  return out;
+}
+
+
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Locate paths of members (`$` & `[[`) within a function body.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-class MemberReferences
+class MemberReferences : public ExprWalker
 {
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 public:
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  struct Match
-  {
-    std::vector<int> at;
-    std::string      type;
-    SEXP             oper;
-    SEXP             encl;
-    SEXP             memb;
-    SEXP             expr;
-    SEXP             src;
-  };
-  std::vector<Match> matches;
-
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   MemberReferences(SEXP expr)
   {
@@ -32,7 +100,7 @@ public:
   }
 
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  SEXP toList()
+  SEXP toList() override
   {
     R_xlen_t n = (R_xlen_t)matches.size();
 
@@ -86,17 +154,24 @@ public:
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 private:
-
-  Symbols sym{"$", "[[", "<-", "<<-", "=", "(", "{"};
-
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  std::vector<int>   paths;
-  std::vector<SEXP>  parents;
+  Symbols sym{"$", "[[", "<-", "<<-", "=", "(", "{"};
+  struct Match
+  {
+    std::vector<int> at;
+    std::string      type;
+    SEXP             oper;
+    SEXP             encl;
+    SEXP             memb;
+    SEXP             expr;
+    SEXP             src;
+  };
+  std::vector<Match> matches;
 
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
    * Walk over the expression object, collecting any member references.
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-  void walk(SEXP e)
+  void walk(SEXP e) override
   {
     if(isMemberRef(e))
     {
@@ -107,7 +182,7 @@ private:
       m.memb = CADDR(e);
       m.expr = e;
       m.type = classify(e, m);
-      m.src  = getSrcRef(m);
+      m.src  = getSrcRef();
       matches.emplace_back(std::move(m));
     }
 
@@ -138,7 +213,7 @@ private:
   inline bool isMemberRef(SEXP e)
   {
     // must be a call
-    if(TYPEOF(e) != LANGSXP)      return false;
+    if(!Rf_isLanguage(e))     return false;
 
     SEXP oper = CAR(e);
     if(!Rf_isSymbol(oper))    return false;
@@ -147,12 +222,13 @@ private:
     if(!Rf_isSymbol(CADR(e))) return false;
 
     // dollar can have symbol or char
-    if(sym.is(oper, "$"))       return true;
+    if(sym.is(oper, "$"))     return true;
 
     // brackets can vary, but I do not want to consider symbols
     SEXP rhs  = CADDR(e);
-    return sym.is(oper, "[[") && Rf_isString(rhs) && Rf_xlength(rhs) == 1;
+    return sym.is(oper, "[[") && !Rf_isSymbol(rhs) && Rf_xlength(rhs) == 1;
   }
+
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
    * classify a reference as access, assign, call.
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -167,13 +243,12 @@ private:
     // to be an assignment e.g.:
     //   a <- a$b <- 2L
     //   names(a$b) <- "name"
-    while(i > 1 && TYPEOF(parent) == LANGSXP && paths[i - 1] == 2)
+    while(i > 1 && Rf_isLanguage(parent) && paths[i - 1] == 2)
     {
       --i;
       parent = parents[i];
       if(sym.is(CAR(parent), {"<-", "=", "<<-"}))
       {
-        m.at.resize(i);
         m.expr = parent;
         return "assign";
       }
@@ -183,13 +258,39 @@ private:
     //   (a$b)()
     //   {a ; a$b}()
     parent = parents.back();
-    if(paths.back() == 1)
+    i = len - 1;
+    if(isCall(i, parent))
     {
-      m.at.pop_back();
       m.expr = parent;
       return "call";
     }
-    i = len - 1;
+
+    // otherwise, its an access
+    i = len;
+    parent = parents.back();
+    while(i > 0 && Rf_isLanguage(parent) && sym.is(CAR(parent), {"$", "[["}))
+    {
+      --i;
+      parent = parents[i];
+    }
+    if(i < (len - 1))
+    {
+      if(isCall(i, parent))
+      {
+        m.expr = parent;
+      }
+      else
+      {
+        m.expr = parents[i + 1];
+      }
+    }
+    return "access";
+  }
+
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+  bool isCall(int i, SEXP& parent)
+  {
+    if(paths[i] == 1) return true;
     while(i > 0 && Rf_isLanguage(parent))
     {
       if(!(
@@ -198,84 +299,12 @@ private:
       )) break;
       --i;
       parent = parents[i];
-      if(paths[i] == 1)
-      {
-        m.at.resize(i);
-        m.expr = parent;
-        return "call";
-      }
+      if(paths[i] == 1) return true;
     }
-
-    // otherwise, its an access
-    return "access";
-  }
-
-  /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-   * obtain the srcref of a match.
-  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-  SEXP getSrcRef(const Match& m)
-  {
-    SEXP srcref           = Rf_install("srcref");
-    const std::size_t len = m.at.size();
-    for(std::size_t i = len; i > 0; --i)
-    {
-      SEXP src = getAttrib(parents[i - 1], srcref);
-      const R_xlen_t j = (R_xlen_t)paths[i - 1] - 1;
-      if(src != R_NilValue && j < Rf_xlength(src)) return VECTOR_ELT(src, j);
-    }
-    return R_NilValue;
+    return false;
   }
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 };
-
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
- * Gives the ability to loop over lists/environments.
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-template<typename T, typename... Args>
-SEXP recurseExpr(SEXP expr, Args... args)
-{
-  int type = TYPEOF(expr);
-  switch(type)
-  {
-  case CLOSXP:
-  case LANGSXP:
-  {
-    T out(expr, args...);
-    return out.toList();
-  }
-  default:      break;
-  }
-  if(!(type == ENVSXP || type == VECSXP)) return R_NilValue;
-
-  const R_xlen_t len = Rf_xlength(expr);
-  pSEXP out = Rf_allocVector(VECSXP, len);
-  SEXP names, x;
-  switch(type)
-  {
-  case ENVSXP:
-  {
-    names = R_lsInternal3(expr, TRUE, FALSE);
-    for(R_xlen_t i = 0; i < len; ++i)
-    {
-      x = Rf_findVar(Rf_installChar(STRING_ELT(names, i)), expr);
-      SET_VECTOR_ELT(out, i, recurseExpr<T>(x, args...));
-    }
-    break;
-  }
-  case VECSXP:
-    names = Rf_getAttrib(expr, R_NamesSymbol);
-    for(R_xlen_t i = 0; i < len; ++i)
-    {
-      x = VECTOR_ELT(expr, i);
-      SET_VECTOR_ELT(out, i, recurseExpr<T>(x, args...));
-    }
-    break;
-  default:
-    break;
-  }
-  Rf_setAttrib(out, R_NamesSymbol, names);
-  return out;
-}
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Access point to the above class.
@@ -285,6 +314,186 @@ SEXP findMemberRefs(SEXP expr)
   return recurseExpr<MemberReferences>(expr);
 }
 
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+ * Find variables being used and created within a functions body.
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+class ExprUsage : public ExprWalker
+{
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+public:
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+  ExprUsage(SEXP x, SEXP env = R_NilValue)
+  {
+    if(TYPEOF(x) == CLOSXP)
+    {
+      collectArgs(x);
+      env = CLOENV(x);
+      x   = BODY(x);
+    }
+    if(!Rf_isEnvironment(env)) Rf_error("`env` must be an environment");
+    env_ = env;
+    walk(x);
+  }
+
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+  SEXP toList() override
+  {
+    const R_xlen_t len = (R_xlen_t)missings.size();
+    pSEXP var = Rf_allocVector(STRSXP, len);
+    pSEXP src = Rf_allocVector(VECSXP, len);
+    for(R_xlen_t i = 0; i < len; ++i)
+    {
+      Missing& m = missings[i];
+      SET_STRING_ELT(var, i, Rf_asChar(m.var));
+      SET_VECTOR_ELT(src, i, m.src);
+    }
+    pSEXP out = Rf_allocVector(VECSXP, 2);
+    SET_VECTOR_ELT(out, 0, var);
+    SET_VECTOR_ELT(out, 1, src);
+    pSEXP nms = Rf_allocVector(STRSXP, 2);
+    SET_STRING_ELT(nms, 0, Rf_mkChar("var"));
+    SET_STRING_ELT(nms, 1, Rf_mkChar("src"));
+    Rf_setAttrib(out, R_NamesSymbol, nms);
+    return out;
+  }
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+private:
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+  Symbols assign{"<-", "=", "<<-"};
+  Symbols subset{"$", "[[", "["};
+  Symbols loop{"for"};
+  Symbols fun{"function"};
+  Symbols pkg{"::", ":::"};
+  SEXP env_;
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+  std::vector<SEXP> locals;
+  struct Missing
+  {
+    SEXP src;
+    SEXP var;
+  };
+  std::vector<Missing> missings;
+
+  /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+   * Grabs the names of the formals of a function
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+  void collectArgs(SEXP x)
+  {
+    SEXP args = FORMALS(x);
+    while(args != R_NilValue)
+    {
+      locals.push_back(TAG(args));
+      args = CDR(args);
+    }
+  }
+
+  /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+   * Checks if a symbol is within locals, otherwise it goes through the
+   * search path of env
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+  bool exists(SEXP e)
+  {
+    if(!Rf_isSymbol(e)) return false;
+    for(const SEXP x : locals) if(e == x) return true;
+    SEXP env = env_;
+    while(env != R_EmptyEnv)
+    {
+      if(R_existsVarInFrame(env, e)) return true;
+      env = ENCLOS(env);
+    }
+    return false;
+  }
+
+  /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+   * Walks the expression.
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+  void walk(SEXP e) override
+  {
+    if(Rf_isLanguage(e))
+    {
+      if(assign.is(CAR(e)) && Rf_isSymbol(CADR(e)))
+      {
+        // LHS are now local
+        locals.push_back(CADR(e));
+        walk(CADDR(e));
+        return;
+      }
+      else if(subset.is(CAR(e)))
+      {
+        walk(CADR(e));
+        // do not consider RHS of a $ call
+        if(!subset.is(CAR(e), "$")) walk(CADDR(e));
+        return;
+      }
+      else if(loop.is(CAR(e)))
+      {
+        // for(i in ...) { ... }, i is now a local
+        locals.push_back(CADR(e));
+        walk(CADDDR(e));
+        return;
+      }
+      else if(pkg.is(CAR(e)))
+      {
+        pSEXP expr = Rf_lang2(Rf_install("quote"), CADR(e));
+        expr = Rf_lang2(Rf_install("getNamespace"), expr);
+        int err;
+        R_tryEval(expr, R_GlobalEnv, &err);
+        if(err) walk(CADR(e));
+        return;
+      }
+      else if(fun.is(CAR(e)))
+      {
+        return;
+      }
+    }
+    switch(TYPEOF(e))
+    {
+    case SYMSXP:
+    {
+      if(!exists(e))
+      {
+        Missing m;
+        m.var = e;
+        m.src = getSrcRef();
+        missings.push_back(std::move(m));
+      }
+      break;
+    }
+    case LANGSXP:
+    case LISTSXP:
+    {
+      int i = 1;
+      for(SEXP node = e; node != R_NilValue; node = CDR(node), ++i)
+      {
+        paths.push_back(i);
+        parents.push_back(e);
+        walk(CAR(node));
+        parents.pop_back();
+        paths.pop_back();
+      };
+      break;
+    }
+    default:
+      break;
+    }
+  }
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+};
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+ * Access point to the above class.
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+SEXP getMissingVars(SEXP expr, SEXP env)
+{
+  return recurseExpr<ExprUsage>(expr, env);
+}
+
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Find source reference from a path.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -326,193 +535,4 @@ SEXP findSrcRef(SEXP at, SEXP expr)
     if(src != R_NilValue && j < Rf_xlength(src)) return VECTOR_ELT(src, j);
   }
   return R_NilValue;
-}
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
- * Find variables being used and created within a functions body.
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-class ExprUsage
-{
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-public:
-  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  ExprUsage(SEXP x, SEXP env = R_NilValue)
-  {
-    if(TYPEOF(x) == CLOSXP)
-    {
-      collectArgs(x);
-      env = CLOENV(x);
-      x   = BODY(x);
-    }
-    if(!Rf_isEnvironment(env)) Rf_error("`env` must be an environment");
-    walk(x, env);
-  }
-
-  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  SEXP toList()
-  {
-    const R_xlen_t len = (R_xlen_t)missings.size();
-    pSEXP var = Rf_allocVector(STRSXP, len);
-    pSEXP src = Rf_allocVector(VECSXP, len);
-    for(R_xlen_t i = 0; i < len; ++i)
-    {
-      Missing& m = missings[i];
-      SET_STRING_ELT(var, i, Rf_asChar(m.var));
-      SET_VECTOR_ELT(src, i, m.src);
-    }
-    pSEXP out = Rf_allocVector(VECSXP, 2);
-    SET_VECTOR_ELT(out, 0, var);
-    SET_VECTOR_ELT(out, 1, src);
-    pSEXP nms = Rf_allocVector(STRSXP, 2);
-    SET_STRING_ELT(nms, 0, Rf_mkChar("var"));
-    SET_STRING_ELT(nms, 1, Rf_mkChar("src"));
-    Rf_setAttrib(out, R_NamesSymbol, nms);
-    return out;
-  }
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-private:
-  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  Symbols assign{"<-", "=", "<<-"};
-  Symbols subset{"$", "[[", "["};
-  Symbols loop{"for"};
-  Symbols fun{"function"};
-  Symbols pkg{"::", ":::"};
-
-  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  std::vector<int>  paths;
-  std::vector<SEXP> parents;
-  std::vector<SEXP> locals;
-  struct Missing
-  {
-    SEXP src;
-    SEXP var;
-  };
-  std::vector<Missing> missings;
-
-  /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-   * Grabs the names of the formals of a function
-  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-  void collectArgs(SEXP x)
-  {
-    SEXP args = FORMALS(x);
-    while(args != R_NilValue)
-    {
-      locals.push_back(TAG(args));
-      args = CDR(args);
-    }
-  }
-
-  /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-   * Checks if a symbol is within locals, otherwise it goes through the
-   * search path of env
-  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-  bool exists(SEXP e, SEXP env)
-  {
-    if(!Rf_isSymbol(e)) return false;
-    for(const SEXP x : locals) if(e == x) return true;
-    while(env != R_EmptyEnv)
-    {
-      if(R_existsVarInFrame(env, e)) return true;
-      env = ENCLOS(env);
-    }
-    return false;
-  }
-
-  /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-   * Walks the expression.
-  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-  void walk(SEXP e, SEXP env)
-  {
-    if(Rf_isLanguage(e))
-    {
-      if(assign.is(CAR(e)) && Rf_isSymbol(CADR(e)))
-      {
-        // LHS are now local
-        locals.push_back(CADR(e));
-        walk(CADDR(e), env);
-        return;
-      }
-      else if(subset.is(CAR(e)))
-      {
-        walk(CADR(e), env);
-        // do not consider RHS of a $ call
-        if(!subset.is(CAR(e), "$")) walk(CADDR(e), env);
-        return;
-      }
-      else if(loop.is(CAR(e)))
-      {
-        // for(i in ...) { ... }, i is now a local
-        locals.push_back(CADR(e));
-        walk(CADDDR(e), env);
-        return;
-      }
-      else if(pkg.is(CAR(e)))
-      {
-        pSEXP expr = Rf_lang2(Rf_install("quote"), CADR(e));
-        expr = Rf_lang2(Rf_install("getNamespace"), expr);
-        int err;
-        R_tryEval(expr, R_GlobalEnv, &err);
-        if(err) walk(CADR(e), env);
-        return;
-      }
-      else if(fun.is(CAR(e)))
-      {
-        return;
-      }
-    }
-    switch(TYPEOF(e))
-    {
-    case SYMSXP:
-    {
-      if(!exists(e, env))
-      {
-        Missing m;
-        m.var = e;
-        m.src = getSrcRef();
-        missings.push_back(std::move(m));
-      }
-      break;
-    }
-    case LANGSXP:
-    case LISTSXP:
-    {
-      int i = 1;
-      for(SEXP node = e; node != R_NilValue; node = CDR(node), ++i)
-      {
-        paths.push_back(i);
-        parents.push_back(e);
-        walk(CAR(node), env);
-        parents.pop_back();
-        paths.pop_back();
-      };
-      break;
-    }
-    default:
-      break;
-    }
-  }
-
-  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  SEXP getSrcRef()
-  {
-    SEXP srcref           = Rf_install("srcref");
-    const std::size_t len = paths.size();
-    for(std::size_t i = len; i > 0; --i)
-    {
-      SEXP src = getAttrib(parents[i - 1], srcref);
-      const R_xlen_t j = (R_xlen_t)paths[i - 1] - 1;
-      if(src != R_NilValue && j < Rf_xlength(src)) return VECTOR_ELT(src, j);
-    }
-    return R_NilValue;
-  }
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-};
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
- * Access point to the above class.
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-SEXP getMissingVars(SEXP expr, SEXP env)
-{
-  return recurseExpr<ExprUsage>(expr, env);
 }

@@ -233,7 +233,10 @@ references_inheritance <- \(refs, meta, env, err)
     {
       encl  <- inhr$meta$names$get(j);
       imeta <- inhr$this[[encl]]@meta;
-      references_method(i, name, refs, imeta, access, encl, env, err);
+      this  <- inhr$this[[encl]]@encl$this;
+      references_method(
+        i, name, refs[[name]], imeta, access, encl, this, env, err
+      );
 
       # check if member used before initialization
       if(name == env$name) for(ref in .mapply(list, refs[[name]], NULL))

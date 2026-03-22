@@ -106,7 +106,10 @@ references <- \(env, err)
   {
     if(!(meta$method$get(i) || nzchar(meta$property$get(i)))) next;
     name <- meta$names$get(i);
-    references_method(i, name, refs, meta, access, encl, env, err);
+    references_method(
+      i, name, refs[[name]], meta, access, encl, env$this, env, err
+    );
+    references_this(i, name, encl, env, err);
     for(mis in .mapply(list, miss[[name]], NULL))
     {
       if(match(mis$var, skip, 0L)) next;
@@ -125,9 +128,9 @@ references <- \(env, err)
 #' @intern
 #' Check the body of each method/property
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-references_method <- \(i, name, refs, meta, access, encl, env, err)
+references_method <- \(i, name, refs, meta, access, encl, this, env, err)
 {
-  for(ref in .mapply(list, refs[[name]], NULL))
+  for(ref in .mapply(list, refs, NULL))
   {
     if(!match(ref$encl, encl, 0L)) next;
     j <- which(meta$subs(names = ref$memb, access = access));
@@ -149,10 +152,11 @@ references_method <- \(i, name, refs, meta, access, encl, env, err)
         # skip first init call of a class member
         if(!(
              name == env$name   && meta$class$get(j)
-          && ref$type == "call" && identical(ref$at, refs[[name]]$at[[1L]])
+          && ref$type == "call" && identical(ref$at, refs$at[[1L]])
         ))
         {
-          references_call(i, name, j, meta, ref, "non-method", env, err);
+          fun <- this[[ref$memb]];
+          references_call(i, name, j, meta, ref, "non-method", fun, env, err);
         }
       }
     )
@@ -162,8 +166,7 @@ references_method <- \(i, name, refs, meta, access, encl, env, err)
       references_static(i, name, j, meta, ref, env, err);
     }
   }
-  references_classmem(i, name, refs[[name]], meta, access, encl, env, err);
-  references_this(i, name, encl, env, err);
+  references_classmem(i, name, refs, meta, access, encl, this, env, err);
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -176,8 +179,8 @@ references_exist <- \(i, name, j, meta, ref, env, err)
   err$push(
     cls = "ooprRefNotDefined"
    ,src = ref$src %||% env$src[[i]]
-   ,msg = "Member `%s` is attempting to refer to non-defined member `%s`."
-   ,name, deparse1(ref$expr)
+   ,msg = "Member `%s` is attempting to refer to an undefined member `%s`."
+   ,name, deparse1(ref$nest %||% ref$expr)
   );
   env$succ$set(i, FALSE);
 }
@@ -192,7 +195,7 @@ references_access <- \(i, name, j, meta, ref, type = "method", env, err)
     cls = "ooprRefBadAccess"
    ,src = ref$src %||% env$src[[i]]
    ,msg = "Member `%s` is attempting to access %s `%s`."
-   ,name, type, deparse1(ref$expr)
+   ,name, type, deparse1(ref$nest %||% ref$expr)
   );
   env$succ$set(i, FALSE);
 }
@@ -207,7 +210,7 @@ references_assign <- \(i, name, j, meta, ref, type = "method", env, err)
     cls = "ooprRefBadAssignment"
    ,src = ref$src %||% env$src[[i]]
    ,msg = "Member `%s` is attempting to assign into %s `%s`."
-   ,name, type, deparse1(ref$expr)
+   ,name, type, deparse1(ref$nest %||% ref$expr)
   );
   env$succ$set(i, FALSE);
 }
@@ -216,18 +219,18 @@ references_assign <- \(i, name, j, meta, ref, type = "method", env, err)
 #' @intern
 #' Can only call methods, if method then call must match signature.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-references_call <- \(i, name, j, meta, ref, type = "field", env, err)
+references_call <- \(i, name, j, meta, ref, type = "field", fun, env, err)
 {
   if(meta$method$get(j))
   {
-    call <- matchsig(env$this[[ref$memb]], ref$expr);
+    call <- matchsig(fun, ref$expr);
     if(is.call(call)) return(TRUE);
     err$push(
       cls = "ooprRefUnmatchedCall"
      ,src = ref$src %||% env$src[[i]]
      ,msg = "Member `%s` call to method `%s` does not match its signature:
              \"%s\"."
-     ,name, deparse1(ref$expr), call$message
+     ,name, deparse1(ref$nest %||% ref$expr), call$message
     );
     env$succ$set(i, FALSE);
   }
@@ -237,7 +240,7 @@ references_call <- \(i, name, j, meta, ref, type = "field", env, err)
       cls = "ooprRefBadCall"
      ,src = ref$src %||% env$src[[i]]
      ,msg = "Member `%s` is attempting to call %s `%s`."
-     ,name, type, deparse1(ref$expr)
+     ,name, type, deparse1(ref$nest %||% ref$expr)
     );
     env$succ$set(i, FALSE);
   }

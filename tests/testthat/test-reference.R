@@ -32,17 +32,18 @@ test_that("findMemberRefs",
     n   <- 5L
     out <- findMemberRefs(expr);
     expect_length(out$at, n);
-    expect_identical(lapply(out$at, \(i, x) x[[i]], expr), as.list(quote({
+    lapply(out$at, \(i, x) expect_identical(x[[i]], quote(a$b)), expr);
+    expect_equal(out$type, rep("assign", n));
+    expect_equal(out$oper, rep("$", n));
+    expect_equal(out$encl, rep("a", n));
+    expect_equal(out$memb, rep("b", n));
+    expect_identical(do.call(call, c('{', out$expr), TRUE), quote({
       a$b <- 1L;
       a(a$b) <- 1L;
       a$b <- 1L;       ## <--
       a$b <- a <- 1L;
       a$b[1L] <- 1L
-    }))[-1], ignore_attr = TRUE);
-    expect_equal(out$type, rep("assign", n));
-    expect_equal(out$oper, rep("$", n));
-    expect_equal(out$encl, rep("a", n));
-    expect_equal(out$memb, rep("b", n));
+    }));
   })
 
   it("identifies calls",
@@ -59,6 +60,12 @@ test_that("findMemberRefs",
     });
     n   <- 8L
     out <- findMemberRefs(expr);
+    expect_length(out$at, n);
+    lapply(out$at, \(i, x) expect_identical(x[[i]], quote(a$b)), expr);
+    expect_equal(out$type, rep("call", n));
+    expect_equal(out$oper, rep("$", n));
+    expect_equal(out$encl, rep("a", n));
+    expect_equal(out$memb, rep("b", n));
     expr2 <- quote({
       a$b();
       a$b();       ## <--
@@ -68,27 +75,42 @@ test_that("findMemberRefs",
       {a$b}();
       {{a$b}}();
       {a; a$b}();
+    })
+    expect_identical(do.call(call, c('{', out$expr), TRUE), expr2);
+  })
+
+  it("more $ includes `<-` and `()` in expr",
+  {
+    expr <- quote({
+      a$b$c;
+      a$b$c$d
+      a$b$c   <- 1L;
+      a$b$c$d <- 1L;
+      a$b$c();
+      a$b$c$d();
     });
-    expect_identical(
-      lapply(out$at, \(i, x) x[[i]], expr)
-     ,as.list(expr2)[-1]
-     ,ignore_attr = TRUE
-    );
+    invisible(findMemberRefs(quote({a$b$c$d})))
+    n   <- 6
+    out <- findMemberRefs(expr);
     expect_length(out$at, n);
-    expect_equal(out$type, rep("call", n));
+    lapply(out$at, \(i, x) expect_identical(x[[i]], quote(a$b)), expr);
+    expect_equal(out$type, rep(c("access", "assign", "access"), c(2,2,2)));
     expect_equal(out$oper, rep("$", n));
     expect_equal(out$encl, rep("a", n));
     expect_equal(out$memb, rep("b", n));
+    expect_identical(do.call(call, c('{', out$expr), TRUE), expr);
   })
 
   it("doesnt misidentify",
   {
     expr <- quote({
       sum(a, a$b)();
+      sum(a$b$c)
       {a$b; a}
     })
     out <- findMemberRefs(expr);
-    expect_equal(out$type, rep("access", 2L))
+    expect_equal(out$type, rep("access", 3L))
+    expect_identical(out$expr, list(quote(a$b), quote(a$b$c), quote(a$b)));
   })
 
   it("supports environments/lists",

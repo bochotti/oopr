@@ -8,6 +8,7 @@
 #include <vector>
 #include <map>
 #include <string>
+#include <type_traits>
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Provide a function, expression, list/environment of, to get all
  * members references. Outputs:

@@ -27,7 +27,9 @@ references_static <- \(i, name, j, meta, ref, env, err)
       cls = "ooprRefNotStatic"
      ,src = ref$src %||% env$src[[i]]
      ,msg = "Static member `%s` is attempting to use non-static member `%s`."
-     ,name, deparse1(ref$expr)
+     ,name, deparse1(
+       ref$nest %||% call(ref$oper, as.name(ref$encl), as.name(ref$memb))
+      )
     );
     env$succ$set(i, FALSE);
   }

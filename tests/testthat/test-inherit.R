@@ -178,7 +178,7 @@ test_that("inheritance_definitions",
 })
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-test_that("inheritance references",
+test_that("references_inheritance",
 {
   it("does not allow referring to non-existant inherited classes members",
   {
@@ -211,7 +211,7 @@ test_that("inheritance references",
 
   it("follows same logic for properties, static, etc",
   {
-    oopr("base",, { public:get:a <- \( ) { }; static:b <- 1L;})
+    oopr("base",, { public:get:a <- \( ) { }; static:b <- 1L; c <- \(x) { } })
 
     expect_error(
       oopr("test", { public:base; }, { c <- \( ) { base$a <- 1L; } })
@@ -231,6 +231,12 @@ test_that("inheritance references",
     expect_no_error(
       oopr("test", { public:base; }, { c <- \( ) { base$b; } })
     );
+
+    expect_error(
+      oopr("test", { public:base; }, { c <- \( ) { base$c(); } })
+     ,class = "ooprRefUnmatchedCall"
+    );
+
   })
 
   it("does not allow use of inherited class prior to initialization",
