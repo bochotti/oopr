@@ -36,7 +36,7 @@ private:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   SEXP env;
   SEXP ns;
-  Symbols syms{"encl", "meta", "inhr", "this", ".this"};
+  Symbols syms{"encl", "meta", "inhr", "name", "this", ".this"};
 
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   void loadOopr(SEXP ooprC)
@@ -44,27 +44,30 @@ private:
     SEXP inhr = Rf_getAttrib(ooprC, syms.get("inhr"));
     SEXP encl = Rf_getAttrib(ooprC, syms.get("encl"));
     OoprMeta meta(Rf_getAttrib(ooprC, syms.get("meta")));
+
     const R_xlen_t len = Rf_xlength(inhr);
     for(R_xlen_t i = 0; i < len; ++i)
     {
       SEXP name  = Rf_installChar(STRING_ELT(inhr, i));
       SEXP ooprI = Rf_findVarInFrame(encl, name);
-      if(!is_ooprC(ooprI, name)) continue;
       loadInhr(name, ooprI, encl, meta);
+    }
+
+    SEXP thiz = Rf_findVarInFrame(encl, syms.get("this"));
+    for(R_xlen_t i = 0; i < meta.size(); ++i)
+    {
+      if(!meta.isClass(i) || meta.isInherit(i)) continue;
+      SEXP name  = meta.name(i);
+      SEXP ooprM = Rf_findVarInFrame(thiz, name);
+      loadClass(i, name, ooprM, thiz, meta);
     }
   }
 
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   void loadInhr(SEXP name, SEXP ooprI, SEXP encl, OoprMeta meta)
   {
+    if(!fromAnotherPackage(ooprI)) return;
     SEXP enclI = Rf_getAttrib(ooprI, syms.get("encl"));
-    // SEXP top   = Rf_eval(Rf_lang2(Rf_install("topenv"), enclI), R_BaseEnv);
-    SEXP top = Rf_topenv(R_EmptyEnv, enclI);
-    if(!R_IsNamespaceEnv(top)) return;
-    if(top == ns)              return;
-    ooprI = Rf_findVarInFrame(top, name);
-    if(!is_ooprC(ooprI, name)) return;
-    enclI = Rf_getAttrib(ooprI, syms.get("encl"));
     setLockedBinding(name, encl, ooprI);
     for(R_xlen_t i = 0; i < meta.size(); ++i)
     {
@@ -74,7 +77,51 @@ private:
   }
 
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  void loadMember(R_xlen_t i, OoprMeta meta, SEXP encl, SEXP enclI)
+  void loadClass(R_xlen_t& i, SEXP name, SEXP ooprM, SEXP thiz, OoprMeta meta)
+  {
+    SEXP memb;
+    if(meta.isStatic(i))
+    {
+      memb = ooprM;
+      if(!Rf_inherits(memb, "oopr")) return;
+      SEXP cls = STRING_ELT(Rf_getAttrib(ooprM, R_ClassSymbol), 0);
+      cls = Rf_installChar(cls);
+      ooprM = Rf_findVarInFrame(Rf_topenv(R_EmptyEnv, ooprM), cls);
+    }
+    if(!fromAnotherPackage(ooprM)) return;
+    if(!meta.isStatic(i))
+    {
+      setLockedBinding(name, thiz, ooprM);
+      return;
+    }
+    OoprMeta metaM(Rf_getAttrib(ooprM, syms.get("meta")));
+    for(R_xlen_t i = 0; i < metaM.size(); ++i)
+    {
+      if(!metaM.isStatic(i)) continue;
+      SEXP encl  = ENCLOS(memb);
+      SEXP enclM = Rf_getAttrib(ooprM, syms.get("encl"));
+      loadMember(i, metaM, encl, enclM);
+    }
+  }
+
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+  bool fromAnotherPackage(SEXP& ooprC)
+  {
+    if(!is_ooprC(ooprC)) return false;
+    SEXP encl = Rf_getAttrib(ooprC, syms.get("encl"));
+    SEXP name = Rf_getAttrib(ooprC, syms.get("name"));
+    name = Rf_installChar(STRING_ELT(name, 0));
+    SEXP top = Rf_topenv(R_EmptyEnv, encl);
+    if(!R_IsNamespaceEnv(top))  return false;
+    if(top == ns)               return false;
+    SEXP ooprC2 = Rf_findVarInFrame(top, name);
+    if(!is_ooprC(ooprC2, name)) return false;
+    ooprC = ooprC2;
+    return true;
+  }
+
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+  void loadMember(R_xlen_t& i, OoprMeta meta, SEXP encl, SEXP enclI)
   {
     SEXP name  = meta.name(i);
     SEXP thiz  = Rf_findVarInFrame(encl,  syms.get("this"));

@@ -51,6 +51,7 @@ definitions_classmem <- \(i, name, env, err)
         env$succ$set(i, FALSE);
       }
       env$this[[name]] <- call;
+      env$spec$set(i, list(0L));
       next;
     }
     env$this[[name]] <- eval(call[[1L]], env$prnt, NULL);

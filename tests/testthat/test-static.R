@@ -121,6 +121,13 @@ test_that("static classmem",
     );
   })
 
+  it("can handle same class, static + non-static",
+  {
+    oopr("memb",, { a <- 1L; });
+    oopr("test",, { a <- memb; static:b <- memb; })
+    oopr("test",, { static:b <- memb; a <- memb; })
+  })
+
   it("identifies non-static references",
   {
     oopr("memb",,  { public:a <- 1L; });

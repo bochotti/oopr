@@ -139,3 +139,78 @@ test_that("oopr_onLoad inherit",
     expect_equal(A$As, 3L);
   })
 })
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("oopr_onLoad classmem",
+{
+  testthat::skip_on_cran();
+  testthat::skip_if_not_installed(c("withr", "callr"));
+
+  local_packageInstall(
+    name      = "ooprA"
+   ,namespace = "export(A)"
+   ,files     = c(
+      code = r"{
+      oopr::oopr("A",,
+      {
+      public:
+        Af        <- 1L;
+        get:Ap    <- \( ) { }
+        Am        <- \( ) { }
+        static:As <- 1L;
+      })
+      .onLoad <- \(libname, pkgname)
+      {
+        oopr::oopr_onLoad();
+      }
+      oopr::oopr_onInstall();
+      }"
+    )
+  )
+
+  local_packageInstall(
+    name      = "ooprB"
+   ,namespace = "import(ooprA)\nexport(B)"
+   ,imports   = c("oopr", "ooprA")
+   ,files     = c(
+      code = r"{
+      oopr::oopr("B",,
+      {
+      public:
+        Bc <- ooprA::A;
+        static:Bs <- ooprA::A;
+      })
+      .onLoad <- \(libname, pkgname)
+      {
+        oopr::oopr_onLoad();
+      }
+      oopr::oopr_onInstall();
+      }"
+    )
+  )
+
+  it("carries over class members from other packages",
+  {
+    A <- ooprA::A;
+    B <- ooprB::B;
+    expect_env(B@encl$this$Bc@encl, A@encl);
+    expect_true(is.oopr(B@encl$this$Bs, "A"));
+    expect_env(parent.env(parent.env(B@encl$this$Bs)), asNamespace("ooprA"));
+  })
+
+  it("refers static members to original package env",
+  {
+    A <- ooprA::A;
+    B <- ooprB::B;
+    expect_env(activeBindingFunction("As", B@encl$this$Bs), A@encl);
+    B$Bs$As   <- 2L;
+    expect_equal(A$As, 2L);
+    obj    <- B();
+    obj$Bs$As <- 3L;
+    expect_equal(A$As, 3L);
+  })
+})
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#TODO: test combination of inherited classes and class members
+#TODO: what about chained static class members??

@@ -57,6 +57,12 @@ bool OoprMeta::isStatic(const int& i)
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+bool OoprMeta::isClass(const int& i)
+{
+  return getLgl("class", i);
+}
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 bool OoprMeta::isInherit(const int& i)
 {
   return strlen(getStr("inherit", i)) > 0;
