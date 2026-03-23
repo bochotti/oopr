@@ -151,6 +151,19 @@ test_that("OoprVec$apply",
 })
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("OoprVec$[",
+{
+  oopr("test",, { test <- \(x) { this$a <- x; }; public:a <- 0L; })
+  vec <- OoprVec(test);
+  vec$emplace(, 1L)$emplace(, 2L)$emplace(, 3L);
+  expect_identical(vec[1L], vec$data[[1L]]);
+  expect_error(vec[1L] <- "a");
+  expect_no_error(vec[1L]$a <- 2L);
+  expect_equal(vec[1L]$a, 2L);
+})
+
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 test_that("OoprMap$OoprMap",
 {
@@ -257,3 +270,16 @@ test_that("OoprMap$apply",
     expect_equal(vec$apply(\(key, val) { val$a; }), list(a="A", b="B", c="C"));
   })
 })
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("OoprMap$[",
+{
+  oopr("test",, { test <- \(x) { this$a <- x; }; public:a <- 0L; })
+  vec <- OoprMap(test);
+  vec$emplace("a", 1L)$emplace("b", 2L)$emplace("c", 3L);
+  expect_identical(vec["a"], vec$data[["a"]]);
+  expect_error(vec["a"] <- "A");
+  expect_no_error(vec["a"]$a <- "A");
+  expect_equal(vec["a"]$a, "A");
+})
+
