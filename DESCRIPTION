@@ -17,12 +17,12 @@ Imports:
 Config/testthat/edition: 3
 Collate: 
     'classmem.R'
+    'meta.R'
     'construct.R'
     'utils.R'
     'property.R'
     'definition.R'
     'enclosure.R'
-    'meta.R'
     'error.R'
     'evaluate.R'
     'inherit.R'

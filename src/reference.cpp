@@ -363,10 +363,11 @@ public:
 private:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   Symbols assign{"<-", "=", "<<-"};
-  Symbols subset{"$", "[[", "["};
+  Symbols subset{"$", "[[", "[", "@"};
   Symbols loop{"for"};
   Symbols fun{"function"};
   Symbols pkg{"::", ":::"};
+  Symbols quo{"quote", "substitute", "bquote"};
   SEXP env_;
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   std::vector<SEXP> locals;
@@ -425,7 +426,7 @@ private:
       {
         walk(CADR(e));
         // do not consider RHS of a $ call
-        if(!subset.is(CAR(e), "$")) walk(CADDR(e));
+        if(!subset.is(CAR(e), {"$", "@"})) walk(CADDR(e));
         return;
       }
       else if(loop.is(CAR(e)))
@@ -437,11 +438,15 @@ private:
       }
       else if(pkg.is(CAR(e)))
       {
-        pSEXP expr = Rf_lang2(Rf_install("quote"), CADR(e));
+        pSEXP expr = Rf_lang2(quo.get("quote"), CADR(e));
         expr = Rf_lang2(Rf_install("getNamespace"), expr);
         int err;
         R_tryEval(expr, R_GlobalEnv, &err);
         if(err) walk(CADR(e));
+        return;
+      }
+      else if(isQuote(e))
+      {
         return;
       }
       else if(fun.is(CAR(e)))
@@ -479,6 +484,18 @@ private:
     default:
       break;
     }
+  }
+
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+  bool isQuote(SEXP e)
+  {
+    if(!Rf_isLanguage(e)) return false;
+    e = CAR(e);
+    if(Rf_isLanguage(e) && pkg.is(CAR(e)) && CADR(e) == Rf_install("base"))
+    {
+      e = CADDR(e);
+    }
+    return quo.is(e);
   }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //

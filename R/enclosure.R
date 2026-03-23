@@ -9,7 +9,7 @@ interface <- \(env, names = NULL, class = NULL, sym)
   {
     sym <- substitute(env);
   }
-  .Call("interface", env, sym, names, class, PACKAGE = "oopr");
+  .Call(Cpp_interface, env, sym, names, class);
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##

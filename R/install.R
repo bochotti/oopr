@@ -58,7 +58,7 @@ oopr_onLoad <- \(libname, pkgname, refhook = NULL)
   if(!utils::hasName(ns, ".__OOPR__.")) return();
 
   env <- unserialize(ns[[".__OOPR__."]], refhook = refhook);
-  out <- .Call("on_load", env, ns, PACKAGE = "oopr");
+  out <- .Call(Cpp_on_load, env, ns);
   rm(list = ".__OOPR__.", envir = ns);
   return(out);
 }

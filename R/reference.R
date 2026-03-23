@@ -5,7 +5,7 @@
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 findMemberRefs <- \(x, nms = names(x))
 {
-  out <- .Call("findMemberRefs", x, PACKAGE = "oopr");
+  out <- .Call(Cpp_findMemberRefs, x);
   if(!is.null(nms))
   {
     out <- out[match(nms, names(out))];
@@ -19,7 +19,7 @@ findMemberRefs <- \(x, nms = names(x))
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 getMissingVars <- \(x, env = globalenv(), nms = names(x))
 {
-  out <- .Call("getMissingVars", x, env, PACKAGE = "oopr");
+  out <- .Call(Cpp_getMissingVars, x, env);
   if(!is.null(nms))
   {
     out <- out[match(nms, names(out))];
@@ -33,7 +33,7 @@ getMissingVars <- \(x, env = globalenv(), nms = names(x))
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 findSrcRef <- \(at, expr)
 {
-  .Call("findSrcRef", at, expr, PACKAGE = "oopr");
+  .Call(Cpp_findSrcRef, at, expr);
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##

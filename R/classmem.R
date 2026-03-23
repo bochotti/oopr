@@ -100,24 +100,26 @@ references_classmem <- \(i, name, refs, meta, access, encl, this, env, err)
   for(j in seq_along(refs$at))
   {
     # be careful of calls within access
-    adj <- refs$at[[j]] == 1L;
+    at  <- refs$at[[j]]
+    len <- length(at);
+    adj <- at == 1L;
     if(any(adj))
     {
-      adj <- refs$at[[j]][which.max(adj):length(refs$at[[j]])];
+      adj <- at[which.max(adj):len];
     }
     else
     {
       # 2L identifies LHS of assignment, or $ access - get the last one
-      adj <- refs$at[[j]] != 2L;
+      adj <- at != 2L;
       if(any(adj))
       {
-        adj <- refs$at[[j]][(which.max(adj) + 1L):length(refs$at[[j]])];
+        adj <- at[(which.max(adj) + 1L):len];
       }
       else
       {
         # if all assignment/access, then pull from back of expr
         adj <- if(refs$type[[j]] == "assign") 3L else 2L;
-        adj <- tail(refs$at[[j]], min(adj, length(refs$at[[j]]) - 1L));
+        adj <- at[seq.int(to = len, length.out = min(adj, len - 1L))];
       }
     }
     nest[[j]] <- expr[[c(j + 1L, adj)]];

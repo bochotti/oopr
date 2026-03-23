@@ -31,8 +31,8 @@
 #'                   An expression defining members.
 #'
 #' @param parent     `environment` \cr
-#'                   The environment to assign this class generator to, and
-#'                   the parent environment of each member.
+#'                   The environment to assign this class to, and acts as
+#'                   a parent environment for each member.
 #'
 #' @details
 #' Each assignment inside `definition` will become members of the class,
@@ -42,8 +42,13 @@
 #' For more information on specifiers see `...`.
 #'
 #' @returns
-#' An `ooprC` object with slots below. To construct a new class instance,
-#' simply call the object as a normal function.
+#' `NULL` invisibly. An `ooprC` object with the slots below is assigned to
+#' symbol `name` in `parent`.
+#'
+#' To construct a new class instance, simply call the `ooprC` object as a
+#' normal function.
+#'
+#' **DO NOT** use an assignment operator.
 #'
 #' @examples
 #' ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -130,8 +135,8 @@ oopr <- \(name, inherits = NULL, definition, parent = parent.frame())
 
   inhr <- env$inhr$meta$names$data[-1L];
   out  <- constructor(name, inhr, env$meta, encl, env$wsrc, parent);
-  assign(name, out, envir = parent);
-  return(out);
+  do.call(delayedAssign, list(name, out, parent, parent));
+  return(invisible(NULL));
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##

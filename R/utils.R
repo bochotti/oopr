@@ -1,15 +1,13 @@
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-#' @useDynLib oopr, .registration = TRUE
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 isname <- \(x, names = character(0L))
 {
-  .Call("isname", x, names, PACKAGE = "oopr");
+  .Call(Cpp_isname, x, names);
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 iscall <- \(x, names = character(0L))
 {
-  .Call("iscall", x, names, PACKAGE = "oopr");
+  .Call(Cpp_iscall, x, names);
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -23,7 +21,7 @@ roxy_tag_parse.roxy_tag_intern <- \(x) { return(x); }
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 symlink <- \(tenv, tname, env, name)
 {
-  .Call("symlink", tenv, tname, env, name, PACKAGE = "oopr");
+  .Call(Cpp_symlink, tenv, tname, env, name);
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##

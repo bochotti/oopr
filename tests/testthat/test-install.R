@@ -148,7 +148,7 @@ test_that("oopr_onLoad classmem",
 
   local_packageInstall(
     name      = "ooprA"
-   ,namespace = "export(A)"
+   ,namespace = "import(oopr)\nexport(A)"
    ,files     = c(
       code = r"{
       oopr::oopr("A",,
@@ -170,7 +170,7 @@ test_that("oopr_onLoad classmem",
 
   local_packageInstall(
     name      = "ooprB"
-   ,namespace = "import(ooprA)\nexport(B)"
+   ,namespace = "import(oopr)\nimport(ooprA)\nexport(B)"
    ,imports   = c("oopr", "ooprA")
    ,files     = c(
       code = r"{

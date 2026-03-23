@@ -24,12 +24,17 @@ Other classes to inherit.}
 An expression defining members.}
 
 \item{parent}{\code{environment} \cr
-The environment to assign this class generator to, and
-the parent environment of each member.}
+The environment to assign this class to, and acts as
+a parent environment for each member.}
 }
 \value{
-An \code{ooprC} object with slots below. To construct a new class instance,
-simply call the object as a normal function.
+\code{NULL} invisibly. An \code{ooprC} object with the slots below is assigned to
+symbol \code{name} in \code{parent}.
+
+To construct a new class instance, simply call the \code{ooprC} object as a
+normal function.
+
+\strong{DO NOT} use an assignment operator.
 }
 \description{
 Create a class generator.

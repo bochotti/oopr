@@ -28,17 +28,18 @@ test_that("oopr asserts",
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 test_that("is.oopr",
 {
-  test <- oopr("test",, { })()
-  expect_true(is.oopr(test));
-  expect_true(is.oopr(test, "test"));
+  oopr("test",, { })
+  obj <- test();
+  expect_true(is.oopr(obj));
+  expect_true(is.oopr(obj, "test"));
   expect_false(is.oopr(1L));
-  expect_false(is.oopr(test, "test2"));
+  expect_false(is.oopr(obj, "test2"));
 })
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 test_that("str.oopr",
 {
-  test <- oopr("test",, {
+  oopr("test",, {
     public:
       static:very_long <- 1L;
       member_names <- \(with, some, arguments) { }

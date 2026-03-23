@@ -73,7 +73,7 @@ test_that("enclosure",
 {
   it("creates the enclosure",
   {
-    test <- oopr("test",, { a <- \( ) { } })
+    oopr("test",, { a <- \( ) { } })
     expect_true(is.environment(test@encl));
     expect_true(is.environment(test@encl$this));
     expect_true(is.environment(test@encl$.this));
@@ -88,19 +88,19 @@ test_that("enclosure",
 
   it("changes the environment of functions",
   {
-    test <- oopr("test",, { a <- \( ) { } })
+    oopr("test",, { a <- \( ) { } })
     expect_env(test@encl$this$a, test@encl);
   })
 
   it("changes the environment of active bindings",
   {
-    test <- oopr("test",, { get:a <- \( ) { } })
+    oopr("test",, { get:a <- \( ) { } })
     expect_env(activeBindingFunction('a', test@encl$this), test@encl);
   })
 
   it("keeps fields as-is",
   {
-    test <- oopr("test",, { a <- 1L });
+    oopr("test",, { a <- 1L });
     expect_false(bindingIsActive('a', test@encl$this));
     expect_equal(test@encl$this$a, 1L);
   })

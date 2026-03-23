@@ -230,7 +230,15 @@ test_that("getMissingVars",
     expect_equal(getMissingVars(\( ) { f <- \( ) { a <- 1L; }; a})$var, "a");
   })
 
+  it("ignores symbols inside quote",
+  {
+    expect_length(getMissingVars(\( ) { quote(.); })$var, 0L)
+    expect_length(getMissingVars(\( ) { base::quote(.); })$var, 0L)
+    expect_length(getMissingVars(\( ) { substitute(.); })$var, 0L)
+    expect_length(getMissingVars(\( ) { base::substitute(.); })$var, 0L)
+  })
 })
+
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 test_that("references_exist",
 {

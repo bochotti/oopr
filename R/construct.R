@@ -1,6 +1,7 @@
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @name oopr
 #' @importFrom methods new
+#' @include meta.R
 #'
 #' @slot name `character(1L)` \cr
 #'            The name of the class.
@@ -17,7 +18,7 @@
 ooprC <- setClass("ooprC", contains = "function", slots = c(
   name = "character"
  ,inhr = "character"
- ,meta = "environment"
+ ,meta = "oopr_meta"
  ,encl = "environment"
 ));
 

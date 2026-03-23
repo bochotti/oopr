@@ -36,7 +36,7 @@ print.oopr_vector <- \(x, ...)
 #' @intern
 #' Meta object, which holds the meta on `oopr` members.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-setOldClass("oopr_meta"); setIs("oopr_meta", "environment");
+setOldClass("oopr_meta");
 meta <- \(size = 0L)
 {
   names    <- vector("character", size);
@@ -115,7 +115,7 @@ meta <- \(size = 0L)
     return(this);
   }
 
-  return(structure(environment(), class = c("oopr_meta", "environment")));
+  return(structure(environment(), class = c("oopr_meta")));
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
