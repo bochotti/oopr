@@ -47,14 +47,7 @@ OoprVec <- DEFER(oopr("OoprVec",,
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 OoprVec <- \(ooprC)
 {
-  stopifnot(is.ooprC(ooprC));
-  fun          <- this$emplace;
-  formals(fun) <- c(. = quote(this$size), formals(ooprC));
-  args         <- lapply(names(formals(ooprC)), as.name);
-  body(fun)    <- do.call(substitute, list(body(fun), list(args = args)));
-  unlockBinding("emplace", this);
-  assign("emplace", fun, envir = this);
-  lockBinding("emplace", this);
+  .Call(Cpp_oopr_vec_init, ooprC, this, FALSE);
   this$ooprC_ <- ooprC;
 }
 
@@ -191,14 +184,7 @@ OoprMap <- DEFER(oopr("OoprMap",,
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 OoprMap <- \(ooprC)
 {
-  stopifnot(is.ooprC(ooprC));
-  fun          <- this$emplace;
-  formals(fun) <- c(. = quote(expr = ), formals(ooprC));
-  args         <- lapply(names(formals(ooprC)), as.name);
-  body(fun)    <- do.call(substitute, list(body(fun), list(args = args)));
-  unlockBinding("emplace", this);
-  assign("emplace", fun, envir = this);
-  lockBinding("emplace", this);
+  .Call(Cpp_oopr_vec_init, ooprC, this, TRUE);
   this$ooprC_ <- ooprC;
 }
 

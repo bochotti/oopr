@@ -1,34 +1,5 @@
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @intern
-#' Gets all references to a member via `$`/`[[`. Includes whether its access,
-#' assignment or a call. Also gives the `srcref`.
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-findMemberRefs <- \(x, nms = names(x))
-{
-  out <- .Call(Cpp_findMemberRefs, x);
-  if(!is.null(nms))
-  {
-    out <- out[match(nms, names(out))];
-  }
-  return(out)
-}
-
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-#' @intern
-#' Finds variables in a function which wont be defined if evaluated
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-getMissingVars <- \(x, env = globalenv(), nms = names(x))
-{
-  out <- .Call(Cpp_getMissingVars, x, env);
-  if(!is.null(nms))
-  {
-    out <- out[match(nms, names(out))];
-  }
-  return(out)
-}
-
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-#' @intern
 #' From a given `at`, get the srcref.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 findSrcRef <- \(at, expr)
@@ -93,8 +64,10 @@ at_lt <- \(x, y)
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 references <- \(env, err)
 {
-  refs <- findMemberRefs(env$this);
-  miss <- getMissingVars(env$this);
+  refs <- .Call(Cpp_findMemberRefs, env$this);
+  refs <- refs[match(names(env$this), names(refs))];
+  miss <- .Call(Cpp_getMissingVars, env$this, env$prnt);
+  miss <- miss[match(names(env$this), names(miss))];
   skip <- c("this", ".this", env$inhr$meta$subs("names", TRUE, names = ""));
   meta <- env$meta;
 

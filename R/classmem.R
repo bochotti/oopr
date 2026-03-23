@@ -37,8 +37,8 @@ definitions_classmem <- \(i, name, env, err)
         );
         env$succ$set(i, FALSE);
       }
-      fun  <- eval(call[[1L]], env$prnt, NULL);
-      call <- matchsig(fun, call);
+      oopr <- eval(call[[1L]], env$prnt, NULL);
+      call <- matchsig(oopr, call);
       if(!is.call(call))
       {
         err$push(

@@ -1,6 +1,7 @@
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 test_that("findMemberRefs",
 {
+  findMemberRefs <- \(x) .Call(Cpp_findMemberRefs, x)
   it("identifies access",
   {
     expr <- quote({
@@ -119,14 +120,14 @@ test_that("findMemberRefs",
     env$a <- specifiers_access;
     env$b <- specifiers_dupes;
     env$c <- 1L;
-    out <- findMemberRefs(env, c("b", "c", "a"));
+    out <- findMemberRefs(env);
     expect_length(out, 3L);
-    expect_named(out, c("b", "c", "a"));
+    expect_named(out, c("a", "b", "c"));
     expect_null(out$c)
     list <- as.list(env);
-    out <- findMemberRefs(list, c("b", "c", "a"));
+    out <- findMemberRefs(list);
     expect_length(out, 3L);
-    expect_named(out, c("b", "c", "a"));
+    expect_named(out, c("a", "b", "c"));
     expect_null(out$c);
     expect_null(findMemberRefs(1L));
   })
@@ -195,6 +196,7 @@ test_that("at_lt",
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 test_that("getMissingVars",
 {
+  getMissingVars <- \(x) .Call(Cpp_getMissingVars, x, globalenv())
   it("finds variables not defined",
   {
     expect_equal(getMissingVars(\( ) { a; })$var, "a");

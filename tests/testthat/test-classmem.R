@@ -46,6 +46,9 @@ test_that("definitions_classmem",
     oopr("memb",, { memb <- \(x = 1) { }})
     oopr("test",, { a <- memb; })
     expect_identical(body(test@encl$this$test)[[2:3]], quote(this$a()));
+
+    oopr("test",, { static:a <- memb; })
+    expect_identical(body(test@encl$this$test), quote({}));
   })
 
   it("requires initialization of classes with non-default arguments",

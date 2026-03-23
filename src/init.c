@@ -3,7 +3,7 @@
 #include <stdlib.h> // for NULL
 #include <R_ext/Rdynload.h>
 
-/* FIXME: 
+/* FIXME:
    Check these declarations against the C/Fortran source code.
 */
 
@@ -18,6 +18,7 @@ extern SEXP on_load(SEXP, SEXP);
 extern SEXP oopr_make(SEXP);
 extern SEXP oopr_tidy(SEXP, SEXP, SEXP);
 extern SEXP symlink(SEXP, SEXP, SEXP, SEXP);
+extern SEXP oopr_vec_init(SEXP, SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
     {"findMemberRefs", (DL_FUNC) &findMemberRefs, 1},
@@ -30,6 +31,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"oopr_make",      (DL_FUNC) &oopr_make,      1},
     {"oopr_tidy",      (DL_FUNC) &oopr_tidy,      3},
     {"symlink",        (DL_FUNC) &symlink,        4},
+    {"oopr_vec_init",  (DL_FUNC) &oopr_vec_init,  3},
     {NULL, NULL, 0}
 };
 

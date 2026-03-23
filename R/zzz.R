@@ -4,6 +4,8 @@
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @intern
 #' Used to defer classes created in this package.
+#' TODO: I wont be able to have my own static members or properties as
+#'       oopr_onInstall will evaluate classes... and use .Call
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 .__DEFERRED__. <- new.env(parent = emptyenv());
 .__DEFERRED__.$.__ORDER__. <- character(0L);
