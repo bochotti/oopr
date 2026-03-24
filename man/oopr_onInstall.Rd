@@ -29,11 +29,23 @@ Correctly install and load \code{oopr} classes when developing a package.
 Active bindings are not preserved during package installation (see
 \code{\link{bindenv}}), threatening some functionality of \code{oopr} classes.
 
-Proposed solution is to serialise all \code{ooprC} objects within the a
+Proposed solution is to serialise all \code{ooprC} objects within the
 package namespace during installation, then unserialise them upon package
 loading.
 
-All objects within a package are serialised together so they maintain any
-references between them. However, saving any environments as a member will
-lose its reference.
+The \code{ooprC} objects are serialised together during \code{oopr_onInstall} so
+they maintain any references between them (see \link{serialize}). However,
+defining any environments from outside the classes will lose its reference.
+
+Inherited classes and class members from a different package are taken
+from their respective originating namespace during \code{oopr_onLoad}.
+}
+\examples{
+\dontrun{
+# add to zzz.R
+.onLoad <- \(libname, pkgname)
+{
+  oopr_onLoad();
+}
+oopr_onInstall();}
 }

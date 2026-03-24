@@ -1,14 +1,6 @@
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @rdname oopr
 #' @title oopr
-#' @include error.R
-#' @include evaluate.R
-#' @include specifiers.R
-#' @include definition.R
-#' @include inherit.R
-#' @include reference.R
-#' @include enclosure.R
-#' @include construct.R
 #' @export
 #' @description
 #' Create a class generator.
@@ -135,7 +127,7 @@ oopr <- \(name, inherits = NULL, definition, parent = parent.frame())
 
   inhr <- env$inhr$meta$names$data[-1L];
   out  <- constructor(name, inhr, env$meta, encl, env$wsrc, parent);
-  do.call(delayedAssign, list(name, out, parent, parent));
+  assign(name, out, envir = parent);
   return(invisible(NULL));
 }
 

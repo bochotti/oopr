@@ -1,7 +1,6 @@
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @name oopr_onInstall
 #' @title Load oopr in Packages
-#' @include utils.R
 #' @export
 #' @description
 #' Correctly install and load `oopr` classes when developing a package.
@@ -16,13 +15,25 @@
 #' Active bindings are not preserved during package installation (see
 #' [`bindenv`]), threatening some functionality of `oopr` classes.
 #'
-#' Proposed solution is to serialise all `ooprC` objects within the a
+#' Proposed solution is to serialise all `ooprC` objects within the
 #' package namespace during installation, then unserialise them upon package
 #' loading.
 #'
-#' All objects within a package are serialised together so they maintain any
-#' references between them. However, saving any environments as a member will
-#' lose its reference.
+#' The `ooprC` objects are serialised together during `oopr_onInstall` so
+#' they maintain any references between them (see [serialize]). However,
+#' defining any environments from outside the classes will lose its reference.
+#'
+#' Inherited classes and class members from a different package are taken
+#' from their respective originating namespace during `oopr_onLoad`.
+#'
+#' @examples
+#' \dontrun{
+#' # add to zzz.R
+#' .onLoad <- \(libname, pkgname)
+#' {
+#'   oopr_onLoad();
+#' }
+#' oopr_onInstall();}
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 oopr_onInstall <- \(ns, refhook = NULL)
 {
@@ -53,10 +64,8 @@ oopr_onLoad <- \(libname, pkgname, refhook = NULL)
 {
   if(missing(libname)) libname <- get("libname", envir = parent.frame());
   if(missing(pkgname)) pkgname <- get("pkgname", envir = parent.frame());
-
   ns <- asNamespace(pkgname);
-  if(!utils::hasName(ns, ".__OOPR__.")) return();
-
+  if(!exists(".__OOPR__.",, ns,, "environment", FALSE)) return();
   env <- unserialize(ns[[".__OOPR__."]], refhook = refhook);
   out <- .Call(Cpp_on_load, env, ns);
   rm(list = ".__OOPR__.", envir = ns);

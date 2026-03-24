@@ -2,14 +2,7 @@
 % Please edit documentation in R/vector.R
 \name{oopr_containers}
 \alias{oopr_containers}
-\alias{OoprVec}
-\alias{OoprMap}
 \title{Containers for oopr Instances}
-\usage{
-OoprVec(ooprC)
-
-OoprMap(ooprC)
-}
 \arguments{
 \item{ooprC}{\code{ooprC} \cr
 An \code{oopr} constructor object.}
@@ -24,32 +17,4 @@ oopr("test",,
 test <- \(x) { this$x <- x; }
 public:x <- 0L;
 })
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-# create a vector
-vec <- OoprVec(test);
-
-# $emplace will pass create a new instance
-vec$emplace(, 1L);
-
-# $insert takes an existing class instance
-vec$insert(0L, test(2L));
-
-print(vec);
-
-# $swap will swap elements
-vec$swap(2L, 1L);
-print(vec);
-
-# $apply can be used to loop over instances
-vec$apply(\(obj) { obj$x <- obj$x + 1L; })
-vec$apply(\(obj) { obj$x; })
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-# create a key-value pair
-map <- OoprMap(test);
-map$emplace("a", "a")$emplace("b", "b");
-print(map);
-
-# apply is a two argument function
-map$apply(\(k, o) { o$x <- toupper(k); });
-map$apply(\(k, o) { o$x == k; });
 }

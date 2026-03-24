@@ -1,8 +1,6 @@
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @name oopr_containers
 #' @title Containers for oopr Instances
-#' @include oopr.R
-#' @include zzz.R
 #' @description
 #' Create a vector or key-value pair of `oopr` instances.
 #'
@@ -20,7 +18,7 @@
 NULL
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @rdname oopr_containers
-#' @export
+#' @rawNamespace export(OoprVec)
 #' @examples
 #' ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' # create a vector
@@ -42,7 +40,7 @@ NULL
 #' vec$apply(\(obj) { obj$x <- obj$x + 1L; })
 #' vec$apply(\(obj) { obj$x; })
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-OoprVec <- DEFER(oopr("OoprVec",,
+oopr("OoprVec",,
 {
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 OoprVec <- \(ooprC)
@@ -54,7 +52,7 @@ OoprVec <- \(ooprC)
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  get:class <- \( ) { return(this$ooprC_@name); }
+  get:class <- \( ) { if(!is.null(this$ooprC_)) return(this$ooprC_@name); }
   get:empty <- \( ) { return(this$size == 0L); }
   get:size  <- \( ) { return(length(this$data_)); }
   get:data  <- \( ) { return(this$data_); }
@@ -160,7 +158,7 @@ private:
     });
     return(all(as.logical(test)));
   }
-}))
+})
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -177,7 +175,7 @@ private:
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @rdname oopr_containers
-#' @export
+#' @rawNamespace export(OoprMap)
 #' @examples
 #' ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' # create a key-value pair
@@ -189,7 +187,7 @@ private:
 #' map$apply(\(k, o) { o$x <- toupper(k); });
 #' map$apply(\(k, o) { o$x == k; });
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-OoprMap <- DEFER(oopr("OoprMap",,
+oopr("OoprMap",,
 {
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 OoprMap <- \(ooprC)
@@ -201,7 +199,7 @@ OoprMap <- \(ooprC)
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  get:class <- \( ) { return(this$ooprC_@name);   }
+  get:class <- \( ) { if(!is.null(this$ooprC_)) return(this$ooprC_@name); }
   get:empty <- \( ) { return(this$size == 0L);    }
   get:size  <- \( ) { return(length(this$data_)); }
   get:data  <- \( ) { return(this$data_);         }
@@ -270,7 +268,7 @@ private:
   }
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   isIdentical <- OoprVec@encl$this$isIdentical;
-}))
+})
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##

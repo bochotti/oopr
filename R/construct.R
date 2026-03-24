@@ -1,7 +1,8 @@
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-#' @name oopr
+setOldClass("oopr_meta");
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @rdname oopr
 #' @importFrom methods new
-#' @include meta.R
 #'
 #' @slot name `character(1L)` \cr
 #'            The name of the class.
