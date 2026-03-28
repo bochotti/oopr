@@ -24,13 +24,22 @@ SEXP isname(SEXP x, SEXP names)
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-SEXP iscall(SEXP x, SEXP names)
+SEXP iscall(SEXP x, SEXP names, SEXP package)
 {
   if(!Rf_isLanguage(x))
   {
     return Rf_ScalarLogical(0);
   }
-  return isname(CAR(x), names);
+  if(Rf_xlength(package) == 0)
+  {
+    return isname(CAR(x), names);
+  }
+
+  Symbols sym{"::", ":::"};
+  x = CAR(x);
+  if(!sym.is(CAR(x))) return Rf_ScalarLogical(0);
+  if(!LOGICAL_ELT(isname(CADR(x), package), 0)) return Rf_ScalarLogical(0);
+  return isname(CADDR(x), names);
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //

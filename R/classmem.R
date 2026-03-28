@@ -84,6 +84,7 @@ definitions_classmem <- \(i, name, env, err)
 references_classmem <- \(i, name, refs, meta, access, encl, this, env, err)
 {
   classes <- meta$subs("names", class = TRUE, inherit = "");
+  if(!length(classes)) return();
   contain <- classmem_get_containers(meta, this);
 
   refs    <- lapply(refs, `[`, match(refs$memb, classes, 0L) > 0L);

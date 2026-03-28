@@ -5,9 +5,15 @@ isname <- \(x, names = character(0L))
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-iscall <- \(x, names = character(0L))
+iscall <- \(x, names = character(0L), package = character(0L))
 {
-  .Call(Cpp_iscall, x, names);
+  .Call(Cpp_iscall, x, names, package);
+}
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+is.ooprcall <- \(x)
+{
+  iscall(x, "oopr") || iscall(x, "oopr", "oopr");
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##

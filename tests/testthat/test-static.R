@@ -132,20 +132,29 @@ test_that("static classmem",
   {
     oopr("memb",,  { public:a <- 1L; });
     expect_error(
-      oopr("test",,  { static:b <- memb; static:z <- \( ) { this$b$a; }})
+      oopr("test",,  { b <- memb; static:z <- \( ) { this$b$a; }})
      ,class = "ooprRefNotStatic"
+    );
+    expect_no_error(
+      oopr("test",,  { static:b <- memb; static:z <- \( ) { this$b$a; }})
     );
 
     oopr("memb2",, { public:b <- memb; });
     expect_error(
-      oopr("test",,  { static:c <- memb2; static:z <- \( ) { this$c$b$a; }})
+      oopr("test",,  { c <- memb2; static:z <- \( ) { this$c$b$a; }})
      ,class = "ooprRefNotStatic"
+    );
+    expect_no_error(
+      oopr("test",,  { static:c <- memb2; static:z <- \( ) { this$c$b$a; }})
     );
 
     oopr("memb2",, { static:public:b <- memb; });
     expect_error(
-      oopr("test",,  { static:c <- memb2; static:z <- \( ) { this$c$b$a; }})
+      oopr("test",,  { c <- memb2; static:z <- \( ) { this$c$b$a; }})
      ,class = "ooprRefNotStatic"
+    );
+    expect_no_error(
+      oopr("test",,  { static:c <- memb2; static:z <- \( ) { this$c$b$a; }})
     );
   })
 })

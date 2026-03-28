@@ -12,7 +12,7 @@ extern SEXP findMemberRefs(SEXP);
 extern SEXP findSrcRef(SEXP, SEXP);
 extern SEXP getMissingVars(SEXP, SEXP);
 extern SEXP interface(SEXP, SEXP, SEXP, SEXP);
-extern SEXP iscall(SEXP, SEXP);
+extern SEXP iscall(SEXP, SEXP, SEXP);
 extern SEXP isname(SEXP, SEXP);
 extern SEXP on_load(SEXP, SEXP);
 extern SEXP oopr_make(SEXP);
@@ -25,7 +25,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"findSrcRef",     (DL_FUNC) &findSrcRef,     2},
     {"getMissingVars", (DL_FUNC) &getMissingVars, 2},
     {"interface",      (DL_FUNC) &interface,      4},
-    {"iscall",         (DL_FUNC) &iscall,         2},
+    {"iscall",         (DL_FUNC) &iscall,         3},
     {"isname",         (DL_FUNC) &isname,         2},
     {"on_load",        (DL_FUNC) &on_load,        2},
     {"oopr_make",      (DL_FUNC) &oopr_make,      1},

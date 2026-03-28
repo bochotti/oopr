@@ -17,7 +17,7 @@ extern "C" SEXP isname(SEXP x, SEXP names);
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Checks if R object is a call to anything in `names`.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-extern "C" SEXP iscall(SEXP x, SEXP names);
+extern "C" SEXP iscall(SEXP x, SEXP names, SEXP package);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * A class which protects SEXP objects

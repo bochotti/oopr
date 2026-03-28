@@ -28,9 +28,17 @@ test_that("iscall",
 
   it("supports multiple strings",
   {
-    expect_false(isname(quote(a), c("b", "b")));
-    expect_true(isname(quote(a), c("a", "b")));
-    expect_true(isname(quote(a), c("b", "a")));
+    expect_false(iscall(quote(a()), c("b", "b")));
+    expect_true(iscall(quote(a()), c("a", "b")));
+    expect_true(iscall(quote(a()), c("b", "a")));
+  })
+
+  it("can do packages",
+  {
+    expect_false(iscall(quote(a::b())), "b");
+    expect_false(iscall(quote(a::b())), "b", "b");
+    expect_true(iscall(quote(a::b()), "b", "a"));
+    expect_true(iscall(quote(a:::b()), "b", "a"));
   })
 })
 

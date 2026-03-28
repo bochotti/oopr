@@ -39,6 +39,10 @@ defining any environments from outside the classes will lose its reference.
 
 Inherited classes and class members from a different package are taken
 from their respective originating namespace during \code{oopr_onLoad}.
+
+TODO: would it be better to convert all active bindings back to their
+functions and save their location on install, then convert back to
+active bindings onLoad?
 }
 \examples{
 \dontrun{

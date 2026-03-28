@@ -26,6 +26,10 @@
 #' Inherited classes and class members from a different package are taken
 #' from their respective originating namespace during `oopr_onLoad`.
 #'
+#' TODO: would it be better to convert all active bindings back to their
+#'       functions and save their location on install, then convert back to
+#'       active bindings onLoad?
+#'
 #' @examples
 #' \dontrun{
 #' # add to zzz.R
@@ -65,7 +69,7 @@ oopr_onLoad <- \(libname, pkgname, refhook = NULL)
   if(missing(libname)) libname <- get("libname", envir = parent.frame());
   if(missing(pkgname)) pkgname <- get("pkgname", envir = parent.frame());
   ns <- asNamespace(pkgname);
-  if(!exists(".__OOPR__.",, ns,, "environment", FALSE)) return();
+  if(!exists(".__OOPR__.",, ns,, "raw", FALSE)) return();
   env <- unserialize(ns[[".__OOPR__."]], refhook = refhook);
   out <- .Call(Cpp_on_load, env, ns);
   rm(list = ".__OOPR__.", envir = ns);
