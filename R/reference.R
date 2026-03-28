@@ -130,9 +130,10 @@ references_method <- \(i, name, refs, meta, access, encl, this, env, err)
         }
       }
     )
-    if(env$meta$static$get(i))
+    # if static, check to make sure ref is also static. If nested via
+    # class member, then reference is already asserted.
+    if(is.null(ref$nest) && env$meta$static$get(i))
     {
-      # if static, check to make sure ref is also static
       references_static(i, name, j, meta, ref, env, err);
     }
   }
@@ -150,7 +151,7 @@ references_exist <- \(i, name, j, meta, ref, env, err)
     cls = "ooprRefNotDefined"
    ,src = ref$src %||% env$src[[i]]
    ,msg = "Member `%s` is attempting to refer to an undefined member `%s`."
-   ,name, deparse1(ref$nest %||% ref$expr)
+   ,name, references_expr(ref)
   );
   env$succ$set(i, FALSE);
 }
@@ -165,7 +166,7 @@ references_access <- \(i, name, j, meta, ref, type = "method", env, err)
     cls = "ooprRefBadAccess"
    ,src = ref$src %||% env$src[[i]]
    ,msg = "Member `%s` is attempting to access %s `%s`."
-   ,name, type, deparse1(ref$nest %||% ref$expr)
+   ,name, type, references_expr(ref)
   );
   env$succ$set(i, FALSE);
 }
@@ -180,7 +181,7 @@ references_assign <- \(i, name, j, meta, ref, type = "method", env, err)
     cls = "ooprRefBadAssignment"
    ,src = ref$src %||% env$src[[i]]
    ,msg = "Member `%s` is attempting to assign into %s `%s`."
-   ,name, type, deparse1(ref$nest %||% ref$expr)
+   ,name, type, references_expr(ref)
   );
   env$succ$set(i, FALSE);
 }
@@ -200,7 +201,7 @@ references_call <- \(i, name, j, meta, ref, type = "field", fun, env, err)
      ,src = ref$src %||% env$src[[i]]
      ,msg = "Member `%s` call to method `%s` does not match its signature:
              \"%s\"."
-     ,name, deparse1(ref$nest %||% ref$expr), call$message
+     ,name, references_expr(ref), call$message
     );
     env$succ$set(i, FALSE);
   }
@@ -210,7 +211,7 @@ references_call <- \(i, name, j, meta, ref, type = "field", fun, env, err)
       cls = "ooprRefBadCall"
      ,src = ref$src %||% env$src[[i]]
      ,msg = "Member `%s` is attempting to call %s `%s`."
-     ,name, type, deparse1(ref$nest %||% ref$expr)
+     ,name, type, references_expr(ref)#deparse1(ref$nest %||% ref$expr)
     );
     env$succ$set(i, FALSE);
   }
@@ -255,4 +256,18 @@ references_this <- \(i, name, type = c("this", ".this"), env, err)
     env$succ$set(i, FALSE);
   }
   return();
+}
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @intern
+#' Pull the correct expression that is causing references error.
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+references_expr <- \(ref)
+{
+  out <- ref$nest %||% call(ref$oper, as.name(ref$encl), as.name(ref$memb));
+  if(ref$type == "call")
+  {
+    out <- as.call(c(out, as.list(ref$expr[-1])));
+  }
+  return(deparse1(out));
 }

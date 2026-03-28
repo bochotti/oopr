@@ -1,7 +1,5 @@
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @intern
-#' @include utils.R
-#' @include meta.R
 #' Evaluates the `definition` argument of `oopr` and saves the results within
 #' an environment.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -212,8 +210,13 @@ evaluate_rhs <- \(env, expr, parent, err)
   {
     name <- env$meta$names$get(i);
     rhs  <- expr[[c(i, 3L)]];
+    rhs  <- evaluate_classmem(i, name, rhs, env, err);
     obj  <- tryCatch(eval(rhs, eenv, NULL), error = \(e)
     {
+      if(e$message == "`ooprC` must be an ooprC object")
+      {
+        e$message <- sub("ooprC", deparse1(rhs[[2L]]), e$message);
+      }
       err$push(
         cls = "ooprRHSError"
        ,src = env$src[[i]]

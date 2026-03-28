@@ -155,7 +155,7 @@ public:
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 private:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  Symbols sym{"$", "[[", "<-", "<<-", "=", "(", "{"};
+  Symbols sym{"$", "[[", "<-", "<<-", "=", "(", "{", "["};
   struct Match
   {
     std::vector<int> at;
@@ -268,7 +268,7 @@ private:
     // otherwise, its an access
     i = len;
     parent = parents.back();
-    while(i > 0 && Rf_isLanguage(parent) && sym.is(CAR(parent), {"$", "[["}))
+    while(i > 0 && Rf_isLanguage(parent) && sym.is(CAR(parent), {"$", "[[", "["}))
     {
       --i;
       parent = parents[i];

@@ -25,6 +25,25 @@ test_that("evaluate_classmem",
     expect_true(test@meta$class$get(1L));
   })
 
+  it("can denote containers",
+  {
+    oopr("test",, { public:a <- memb[]; })
+    expect_true(test@meta$class$get(1L));
+    expect_true(is.ooprC(test@encl$this$a, "OoprVec"));
+    obj <- test();
+    expect_true(is.oopr(obj$a, "OoprVec"));
+
+    oopr("test",, { public:a <- memb[[]]; })
+    expect_true(test@meta$class$get(1L));
+    expect_true(is.ooprC(test@encl$this$a, "OoprMap"));
+    obj <- test();
+    expect_true(is.oopr(obj$a, "OoprMap"));
+
+    expect_error(oopr("test",, { public:a <- sum[]; }));
+    expect_no_error(oopr("test",, { public:a <- (1:10)[1]; }));
+    expect_false(test@meta$class$get(1L));
+  })
+
 })
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -151,9 +170,9 @@ test_that("references_classmem",
      ,class = "ooprRefBadAccess"
     );
 
-    oopr("memb",, { public:a <- 1L; })
+    oopr("memb",, { public:static:a <- 1L; })
     expect_error(
-      oopr("test",, { static:a <- memb; static:b <- \( ) { this$a$a; }})
+      oopr("test",, { a <- memb; static:b <- \( ) { this$a$a; }})
      ,class = "ooprRefNotStatic"
     );
   })
@@ -244,6 +263,142 @@ test_that("references_classmem",
       oopr("test",, { a <- memb; b <- \( ) { ((this$a$b))(); }})
      ,class = "ooprRefBadCall"
     );
+  })
+})
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("references_containers",
+{
+  oopr("memb",,
+  {
+  public:
+    a        <- 1L;
+    b        <- \(x) { }
+    get:c    <- \( ) { }
+    set:d    <- \(x) { }
+    static:e <- 1L;
+  })
+
+  it("handles containers",
+  {
+    expect_error(
+      oopr("test",, { a <- memb[]; b <- \(x) { this$a$a; } })
+     ,class = "ooprRefNotDefined"
+    );
+    expect_no_error(
+      oopr("test",, { a <- memb[]; b <- \(x) { this$a$size; } })
+    );
+
+    expect_error(
+      oopr("test",, { a <- memb[]; b <- \(x) { this$a[1L]$z; } })
+     ,class = "ooprRefNotDefined"
+    );
+    expect_error(
+      oopr("test",, { a <- memb[]; b <- \(x) { this$a[1L]$a(); } })
+     ,class = "ooprRefBadCall"
+    );
+    expect_no_error(
+      oopr("test",, { a <- memb[]; b <- \(x) { this$a[1L]$a; } })
+    );
+
+    expect_error(
+      oopr("test",, { a <- memb[]; b <- \(x) { this$a[1L]$b(); } })
+     ,class = "ooprRefUnmatchedCall"
+    );
+    expect_no_error(
+      oopr("test",, { a <- memb[]; b <- \(x) { this$a[1L]$b(1L); } })
+    );
+
+    expect_error(
+      oopr("test",, { a <- memb[]; b <- \(x) { this$a[1L]$c <- 1L; } })
+     ,class = "ooprRefBadAssignment"
+    );
+
+    expect_error(
+      oopr("test",, { a <- memb[]; b <- \(x) { this$a[1L]$d; } })
+     ,class = "ooprRefBadAccess"
+    );
+    expect_no_error(
+      oopr("test",, { a <- memb[]; b <- \(x) { this$a[1L]$d <- 1L; } })
+    );
+
+    expect_no_error(
+      oopr("test",, { static:a <- memb[]; static:b <- \(x) { this$a[1L]$a; } })
+    );
+    expect_no_error(
+      oopr("test",, { static:a <- memb[]; static:b <- \(x) { this$a$size; } })
+    );
+    expect_error(
+      oopr("test",, { a <- memb[]; static:b <- \(x) { this$a[1L]$e; } })
+     ,class = "ooprRefNotStatic"
+    );
+
+  })
+
+  it("handles nested containers",
+  {
+    oopr("memb2",, { public:c <- memb[]; static:s <- memb[];})
+
+    expect_error(
+      oopr("test",, { a <- memb2[]; b <- \(x) { this$a[1L]$c$a; }})
+     ,class = "ooprRefNotDefined"
+    );
+    expect_no_error(
+      oopr("test",, { a <- memb2[]; b <- \(x) { this$a[1L]$c$size; }})
+    );
+
+    expect_error(
+      oopr("test",, { a <- memb2[]; b <- \(x) { this$a[1L]$s$a; }})
+     ,class = "ooprRefNotDefined"
+    );
+    expect_no_error(
+      oopr("test",, { a <- memb2[]; b <- \(x) { this$a[1L]$s$size; }})
+    );
+
+    expect_error(
+      oopr("test",, { a <- memb2[]; b <- \(x) { this$a[1L]$c[1L]$z; }})
+     ,class = "ooprRefNotDefined"
+    );
+    expect_error(
+      oopr("test",, { a <- memb2[]; b <- \(x) { this$a[1L]$c[1L]$a(); }})
+     ,class = "ooprRefBadCall"
+    );
+    expect_no_error(
+      oopr("test",, { a <- memb2[]; b <- \(x) { this$a[1L]$c[1L]$a; }})
+    );
+
+    expect_error(
+      oopr("test",, { a <- memb2[]; b <- \(x) { this$a[1L]$c[1L]$b(); } })
+     ,class = "ooprRefUnmatchedCall"
+    );
+    expect_no_error(
+      oopr("test",, { a <- memb2[]; b <- \(x) { this$a[1L]$c[1L]$b(1L); } })
+    );
+
+    expect_error(
+      oopr("test",, { a <- memb2[]; b <- \(x) { this$a[1L]$c[1L]$c <- 1L; } })
+     ,class = "ooprRefBadAssignment"
+    );
+
+    expect_error(
+      oopr("test",, { a <- memb2[]; b <- \(x) { this$a[1L]$c[1L]$d; } })
+     ,class = "ooprRefBadAccess"
+    );
+    expect_no_error(
+      oopr("test",, { a <- memb2[]; b <- \(x) { this$a[1L]$c[1L]$d <- 1L; } })
+    );
+
+    expect_no_error(
+      oopr("test",, { static:a <- memb2[]; static:b <- \(x) { this$a[1L]$c[1L]$a; } })
+    );
+    expect_no_error(
+      oopr("test",, { static:a <- memb2[]; static:b <- \(x) { this$a[1L]$c$size; } })
+    );
+    expect_error(
+      oopr("test",, { a <- memb2[]; static:b <- \(x) { this$a[1L]$c[1L]$e; } })
+     ,class = "ooprRefNotStatic"
+    );
+
   })
 })
 
