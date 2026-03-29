@@ -46,7 +46,7 @@ test_that("str.oopr",
       in_this_class <- list(a=1, b=2, c=3);
       get:err <- \( ) stop("blah blah")
       null    <- NULL
-      dbl <-1.0
+      dbl <- 1.0
       lgl <- TRUE
       raw <- raw(1)
       cmp <- complex(1)
@@ -62,15 +62,5 @@ test_that("str.oopr",
   {
     expect_match(out[8], "<error>")
   })
-})
-
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-test_that("oopr.print",
-{
-  it("uses print method if defined",
-  {
-    oopr("test",, { public:print <- \( ) { cat("a"); }})
-    obj <- test();
-    expect_output(print(obj), "^a$");
-  })
+  expect_identical(capture.output(print(obj)), out);
 })

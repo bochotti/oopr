@@ -24,7 +24,7 @@ ooprC <- setClass("ooprC", contains = "function", slots = c(
 ));
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-#' @export
+#' @exportS3Method "@<-" ooprC
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 `@<-.ooprC` <- \(object, name, value)
 {
@@ -34,13 +34,12 @@ ooprC <- setClass("ooprC", contains = "function", slots = c(
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-#' @export
-#' @importFrom utils hasName
+#' @exportS3Method "$" ooprC
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 `$.ooprC` <- \(x, name)
 {
   .this <- x@encl$.this;
-  if(!utils::hasName(.this, name))
+  if(!exists(name, envir = .this, inherits = FALSE))
   {
     msg  <- sprintf("`%s` is not a public static member", name);
     call <- call('$', as.name(x@name), name);
@@ -60,7 +59,7 @@ ooprC <- setClass("ooprC", contains = "function", slots = c(
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-#' @export
+#' @exportS3Method "$<-" ooprC
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 `$<-.ooprC` <- \(x, name, value)
 {

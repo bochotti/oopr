@@ -11,6 +11,7 @@ definitions <- \(env, err)
     name <- meta$names$get(i);
     definitions_special(i, name, meta, env, err);
     definitions_virtual(i, name, meta, env, err);
+    definitions_S3(i, name, meta, env, err);
     if(meta$method$get(i) || nzchar(meta$property$get(i)))
     {
       definitions_args(i, name, env, err);
@@ -25,7 +26,7 @@ definitions <- \(env, err)
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 definitions_special <- \(i, name, meta, env, err)
 {
-  use <- c("print", sprintf("%s%s", c("", "~"), env$name));
+  use <- sprintf("%s%s", c("", "~"), env$name);
   has <- match(name, use, 0L);
   if(has == 0L) return(TRUE);
 
@@ -41,65 +42,26 @@ definitions_special <- \(i, name, meta, env, err)
     return(FALSE);
   }
 
-  if(name == "print")
-  {
-    definitions_print(i, name, meta, env, err);
-  }
-  else
-  {
-    if(meta$access$get(i) != "private")
-    {
-      err$push(
-        cls = "ooprSpecialNotPrivate"
-       ,src = env$src[[i]]
-       ,msg = "Method `%s` must be private."
-       ,name
-      );
-      env$succ$set(i, FALSE);
-    }
-    if(name == env$name)
-    {
-      definitions_constructor(i, name, env, err);
-    }
-    else
-    {
-      definitions_destructor(i, name, env, err);
-    }
-  }
-
-  return(env$succ$get(i));
-}
-
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-#' @intern
-#' Print method must be public.
-#' All argument must have a default, to prevent errors with `print(x, ...)`
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-definitions_print <- \(i, name, meta, env, err)
-{
-  if(meta$access$get(i) != "public")
+  if(meta$access$get(i) != "private")
   {
     err$push(
-      cls = "ooprPrintNotPublic"
+      cls = "ooprSpecialNotPrivate"
      ,src = env$src[[i]]
-     ,msg = "Method `%s` must be public."
+     ,msg = "Method `%s` must be private."
      ,name
     );
     env$succ$set(i, FALSE);
   }
-  ndflt <- vapply(formals(env$this[[name]]), isname, logical(1L), "");
-  ndflt <- ndflt[match(names(ndflt), "...", 0L) == 0L];
-  if(any(ndflt))
+  if(name == env$name)
   {
-    err$push(
-      cls = "ooprPrintNonDefaultArgs"
-     ,src = env$src[[i]]
-     ,msg = "Method `%s` has arguments without a default value: %s."
-     ,name, names(ndflt)[ndflt]
-    );
-    env$succ$set(i, FALSE);
+    definitions_constructor(i, name, env, err);
   }
-  return();
+  else
+  {
+    definitions_destructor(i, name, env, err);
+  }
+
+  return(env$succ$get(i));
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##

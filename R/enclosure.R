@@ -59,6 +59,7 @@ enclosure <- \(env, parent)
       if(!nzchar(inhr))
       {
         environment(this[[name]]) <- encl;
+        if(meta$S3$get(i)) enclosure_S3(name, env$name, this, parent);
       }
       lockBinding(name, this);
     }

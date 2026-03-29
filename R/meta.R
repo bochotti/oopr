@@ -41,6 +41,7 @@ meta <- \(size = 0L)
   names    <- vector("character", size);
   access   <- vector("character", size);
   method   <- vector("logical",   size);
+  S3       <- vector("logical",   size);
   property <- vector("character", size);
   static   <- vector("logical",   size);
   class    <- vector("logical",   size);

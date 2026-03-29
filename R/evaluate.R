@@ -98,7 +98,7 @@ evaluate_lhs <- \(env, expr, err)
   # pull names out of `:` calls
   walk <- \(i, lhs, env, err)
   {
-    if(is.name(lhs))
+    if(is.name(lhs) || (is.character(lhs) && length(lhs) == 1L && !is.na(lhs)))
     {
       # symbols will be assigned
       if(named)

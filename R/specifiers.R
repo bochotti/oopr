@@ -14,6 +14,7 @@ specifiers <- \(env, err)
     name <- meta$names$get(i);
     if(!specifiers_dupes(i, name, spec, env, err))          next;
     if(!specifiers_access(i, name, spec, meta, env, err))   next;
+    if(!specifiers_S3(i, name, spec, meta, env, err))       next;
     if(!specifiers_property(i, name, spec, meta, env, err)) next;
     if(!specifiers_static(i, name, spec, meta, env, err))   next;
     if(!specifiers_virtual(i, name, spec, meta, env, err))  next;

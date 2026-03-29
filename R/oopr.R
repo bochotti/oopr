@@ -232,7 +232,7 @@ str.oopr <- \(
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 print.oopr <- \(x, ...)
 {
-  if(hasName(x, "print")) x$print(...) else str(x);
+  str.oopr(x);
   return(invisible(x))
 }
 

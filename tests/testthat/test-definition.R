@@ -1,32 +1,6 @@
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 test_that("definitions_special",
 {
-  it("enforces print as public method with defaulted arguments",
-  {
-    expect_error(
-      oopr("test",, { print <- 1L; })
-     ,class = "ooprSpecialNotAMethod"
-    );
-    expect_error(
-      oopr("test",, { print <- \( ) { } })
-     ,class = "ooprPrintNotPublic"
-    );
-    expect_error(
-      oopr("test",, { public:print <- \(a) { } })
-     ,class = "ooprPrintNonDefaultArgs"
-    );
-    expect_error(
-      oopr("test",, { public:print <- \(a, b = 1) { } })
-     ,class = "ooprPrintNonDefaultArgs"
-    );
-    expect_no_error(
-      oopr("test",, { public:print <- \(a = 1, b = 1) { } })
-    );
-    expect_no_error(
-      oopr("test",, { public:print <- \(a = 1, ...) { } })
-    );
-  })
-
   it("enforces constructor method as private method without '.', '..' args",
   {
     expect_error(
