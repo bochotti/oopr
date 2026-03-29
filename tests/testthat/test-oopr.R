@@ -63,4 +63,15 @@ test_that("str.oopr",
     expect_match(out[8], "<error>")
   })
   expect_identical(capture.output(print(obj)), out);
+  it("wont go wider than screen",
+  {
+    obj$very_long <- obj;
+    for(width in 20 * 2:5)
+    {
+      out <- capture_output(str(obj), width = width);
+      expect_true(all(nchar(strsplit(out, "\n")[[1L]]) <= width));
+      out <- capture_output(str(list(list(obj))), width = width);
+      expect_true(all(nchar(strsplit(out, "\n")[[1L]]) <= width));
+    }
+  })
 })

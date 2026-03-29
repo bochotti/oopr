@@ -160,7 +160,7 @@ format.oopr <- \(x, ...)
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 str.oopr <- \(
   object
- ,max.level     = 5
+ ,max.level     = 5L
  ,give.attr     = FALSE
  ,width         = getOption("width")
  ,nest.lev      = 0L
@@ -171,6 +171,14 @@ str.oopr <- \(
  ,...
 )
 {
+  if(is.na(max.level))
+  {
+    max.level <- 5L;
+  }
+  if(is.null(dynGet(".nest.lev", NULL)))
+  {
+    .nest.lev <- nest.lev;
+  }
   short <- \(x)
   {
     cut    <- nchar(x) > width;
@@ -219,7 +227,7 @@ str.oopr <- \(
       }
     }
   });
-  if(nest.lev == 0L)
+  if(nest.lev == dynGet(".nest.lev", 0L))
   {
     out <- short(out);
   }
@@ -230,9 +238,9 @@ str.oopr <- \(
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @exportS3Method base::print oopr
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-print.oopr <- \(x, ...)
+print.oopr <- \(x, max.level = 5L, ...)
 {
-  str.oopr(x);
+  str.oopr(x, max.level = max.level, ...);
   return(invisible(x))
 }
 

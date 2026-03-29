@@ -151,22 +151,22 @@ classmem_get_containers <- \(meta, this)
 classmem_ignore_init <- \(i, name, refs, classes, env, err)
 {
   for(j in seq_along(classes))
+  {
+    m   <- match(refs$memb, classes[j], 0L) > 0L;
+    ref <- lapply(refs, `[`, m);
+    if(!length(ref$type)) next;
+    if(ref$type[[1L]] != "call")
     {
-      m   <- match(refs$memb, classes[j], 0L) > 0L;
-      ref <- lapply(refs, `[`, m);
-      if(!length(ref$type)) next;
-      if(ref$type[[1L]] != "call")
-      {
-        err$push(
-          cls = "ooprClassMemUsageBeforeInit"
-         ,src = ref$src[[1L]]
-         ,msg = "Class member `%s` is being used prior to being initialized."
-         ,classes[m]
-        );
-        env$succ$set(i, FALSE);
-        return();
-      }
-      refs <- lapply(refs, `[`, -which.max(m));
+      err$push(
+        cls = "ooprClassMemUsageBeforeInit"
+       ,src = ref$src[[1L]]
+       ,msg = "Class member `%s` is being used prior to being initialized."
+       ,classes[m]
+      );
+      env$succ$set(i, FALSE);
+      return();
+    }
+    refs <- lapply(refs, `[`, -which.max(m));
   }
   return(refs);
 }
