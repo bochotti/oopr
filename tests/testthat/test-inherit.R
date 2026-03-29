@@ -66,7 +66,7 @@ test_that("inheritance_get",
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 test_that("inheritance_set",
 {
-  oopr("base",, { a <- 1L; protected:b <- 2L; public:c <- 3L})
+  oopr("base",, { private:a <- 1L; protected:b <- 2L; public:c <- 3L})
 
   it("does not inherit private members",
   {
@@ -509,7 +509,7 @@ test_that("inheritance_virtual",
   {
     oopr("inhr",, { public:virtual:a <- \(x) { }})
     expect_error(
-      oopr("test", inhr, { public:a <- \( ) { }})
+      oopr("test", public:inhr, { public:a <- \( ) { }})
      ,class = "ooprVirtualSignatureNotMatched"
     );
   })
@@ -518,34 +518,42 @@ test_that("inheritance_virtual",
   {
     oopr("inhr",, { public:virtual:a <- \(x) { }})
     expect_error(
-      oopr("test", inhr, { public:a <- \(y) { }})
+      oopr("test", public:inhr, { public:a <- \(y) { }})
      ,class = "ooprVirtualSignatureNotMatched"
     );
 
     oopr("inhr",, { public:virtual:a <- \(x, y) { }})
     expect_error(
-      oopr("test", inhr, { public:a <- \(y, x) { }})
+      oopr("test", public:inhr, { public:a <- \(y, x) { }})
      ,class = "ooprVirtualSignatureNotMatched"
     );
   })
 
   it("requires derived methods to match defaulted arguments",
   {
+    oopr("inhr",, { public:virtual:a <- \(x) { }})
+    expect_no_error(
+      oopr("test", public:inhr, { public:a <- \(x) { }})
+    );
+    expect_no_error(
+      oopr("test", public:inhr, { public:a <- \(x = NULL) { }})
+    );
+
     oopr("inhr",, { public:virtual:a <- \(x = NULL) { }})
     expect_error(
-      oopr("test", inhr, { public:a <- \(x) { }})
+      oopr("test", public:inhr, { public:a <- \(x) { }})
      ,class = "ooprVirtualSignatureNotMatched"
     );
 
     oopr("inhr",, { public:virtual:a <- \(y, x = NULL) { }})
     expect_error(
-      oopr("test", inhr, { public:a <- \(y = NULL, x) { }})
+      oopr("test", public:inhr, { public:a <- \(y = NULL, x) { }})
      ,class = "ooprVirtualSignatureNotMatched"
     );
 
     oopr("inhr",, { public:virtual:a <- \(y = NULL, x = NULL) { }})
     expect_error(
-      oopr("test", inhr, { public:a <- \(y, x) { }})
+      oopr("test", public:inhr, { public:a <- \(y, x) { }})
      ,class = "ooprVirtualSignatureNotMatched"
     );
   })
@@ -553,12 +561,12 @@ test_that("inheritance_virtual",
   it("passes virtual status to derived class method",
   {
     oopr("inhr",, { public:virtual:a <- \( ) { }})
-    oopr("test", inhr, { public:a <- \( ) { }})
+    oopr("test", public:inhr, { public:a <- \( ) { }})
     expect_true(test@meta$virtual$get(1L));
 
     oopr("inhr",, { public:virtual:a <- \( ) { }})
     expect_error(
-      oopr("test", inhr, { public:a <- 1L })
+      oopr("test", public:inhr, { public:a <- 1L })
      ,class = "ooprVirtualNotMethod"
     );
   })
@@ -569,17 +577,25 @@ test_that("inheritance_virtual",
     oopr("inhr2",, { public:virtual:a <- \(x) { }})
 
     expect_error(
-      oopr("test", { inhr1; inhr2; }, { public:a <- \(x) { } })
+      oopr("test", { public:inhr1; public:inhr2; }, { public:a <- \(x) { } })
      ,class = "ooprVirtualSignatureNotMatched"
     );
     expect_no_error(
-      oopr("test", { inhr1; inhr2; }, { public:a <- \( ) { } })
+      oopr("test", { public:inhr1; public:inhr2; }, { public:a <- \( ) { } })
+    );
+
+    expect_error(
+      oopr("test", { inhr1; public:inhr2; }, { public:a <- \( ) { } })
+     ,class = "ooprVirtualSignatureNotMatched"
+    );
+    expect_no_error(
+      oopr("test", { inhr1; public:inhr2; }, { public:a <- \(x) { } })
     );
   })
 
-  it("ignores virtual status if private",
+  it("ignores virtual status if inherited class is marked non-public",
   {
-    oopr("inhr",, { private:virtual:a <- \( ) { }})
+    oopr("inhr",, { public:virtual:a <- \( ) { }})
     expect_no_error(
       oopr("test", inhr, { public:a <- \(x) { } })
     );
@@ -587,8 +603,59 @@ test_that("inheritance_virtual",
 
     oopr("inhr",, { public:virtual:a <- \( ) { }})
     expect_no_error(
-      oopr("test", inhr, { private:a <- \(x) { } })
+      oopr("test", protected:inhr, { public:a <- \(x) { } })
     );
     expect_false(test@meta$virtual$get(1L));
   })
+
+  it("ignores virtual status if inherited class' member is marked private",
+  {
+    oopr("inhr",, { private:virtual:a <- \( ) { }})
+    expect_no_error(
+      oopr("test", public:inhr, { public:a <- \(x) { } })
+    );
+    expect_false(test@meta$virtual$get(1L));
+
+    oopr("inhr",, { protected:virtual:a <- \( ) { }})
+    expect_error(
+      oopr("test", public:inhr, { public:a <- \(x) { } })
+     ,class = "ooprVirtualSignatureNotMatched"
+    );
+  })
+})
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("specifiers_final",
+{
+  it("collects specifier",
+  {
+    oopr("test",, { virtual:final:a <- \( ) { }; })
+    expect_true(test@meta$final$get(1L))
+  })
+
+  it("requires final to be virtual",
+  {
+    expect_error(
+      oopr("test",, { final:a <- 1L; })
+     ,class = "ooprFinalNotVirtual"
+    );
+  })
+
+  it("does not allow overridding derived class",
+  {
+    oopr("inhr",, { public:virtual:final:a <- \( ) { }; })
+
+    expect_error(
+      oopr("test", public:inhr , { public:a <- \( ) { }; })
+     ,class = "ooprFinalBeingOverridden"
+    )
+  })
+
+  it("carries final status to derived class",
+  {
+    oopr("inhr",, { public:virtual:final:a <- \( ) { }; })
+    oopr("test", public:inhr, { })
+    expect_true(test@meta$final$get(2L));
+  })
+
 })

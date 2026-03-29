@@ -43,9 +43,10 @@ meta <- \(size = 0L)
   method   <- vector("logical",   size);
   property <- vector("character", size);
   static   <- vector("logical",   size);
-  virtual  <- vector("logical",   size);
   class    <- vector("logical",   size);
   inherit  <- vector("character", size);
+  virtual  <- vector("logical",   size);
+  final    <- vector("logical",   size);
   rm(size);
   makeActiveBinding("size", \( ) { return(names$size); }, environment());
 

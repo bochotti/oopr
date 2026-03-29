@@ -72,7 +72,7 @@ references <- \(env, err)
 
   access <- c("public", "protected", "private");
   encl   <- c("this", ".this")
-  for(i in env$along)
+  for(i in env$along) # note, inherited members not part of $along
   {
     if(!(meta$method$get(i) || nzchar(meta$property$get(i)))) next;
     name <- meta$names$get(i);

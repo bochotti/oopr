@@ -172,16 +172,29 @@ inheritance_set <- \(env, inhr, err)
       # private members are not inherited
       if(spec == "private") next;
 
-      # existing members are enforced if virtual, and not overridden
+      # defined methods are enforced if derived is virtual
       k <- which(meta$subs(names = name));
       if(length(k))
       {
-        if(!imeta$virtual[j] || meta$access$get(k) == "private" || vtl[k]) next;
+        if(!imeta$virtual[j] || ispec != "public" || vtl[k]) next;
         vtl[k] <- TRUE;
+        if(imeta$final[j])
+        {
+          err$push(
+            cls = "ooprFinalBeingOverridden"
+           ,src = env$src[[k]]
+           ,msg = "Method `%s` is overridding inherited class `%s` final
+                   method."
+           ,name, iname
+          );
+          env$succ$set(k, FALSE);
+          next;
+        }
         inheritance_virtual(k, name, iname, meta, imeta, this, ithis, env, err);
         next;
       }
 
+      # otherwise, they are inherited
       # get the meta information of inherited member
       new <- imeta[j, ];
       new[["inherit"]] <- iname;
@@ -329,14 +342,14 @@ inheritance_virtual <- \(i, name, iname, meta, imeta, this, ithis, env, err)
   }
   idflt <- !vapply(iargs, isname, logical(1L), "");
   dflt  <- !vapply(args,  isname, logical(1L), "");
-  if(pass && !all(idflt & dflt))
+  if(pass && any(idflt & !dflt))
   {
     pass <- FALSE;
     msg  <- sprintf(
       "Argument%s %s must have %s"
-     ,if(sum(!(idflt & !dflt)) > 1L) "s" else ""
+     ,if(sum(idflt & !dflt) > 1L) "s" else ""
      ,deparse1(names(dflt)[idflt & !dflt])
-     ,if(sum(!(idflt & !dflt)) > 1L) "default values" else "a default value"
+     ,if(sum(idflt & !dflt) > 1L) "default values" else "a default value"
     );
   }
 
@@ -354,4 +367,30 @@ inheritance_virtual <- \(i, name, iname, meta, imeta, this, ithis, env, err)
     env$succ$set(i, FALSE);
   }
   return();
+}
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @intern
+#' Collect a final specifier.
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+specifiers_final <- \(i, name, spec, meta, env, err)
+{
+  set <- spec$get(i)[[1L]];
+  has <- match(set, "final", 0L) > 0L;
+  if(sum(has) > 0L)
+  {
+    if(!meta$virtual$get(i))
+    {
+      err$push(
+        cls = "ooprFinalNotVirtual"
+       ,src = env$src[[i]]
+       ,msg = "Member `%s` must be virtual to be marked as final."
+       ,name
+      );
+      env$succ$set(i, FALSE);
+    }
+    meta$final$set(i, TRUE);
+    spec$set(i, list(set[!has]));
+  }
+  return(TRUE);
 }
