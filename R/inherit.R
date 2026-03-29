@@ -149,11 +149,14 @@ inheritance_get <- \(inhr, parent, err)
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @intern
 #' It places inherited members in the derived `meta` and `this`.
+#' Virtual inheritance skips over private, because the resulting class
+#' will end up with `public` class names in its S3 list.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 inheritance_set <- \(env, inhr, err)
 {
   this <- env$this;
   meta <- env$meta;
+  vtl  <- logical(meta$size);
   for(i in inhr$along)
   {
     iname <- inhr$meta$names$get(i);
@@ -169,8 +172,15 @@ inheritance_set <- \(env, inhr, err)
       # private members are not inherited
       if(spec == "private") next;
 
-      # existing members are not overridden
-      if(length(meta$subs("names", names = name))) next;
+      # existing members are enforced if virtual, and not overridden
+      k <- which(meta$subs(names = name));
+      if(length(k))
+      {
+        if(!imeta$virtual[j] || meta$access$get(k) == "private" || vtl[k]) next;
+        vtl[k] <- TRUE;
+        inheritance_virtual(k, name, iname, meta, imeta, this, ithis, env, err);
+        next;
+      }
 
       # get the meta information of inherited member
       new <- imeta[j, ];
@@ -198,6 +208,7 @@ inheritance_set <- \(env, inhr, err)
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @intern
 #' Enforces initialization of inherited class/s.
+#' Called from `definitions_constructor`.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 definitions_inheritance <- \(i, name, env, err)
 {
@@ -207,10 +218,10 @@ definitions_inheritance <- \(i, name, env, err)
   along <- rev(inhr$along);
   for(i in along)
   {
-    name  <- inhr$meta$names$get(i);
-    ats   <- findInExpr(body(fun), \(e) iscall(e, name));
-    call  <- call(name);
-    fun   <- definitions_init(i, name, ats, call, envir, along, fun, inhr, err);
+    name <- inhr$meta$names$get(i);
+    ats  <- findInExpr(body(fun), \(e) iscall(e, name));
+    call <- call(name);
+    fun  <- definitions_init(i, name, ats, call, envir, along, fun, inhr, err);
   }
   env$this[[env$name]] <- fun;
 }
@@ -254,4 +265,93 @@ references_inheritance <- \(refs, meta, env, err)
       }
     }
   }
+}
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @intern
+#' Collect a virtual specifier.
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+specifiers_virtual <- \(i, name, spec, meta, env, err)
+{
+  set <- spec$get(i)[[1L]];
+  has <- match(set, "virtual", 0L) > 0L;
+  if(sum(has) > 0L)
+  {
+    meta$virtual$set(i, TRUE);
+    spec$set(i, list(set[!has]));
+  }
+  return(TRUE);
+}
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @intern
+#' Virtual members must be methods
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+definitions_virtual  <- \(i, name, meta, env, err)
+{
+  if(!meta$virtual$get(i)) return();
+  if(!meta$method$get(i))
+  {
+    err$push(
+      cls = "ooprVirtualNotMethod"
+     ,src = env$src[[i]]
+     ,msg = "Virtual member `%s` must be a method."
+     ,name
+    );
+    env$succ$set(i, FALSE);
+  }
+  return(env$succ$get(i));
+}
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @intern
+#' Inherited virtual members must match arguments.
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+inheritance_virtual <- \(i, name, iname, meta, imeta, this, ithis, env, err)
+{
+  meta$virtual$set(i, TRUE);
+  if(!meta$method$get(i)) return();
+
+  iargs <- formals(ithis[[name]]);
+  args  <- formals(this[[name]]);
+
+  pass <- TRUE;
+  msg  <- character(1L);
+  if(length(iargs) != length(args))
+  {
+    pass <- FALSE;
+    msg  <- "Not the same amount of arguments";
+  }
+  if(pass && !all(names(iargs) == names(args)))
+  {
+    pass <- FALSE;
+    msg  <- "Argument names do not match";
+  }
+  idflt <- !vapply(iargs, isname, logical(1L), "");
+  dflt  <- !vapply(args,  isname, logical(1L), "");
+  if(pass && !all(idflt & dflt))
+  {
+    pass <- FALSE;
+    msg  <- sprintf(
+      "Argument%s %s must have %s"
+     ,if(sum(!(idflt & !dflt)) > 1L) "s" else ""
+     ,deparse1(names(dflt)[idflt & !dflt])
+     ,if(sum(!(idflt & !dflt)) > 1L) "default values" else "a default value"
+    );
+  }
+
+  if(!pass)
+  {
+    err$push(
+      cls = "ooprVirtualSignatureNotMatched"
+     ,src = env$src[[i]]
+     ,msg = "Method `%s` signature %s does not match inherited class `%s`
+             virtual method signature %s: \"%s\"."
+     ,name,  sub("^list", "", deparse1(as.list(args)))
+     ,iname, sub("^list", "", deparse1(as.list(iargs)))
+     ,msg
+    );
+    env$succ$set(i, FALSE);
+  }
+  return();
 }
