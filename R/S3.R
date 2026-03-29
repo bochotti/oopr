@@ -135,11 +135,7 @@ S3_match_arguments <- \(i, name, generic, env, err)
   }
   else
   {
-    # add the first argument - needed for enclosure.R
-    src <- attr(method, "srcref", TRUE);
-    formals(method) <- c(formals(generic)[1L], formals(method));
-    attr(method, "srcref") <- src;
-    env$this[[name]] <- method;
+    attr(env$this[[name]], ".__ARG__.") <- formals(generic)[1L];
   }
   return();
 }
@@ -151,25 +147,22 @@ S3_match_arguments <- \(i, name, generic, env, err)
 enclosure_S3 <- \(name, class, this, parent)
 {
   fun <- this[[name]];
-  src <- attr(fun, "srcref", TRUE);
-  method <- fun;
-  formals(fun) <- formals(fun)[-1L];
-  attr(fun, "srcref") <- src;
-  this[[name]] <- fun;
+  arg <- attr(fun, ".__ARG__.", TRUE);
+  attr(this[[name]], ".__ARG__.") <- NULL;
 
   # insert non-first arguments into the call
   # non-dots should be by name = value, to stop dots swallowing
-  args <- names(formals(method)[-1L]);
+  args <- names(formals(fun));
   names(args) <- args;
   args <- lapply(args, as.name);
   names(args)[match("...", names(args), 0L)] <- "";
 
-  obj <- as.name(names(formals(method))[1L]);
-
-  body(method) <- call("{", as.call(c(call(".subset2", obj, name), args)));
-  environment(method) <- parent;
-  attr(method, "srcref") <- src;
+  formals(fun)     <- c(arg, formals(fun));
+  arg              <- as.name(names(arg));
+  body(fun)        <- as.call(c(call(".subset2", arg, name), args));
+  environment(fun) <- parent;
+  attributes(fun)  <- attributes(this[[name]]);
 
   #registerS3method(name, class, method, parent);
-  assign(sprintf("%s.%s", name, class), method, envir = parent);
+  assign(sprintf("%s.%s", name, class), fun, envir = parent);
 }

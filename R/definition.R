@@ -178,10 +178,10 @@ definitions_init <- \(i, name, ats, call, envir, along, fun, env, err)
   assign     <- call("::", quote(base), quote(assign));
   expr[[at]] <- as.call(c(assign, x = name, value = call, envir = envir));
 
-  src                  <- attr(fun, "srcref", exact = TRUE);
   attr(expr, "srcref") <- bsrc;
+  attr                 <- attributes(fun);
   body(fun)            <- expr;
-  attr(fun, "srcref")  <- src;
+  attributes(fun)      <- attr;
   return(fun);
 }
 
@@ -202,9 +202,9 @@ definitions_destructor <- \(i, name, env, err)
     );
     env$succ$set(i, FALSE);
   }
-  src <- attr(fun, "srcref", exact = TRUE);
-  formals(fun) <- alist(this=);
-  attr(fun, "srcref") <- src;
+  attr             <- attributes(fun);
+  formals(fun)     <- alist(this=);
+  attributes(fun)  <- attr;
   env$this[[name]] <- fun;
   return();
 }
@@ -216,7 +216,6 @@ definitions_destructor <- \(i, name, env, err)
 definitions_return <- \(i, name, env, err)
 {
   fun  <- env$this[[name]];
-  src  <- attr(fun, "srcref", exact = TRUE);
   expr <- body(fun);
 
   nbraced <- !iscall(expr, '{');
@@ -244,9 +243,10 @@ definitions_return <- \(i, name, env, err)
     expr <- expr[[2L]];
   }
 
-  body(fun)           <- expr;
-  attr(fun, "srcref") <- src;
-  env$this[[name]]    <- fun;
+  attr             <- attributes(fun);
+  body(fun)        <- expr;
+  attributes(fun)  <- attr;
+  env$this[[name]] <- fun;
   return();
 }
 

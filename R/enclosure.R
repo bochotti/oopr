@@ -45,7 +45,6 @@ enclosure <- \(env, parent)
     {
       # property funds need to be converted to active bindings
       fun <- this[[name]];
-      # TODO: will inherited properties break on install?
       if(!nzchar(inhr))
       {
         environment(fun) <- encl;
