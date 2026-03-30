@@ -309,7 +309,7 @@ private:
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Access point to the above class.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-SEXP findMemberRefs(SEXP expr)
+SEXP find_member_refs(SEXP expr)
 {
   return recurseExpr<MemberReferences>(expr);
 }
@@ -504,7 +504,7 @@ private:
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Access point to the above class.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-SEXP getMissingVars(SEXP expr, SEXP env)
+SEXP get_missing_vars(SEXP expr, SEXP env)
 {
   return recurseExpr<ExprUsage>(expr, env);
 }
@@ -514,7 +514,7 @@ SEXP getMissingVars(SEXP expr, SEXP env)
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Find source reference from a path.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-SEXP findSrcRef(SEXP at, SEXP expr)
+SEXP find_src_ref(SEXP at, SEXP expr)
 {
   if(!Rf_isInteger(at)) Rf_error("`at` must be an integer");
   switch(TYPEOF(expr))

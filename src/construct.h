@@ -1,6 +1,6 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-#ifndef CONSTRUCT_H
-#define CONSTRUCT_H
+#ifndef OOPR_CONSTRUCT_H
+#define OOPR_CONSTRUCT_H
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #include "utils.h"
 #include "meta.h"

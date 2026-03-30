@@ -44,7 +44,7 @@ definitions_classmem <- \(i, name, env, err)
       {
         err$push(
           cls = "ooprStaticClassMemInitializedInConstructor"
-         ,src = findSrcRef(ats[[1L]], fun) %||% env$src[[i]]
+         ,src = find_src_ref(ats[[1L]], fun) %||% env$src[[i]]
          ,"Static class member `%s` cannot be initialized in the
            constructor method, it must be initialized where defined."
          ,name
@@ -235,13 +235,17 @@ classmem_make_expr <- \(refs, contain)
       }
     }
   }
-  refs2 <- .Call(Cpp_findMemberRefs, expr);
+  refs2 <- .Call(Cpp_find_member_refs, expr);
   refs2$src  <- refs$src;
-  nest <- .mapply(list(nest, .mapply(list, refs2, NULL)), NULL, FUN = \(nest, ref)
-  {
-    memb <- if(ref$oper == "$") as.name(ref$memb) else ref$memb;
-    call(ref$oper[[j]], nest, memb);
-  })
+  nest <- .mapply(
+    list(nest, .mapply(list, refs2, NULL))
+   ,NULL
+   ,FUN = \(nest, ref)
+    {
+      memb <- if(ref$oper == "$") as.name(ref$memb) else ref$memb;
+      call(ref$oper[[j]], nest, memb);
+    }
+  )
   refs2$nest <- nest;
   refs2$slct <- slct;
   return(refs2);
@@ -302,10 +306,11 @@ classmem_get_ooprC <- \(class, meta, this, contain, slct, env)
       {
         name <- class(parent[[".this"]])[1L];
       }
-      at <- findInExpr(this[[name]], \(e)
-      {
-          iscall(e, c("$", "[[")) && isname(e[[2L]], "this") && isname(e[[3L]], class)
-      })[[1L]];
+      at <- findInExpr(this[[name]], \(e) (
+           iscall(e, c("$", "[["))
+        && isname(e[[2L]], "this")
+        && isname(e[[3L]], class)
+      ))[[1L]];
       oopr <- body(this[[name]])[[at[-length(at)]]]$ooprC;
       oopr <- eval(oopr, environment(this[[name]]), NULL);
     }

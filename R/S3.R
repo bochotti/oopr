@@ -22,7 +22,10 @@ specifiers_S3 <- \(i, name, spec, meta, env, err)
 definitions_S3  <- \(i, name, meta, env, err)
 {
   if(!meta$S3$get(i)) return();
-  if(meta$access$get(i) != "public" || !meta$method$get(i) ||meta$static$get(i))
+  if(   meta$access$get(i) != "public"
+     || !meta$method$get(i)
+     || meta$static$get(i)
+  )
   {
     err$push(
       cls = "ooprS3NotNonStaticMethod"

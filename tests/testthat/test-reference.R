@@ -1,7 +1,7 @@
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-test_that("findMemberRefs",
+test_that("find_member_refs",
 {
-  findMemberRefs <- \(x) .Call(Cpp_findMemberRefs, x)
+  find_member_refs <- \(x) .Call(Cpp_find_member_refs, x)
   it("identifies access",
   {
     expr <- quote({
@@ -11,7 +11,7 @@ test_that("findMemberRefs",
       a <- a$b;
     });
     n   <- 5L
-    out <- findMemberRefs(expr);
+    out <- find_member_refs(expr);
     expect_length(out$at, n);
     lapply(out$at, \(i, x) expect_identical(x[[i]], quote(a$b)), expr);
     expect_equal(out$type, rep("access", n));
@@ -31,7 +31,7 @@ test_that("findMemberRefs",
       a$b[1L] <- 1L
     });
     n   <- 5L
-    out <- findMemberRefs(expr);
+    out <- find_member_refs(expr);
     expect_length(out$at, n);
     lapply(out$at, \(i, x) expect_identical(x[[i]], quote(a$b)), expr);
     expect_equal(out$type, rep("assign", n));
@@ -60,7 +60,7 @@ test_that("findMemberRefs",
       {a; a$b}();
     });
     n   <- 8L
-    out <- findMemberRefs(expr);
+    out <- find_member_refs(expr);
     expect_length(out$at, n);
     lapply(out$at, \(i, x) expect_identical(x[[i]], quote(a$b)), expr);
     expect_equal(out$type, rep("call", n));
@@ -90,9 +90,9 @@ test_that("findMemberRefs",
       a$b$c();
       a$b$c$d();
     });
-    invisible(findMemberRefs(quote({a$b$c$d})))
+    invisible(find_member_refs(quote({a$b$c$d})))
     n   <- 6
-    out <- findMemberRefs(expr);
+    out <- find_member_refs(expr);
     expect_length(out$at, n);
     lapply(out$at, \(i, x) expect_identical(x[[i]], quote(a$b)), expr);
     expect_equal(out$type, rep(c("access", "assign", "access"), c(2,2,2)));
@@ -109,7 +109,7 @@ test_that("findMemberRefs",
       sum(a$b$c)
       {a$b; a}
     })
-    out <- findMemberRefs(expr);
+    out <- find_member_refs(expr);
     expect_equal(out$type, rep("access", 3L))
     expect_identical(out$expr, list(quote(a$b), quote(a$b$c), quote(a$b)));
   })
@@ -120,32 +120,32 @@ test_that("findMemberRefs",
     env$a <- specifiers_access;
     env$b <- specifiers_dupes;
     env$c <- 1L;
-    out <- findMemberRefs(env);
+    out <- find_member_refs(env);
     expect_length(out, 3L);
     expect_named(out, c("a", "b", "c"));
     expect_null(out$c)
     list <- as.list(env);
-    out <- findMemberRefs(list);
+    out <- find_member_refs(list);
     expect_length(out, 3L);
     expect_named(out, c("a", "b", "c"));
     expect_null(out$c);
-    expect_null(findMemberRefs(1L));
+    expect_null(find_member_refs(1L));
   })
 
 })
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-test_that("findSrcRef",
+test_that("find_src_ref",
 {
   it("gets the srcref",
   {
     expr <- quote({ a$b; })
     attr(expr, "srcref") <- list(NULL, 1:4);
-    expect_equal(findSrcRef(2L, expr), 1:4);
+    expect_equal(find_src_ref(2L, expr), 1:4);
 
     expr <- quote({ a$b; { a$b(a$b); }})
     attr(expr[[c(3L)]], "srcref") <- list(NULL, 1:4);
-    expect_equal(findSrcRef(3:2, expr), 1:4);
+    expect_equal(find_src_ref(3:2, expr), 1:4);
   })
 
   it("return NULL when no srcref",
@@ -153,13 +153,13 @@ test_that("findSrcRef",
     fun <- \( ) { a$b; }
     attr(fun, "srcref") <- NULL;
     attr(body(fun), "srcref") <- NULL;
-    expect_null(findSrcRef(2L, fun));
+    expect_null(find_src_ref(2L, fun));
   })
 
   it("asserts",
   {
-    expect_error(findSrcRef("a", "a"), "`at` must be an integer");
-    expect_error(findSrcRef(1L, "a"), "`expr` must be a call object");
+    expect_error(find_src_ref("a", "a"), "`at` must be an integer");
+    expect_error(find_src_ref(1L, "a"), "`expr` must be a call object");
   })
 })
 
@@ -194,50 +194,50 @@ test_that("at_lt",
 })
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-test_that("getMissingVars",
+test_that("get_missing_vars",
 {
-  getMissingVars <- \(x) .Call(Cpp_getMissingVars, x, globalenv())
+  get_missing_vars <- \(x) .Call(Cpp_get_missing_vars, x, globalenv())
   it("finds variables not defined",
   {
-    expect_equal(getMissingVars(\( ) { a; })$var, "a");
+    expect_equal(get_missing_vars(\( ) { a; })$var, "a");
     a <- 1L
-    expect_equal(getMissingVars(\( ) { a; })$var, character(0L));
+    expect_equal(get_missing_vars(\( ) { a; })$var, character(0L));
   })
 
   it("knows about assigning variables",
   {
-    expect_equal(getMissingVars(\( ) { a <- 1L; a; })$var, character(0L));
-    expect_equal(getMissingVars(\( ) { a; a <- 1L; })$var, "a");
+    expect_equal(get_missing_vars(\( ) { a <- 1L; a; })$var, character(0L));
+    expect_equal(get_missing_vars(\( ) { a; a <- 1L; })$var, "a");
   })
 
   it("will use the formals of a function",
   {
-    expect_equal(getMissingVars(\(a) { a; })$var, character(0L));
+    expect_equal(get_missing_vars(\(a) { a; })$var, character(0L));
   })
 
   it("considers RHS of subsetting expressions",
   {
-    expect_equal(getMissingVars(\(a) { a$b; })$var, character(0L));
-    expect_equal(getMissingVars(\(a) { a[[b]]; })$var, "b");
-    expect_equal(getMissingVars(\(a) { a[["b"]]; })$var, character(0L));
+    expect_equal(get_missing_vars(\(a) { a$b; })$var, character(0L));
+    expect_equal(get_missing_vars(\(a) { a[[b]]; })$var, "b");
+    expect_equal(get_missing_vars(\(a) { a[["b"]]; })$var, character(0L));
   })
 
   it("knows that loops create new variables",
   {
-    expect_equal(getMissingVars(\( ) { for(i in 1L) { } })$var, character(0L));
+    expect_equal(get_missing_vars(\( ) { for(i in 1L) { } })$var, character(0L));
   })
 
   it("does not collect items inside a function",
   {
-    expect_equal(getMissingVars(\( ) { f <- \( ) { a <- 1L; }; a})$var, "a");
+    expect_equal(get_missing_vars(\( ) { f <- \( ) { a <- 1L; }; a})$var, "a");
   })
 
   it("ignores symbols inside quote",
   {
-    expect_length(getMissingVars(\( ) { quote(.); })$var, 0L)
-    expect_length(getMissingVars(\( ) { base::quote(.); })$var, 0L)
-    expect_length(getMissingVars(\( ) { substitute(.); })$var, 0L)
-    expect_length(getMissingVars(\( ) { base::substitute(.); })$var, 0L)
+    expect_length(get_missing_vars(\( ) { quote(.); })$var, 0L)
+    expect_length(get_missing_vars(\( ) { base::quote(.); })$var, 0L)
+    expect_length(get_missing_vars(\( ) { substitute(.); })$var, 0L)
+    expect_length(get_missing_vars(\( ) { base::substitute(.); })$var, 0L)
   })
 })
 

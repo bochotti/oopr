@@ -88,7 +88,7 @@ definitions_constructor <- \(i, name, env, err)
   {
     err$push(
       cls = "ooprConstructorRefersToDotThis"
-     ,src = findSrcRef(ats[[length(ats)]], fun) %||% env$src[[i]]
+     ,src = find_src_ref(ats[[length(ats)]], fun) %||% env$src[[i]]
      ,msg = "Constructor method `%s` cannot refer to `.this`."
      ,name
     );
@@ -144,7 +144,7 @@ definitions_init <- \(i, name, ats, call, envir, along, fun, env, err)
   {
     err$push(
       cls = "ooprDefMultipleInit"
-     ,src = findSrcRef(ats[[length(ats)]], fun) %||% env$src[[i]]
+     ,src = find_src_ref(ats[[length(ats)]], fun) %||% env$src[[i]]
      ,msg = "Class `%s` has been initialized multiple times in
              the constructor method."
      ,deparse1(call[[1L]])
@@ -166,7 +166,7 @@ definitions_init <- \(i, name, ats, call, envir, along, fun, env, err)
   {
     err$push(
       cls = "ooprDefInitSignatureNotMatched"
-     ,src = findSrcRef(at, fun) %||% env$src[[i]]
+     ,src = find_src_ref(at, fun) %||% env$src[[i]]
      ,msg = "Initialization of class `%s` in the constructor method
              does not match its signature: \"%s\"."
      ,name, call$message

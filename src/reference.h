@@ -1,6 +1,6 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-#ifndef REFERENCE_H
-#define REFERENCE_H
+#ifndef OOPR_REFERENCE_H
+#define OOPR_REFERENCE_H
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Traverse an expression object to identify bits & bobs.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -20,13 +20,13 @@
  *   expr: the expression
  *   src:  the source reference
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-extern "C" SEXP findMemberRefs(SEXP expr);
+extern "C" SEXP find_member_refs(SEXP expr);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Provide a path and function/expression to obtain the relevant source
  * reference, which identifies the position within the source file.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-extern "C" SEXP findSrcRef(SEXP at, SEXP expr);
+extern "C" SEXP find_src_ref(SEXP at, SEXP expr);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Searches an expression to find missing variables.
@@ -34,7 +34,7 @@ extern "C" SEXP findSrcRef(SEXP at, SEXP expr);
  * If `expr` is a function, its formals are considered and `env` is
  * over-ridden to the functions environment.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-extern "C" SEXP getMissingVars(SEXP expr, SEXP env = R_GlobalEnv);
+extern "C" SEXP get_missing_vars(SEXP expr, SEXP env = R_GlobalEnv);
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #endif

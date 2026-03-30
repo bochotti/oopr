@@ -115,7 +115,10 @@ property_get <- \(i, name, fun, env, err)
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 property_set <- \(i, name, fun, env, err)
 {
-  if(!(is.function(fun) && length(formals(fun)) == 1L && isname(formals(fun)[[1L]], "")))
+  if(!(   is.function(fun)
+       && length(formals(fun)) == 1L
+       && isname(formals(fun)[[1L]], "")
+  ))
   {
     err$push(
       cls = "ooprSetPropertyNotOneArg"

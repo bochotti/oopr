@@ -2,9 +2,9 @@
 #' @intern
 #' From a given `at`, get the srcref.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-findSrcRef <- \(at, expr)
+find_src_ref <- \(at, expr)
 {
-  .Call(Cpp_findSrcRef, at, expr);
+  .Call(Cpp_find_src_ref, at, expr);
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -61,9 +61,9 @@ at_lt <- \(x, y)
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 references <- \(env, err)
 {
-  refs <- .Call(Cpp_findMemberRefs, env$this);
+  refs <- .Call(Cpp_find_member_refs, env$this);
   refs <- refs[match(names(env$this), names(refs))];
-  miss <- .Call(Cpp_getMissingVars, env$this, env$prnt);
+  miss <- .Call(Cpp_get_missing_vars, env$this, env$prnt);
   miss <- miss[match(names(env$this), names(miss))];
   skip <- c("this", ".this", env$inhr$meta$subs("names", TRUE, names = ""));
   meta <- env$meta;
@@ -234,7 +234,7 @@ references_this <- \(i, name, type = c("this", ".this"), env, err)
   {
     err$push(
       cls = "ooprRefAssigningThis"
-     ,src = findSrcRef(at, expr) %||% env$src[[i]]
+     ,src = find_src_ref(at, expr) %||% env$src[[i]]
      ,msg = "Member `%s` is attempting to overwrite `%s`."
      ,name, type[1L]
     );
@@ -249,7 +249,7 @@ references_this <- \(i, name, type = c("this", ".this"), env, err)
   {
     err$push(
       cls = "ooprRefCallingThis"
-     ,src = findSrcRef(at, expr) %||% env$src[[i]]
+     ,src = find_src_ref(at, expr) %||% env$src[[i]]
      ,msg = "Member `%s` is attempting call `%s`."
      ,name, type[1L]
     );
