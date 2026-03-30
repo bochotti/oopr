@@ -4,11 +4,23 @@
 \alias{oopr_containers}
 \alias{OoprVec}
 \alias{OoprMap}
+\alias{[.OoprVec}
+\alias{[<-.OoprVec}
+\alias{[.OoprMap}
+\alias{[<-.OoprMap}
 \title{Containers for oopr Instances}
 \usage{
 OoprVec(ooprC)
 
 OoprMap(ooprC)
+
+\method{[}{OoprVec}(x, i, j, ..., drop)
+
+\method{[}{OoprVec}(x, i, j, ...) <- value
+
+\method{[}{OoprMap}(x, i, j, ..., drop)
+
+\method{[}{OoprMap}(x, i, j, ...) <- value
 }
 \arguments{
 \item{ooprC}{\code{ooprC} \cr
