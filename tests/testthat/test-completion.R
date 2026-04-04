@@ -267,4 +267,72 @@ test_that("OoprCompletion",
      ,c("a", "b", "c")
     );
   })
+
+  it("can complete on inherited class",
+  {
+    oopr("memb",,{})
+    text <- r"{
+    oopr("memb",,
+    {
+    public:
+      a <- list(a = 1, b = list(a = 1, b = 2, c = 3), c = 3);
+    protected:
+      b <- NULL;
+    private:
+      c <- NULL;
+    })
+
+    oopr("test", memb,
+    {
+    public:
+      method <- \( )
+      {
+        memb$
+      }
+    private:
+      field  <- memb;
+    })
+    }"
+    cat(text, file = tmp);
+    id <- rstudioapi::documentOpen(tmp, 17, 14, TRUE);
+    on.exit2(rstudioapi::documentClose(id, FALSE));
+    expect_equal(
+      .rs.rpc.get_completions(string = "memb")$results
+     ,c("a", "b")
+    );
+  })
+
+  it("can complete on inherited class members",
+  {
+    oopr("memb",,{})
+    text <- r"{
+    oopr("memb",,
+    {
+    public:
+      a <- list(a = 1, b = list(a = 1, b = 2, c = 3), c = 3);
+    protected:
+      b <- NULL;
+    private:
+      c <- NULL;
+    })
+
+    oopr("test", memb,
+    {
+    public:
+      method <- \( )
+      {
+        memb$a$
+      }
+    private:
+      field  <- memb;
+    })
+    }"
+    cat(text, file = tmp);
+    id <- rstudioapi::documentOpen(tmp, 17, 16, TRUE);
+    on.exit2(rstudioapi::documentClose(id, FALSE));
+    expect_equal(
+      .rs.rpc.get_completions(string = "memb$a")$results
+     ,c("a", "b", "c")
+    );
+  })
 })

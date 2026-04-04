@@ -350,6 +350,24 @@ public:
     return(FALSE);
   }
 
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  isInheritedClass <- \(memb, name = NULL)
+  {
+    if(!is.ooprC(memb))                                      return(FALSE);
+    if(is.null(name) && grepl("$", this$str_, fixed = TRUE)) return(FALSE);
+
+    class <- memb@name;
+    obj   <- this$obj_;
+    encl  <- obj@encl;
+    if(match(class, obj@inhr, 0L) && is.ooprC(encl[[class]], class))
+    {
+      this$isInhr_ <- TRUE;
+      this$obj_    <- encl[[class]];
+      return(TRUE);
+    }
+    return(FALSE);
+  }
+
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 private:
@@ -365,7 +383,7 @@ private:
     if(!iscall(sys.call(pos - 1L), ".rs.rpc.get_completions")) return(FALSE);
     env <- sys.frame(pos - 1L);
     OoprSourceContext$id  <- env$documentId;
-    OoprSourceContext$sourceFile(env$envir, try = TRUE);
+    try(OoprSourceContext$sourceFile(env$envir, try = TRUE), silent = TRUE);
     this$obj_ <- OoprSourceContext$getByPos(stop = FALSE);
     this$str_ <- env$string[[1L]];
     return(!is.null(this$obj_));

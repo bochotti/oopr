@@ -41,7 +41,7 @@ ooprC <- setClass("ooprC", contains = "function", slots = c(
   comp  <- OoprCompletion();
   if(comp$isRStudioCompletion())
   {
-    if(comp$isClassMember(x, name))
+    if(comp$isClassMember(x, name) || comp$isInheritedClass(x, name))
     {
       return(.subset2(comp$obj, name));
     }
@@ -98,7 +98,7 @@ names.ooprC <- \(x) { return(names(x@encl$.this)); }
   comp <- OoprCompletion();
   if(comp$isRStudioCompletion())
   {
-    if(comp$isClassMember(x))
+    if(comp$isClassMember(x) || comp$isInheritedClass(x))
     {
       return(comp$names)
     }
