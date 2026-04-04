@@ -116,6 +116,10 @@ references_method <- \(i, name, refs, meta, access, encl, this, env, err)
         {
           references_assign(i, name, j, meta, ref, "method", env, err);
         }
+        else if(meta$class$get(j) && length(ref$at) <= 2L)
+        {
+          references_assign(i, name, j, meta, ref, "class", env, err);
+        }
       }
      ,call   =
       {
