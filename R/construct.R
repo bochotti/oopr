@@ -38,6 +38,14 @@ ooprC <- setClass("ooprC", contains = "function", slots = c(
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 `$.ooprC` <- \(x, name)
 {
+  comp  <- OoprCompletion();
+  if(comp$isRStudioCompletion())
+  {
+    if(comp$isClassMember(x, name))
+    {
+      return(.subset2(comp$obj, name));
+    }
+  }
   .this <- x@encl$.this;
   if(!exists(name, envir = .this, inherits = FALSE))
   {
@@ -81,6 +89,22 @@ ooprC <- setClass("ooprC", contains = "function", slots = c(
 #' @exportS3Method base::names ooprC
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 names.ooprC <- \(x) { return(names(x@encl$.this)); }
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @exportS3Method utils::.DollarNames ooprC
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+.DollarNames.ooprC <- \(x, pattern)
+{
+  comp <- OoprCompletion();
+  if(comp$isRStudioCompletion())
+  {
+    if(comp$isClassMember(x))
+    {
+      return(comp$names)
+    }
+  }
+  NextMethod();
+}
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @exportS3Method base::format ooprC

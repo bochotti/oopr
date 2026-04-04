@@ -17,7 +17,7 @@ class(this) <- c("oopr_this", "oopr");
   comp <- OoprCompletion();
   if(comp$isRStudioCompletion())
   {
-    return(comp$getNames());
+    return(comp$names);
   }
   NextMethod();
 }
@@ -30,7 +30,7 @@ class(this) <- c("oopr_this", "oopr");
   comp <- OoprCompletion();
   if(comp$isRStudioCompletion())
   {
-    return(comp$obj@encl$this[[name]]);
+    return(.subset2(comp$obj, name));
   }
   NextMethod();
 }
@@ -181,7 +181,8 @@ private:
       {
         line <- text[this$row_];
         pos  <- gregexpr("\\$", line)[[1L]];
-        pos  <- pos[which.max(pos >= this$col_)] - 1L;
+        pos  <- pos[pos <= this$col_];
+        pos  <- pos[length(pos)] - 1L;
         ptrn <- sprintf("(^.{%i})\\$(`(.*?)`|[[:alnum:]_.$]*)*", pos);
         line <- sub(ptrn, "\\1", line);
         text[this$row_] <- line;
@@ -274,15 +275,40 @@ private:
 oopr("OoprCompletion", private:OoprSourceContext,
 {
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-OoprCompletion <- \( )
-{
-  rm(list = ls(this$this), envir = this$this);
-}
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  get:this <- \( ) { get0("this", envir = topenv()); }
-  get:obj  <- \( ) { return(this$obj_); }
+  get:this  <- \( ) { get0("this", envir = topenv()); }
+  get:obj   <- \( ) { if(!is.null(this$obj_)) return(this$obj_@encl$this); }
+  get:names <- \( )
+  {
+    if(is.null(this$obj_)) return(character(0L));
+    oopr  <- this$obj_@encl$this;
+    class <- this$obj_@name;
+    # for(name in names(oopr))
+    # {
+    #   if(match(name, sprintf("%s%s", c("", "~"), class), 0L)) next;
+    #   symlink(oopr, "this", this$this, name);
+    # }
+    # class(oopr) <- c(class, "oopr");
+
+    access <- character(1L);
+    if(this$isCMem_)
+    {
+      access <- "public";
+    }
+    else if(this$isInhr_)
+    {
+      access <- c("public", "protected");
+    }
+    else
+    {
+      access <- c("public", "protected", "private");
+    }
+    names <- this$obj_@meta$subs("names", access = access);
+    names <- grep(sprintf("^~?%s$", class), names, value = TRUE, invert = TRUE);
+    return(.DollarNames.oopr(oopr, names = names));
+  }
+
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   isRStudioCompletion <- \( )
   {
@@ -298,22 +324,41 @@ public:
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  getNames <- \( )
+  isClassMember <- \(memb, name = NULL)
   {
-    oopr  <- this$obj_@encl$this;
-    class <- this$obj_@name;
-    for(name in names(oopr))
+    if(!is.ooprC(memb))                      return(FALSE);
+    if(!grepl("$", this$str_, fixed = TRUE)) return(FALSE);
+
+    class <- memb@name;
+    obj   <- this$obj_;
+    str   <- this$str_;
+    thiz  <- obj@encl$this;
+    if(!is.null(name))
     {
-      # if(match(name, sprintf("%s%s", c("", "~"), class), 0L)) next;
-      # symlink(oopr, "this", this$this, name);
+      str <- sub(sprintf("\\$%s$", name), "", str);
     }
-    class(oopr) <- c(class, "oopr");
-    return(.DollarNames.oopr(oopr, sprintf("^~?%s$", class), TRUE));
+    str   <- sub("^.*\\$", "", str);
+    if(any(obj@meta$subs(names = str, class = TRUE)))
+    {
+      if(is.ooprC(thiz[[str]], class))
+      {
+        this$isCMem_ <- TRUE;
+        this$obj_    <- thiz[[str]];
+        return(TRUE)
+      }
+    }
+    return(FALSE);
   }
+
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 private:
-  obj_  <- NULL;
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  obj_    <- NULL;
+  str_    <- character(1L);
+  isCMem_ <- FALSE;
+  isInhr_ <- FALSE;
+
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   cursorInClass <- \(pos)
   {
@@ -322,6 +367,7 @@ private:
     OoprSourceContext$id  <- env$documentId;
     OoprSourceContext$sourceFile(env$envir, try = TRUE);
     this$obj_ <- OoprSourceContext$getByPos(stop = FALSE);
+    this$str_ <- env$string[[1L]];
     return(!is.null(this$obj_));
   }
 

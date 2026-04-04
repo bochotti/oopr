@@ -134,7 +134,7 @@ oopr <- \(name, inherits = NULL, definition, parent = parent.frame())
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @exportS3Method base::names oopr
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-names.oopr <- \(x, ...)
+names.oopr <- \(x)
 {
   names <- NextMethod();
   class <- class(x)[1L];
@@ -247,9 +247,10 @@ print.oopr <- \(x, max.level = 5L, ...)
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @exportS3Method utils::.DollarNames
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-.DollarNames.oopr <- \(x, pattern = "", invert = FALSE)
+.DollarNames.oopr <- \(x, pattern = "", names = NULL)
 {
-  names <- grep(pattern, names(x), invert = invert, value = TRUE);
+  names <- names %||% names(x);
+  names <- grep(pattern, names, value = TRUE);
   if(match("tools:rstudio", search(), 0L))
   {
     attributes(names) <- dollar_attr(x, names);

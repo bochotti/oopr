@@ -209,4 +209,62 @@ test_that("OoprCompletion",
      ,c("a", "b")
     );
   })
+
+  it("can complete on class members",
+  {
+    text <- r"{
+    oopr("memb",,
+    {
+    public:
+      a <- list(a = 1, b = 2, c = 3);
+    })
+
+    oopr("test",,
+    {
+    public:
+      method <- \( )
+      {
+        this$field$
+      }
+    private:
+      field  <- memb;
+    })
+    }"
+    cat(text, file = tmp);
+    id <- rstudioapi::documentOpen(tmp, 13, 20, TRUE);
+    on.exit2(rstudioapi::documentClose(id, FALSE));
+    expect_equal(
+      .rs.rpc.get_completions(string = "this$field")$results
+     ,c("a")
+    );
+  })
+
+  it("can complete on class members members",
+  {
+    text <- r"{
+    oopr("memb",,
+    {
+    public:
+      a <- list(a = 1, b = 2, c = 3);
+    })
+
+    oopr("test",,
+    {
+    public:
+      method <- \( )
+      {
+        this$field$a$
+      }
+    private:
+      field  <- memb;
+    })
+    }"
+    cat(text, file = tmp);
+    id <- rstudioapi::documentOpen(tmp, 13, 22, TRUE);
+    on.exit2(rstudioapi::documentClose(id, FALSE));
+    expect_equal(
+      .rs.rpc.get_completions(string = "this$field$a")$results
+     ,c("a", "b", "c")
+    );
+  })
 })
