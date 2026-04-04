@@ -1,3 +1,4 @@
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 expect_env <- \(object, expected, inverse = FALSE)
 {
   act <- deparse1(substitute(object));
@@ -30,4 +31,16 @@ expect_env <- \(object, expected, inverse = FALSE)
     ));
   }
   return(invisible(object))
+}
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+on.exit2 <- \(expr, envir = parent.frame(), sub = TRUE)
+{
+  force(envir);
+  expr <- substitute(expr);
+  if(sub)
+  {
+    expr <- do.call(substitute, list(expr, envir));
+  }
+  do.call(base::on.exit, list(expr, TRUE, FALSE), envir = envir);
 }

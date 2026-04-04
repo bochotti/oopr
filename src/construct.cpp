@@ -61,6 +61,7 @@ SEXP oopr_make(SEXP gen)
     }
   }
   Rf_defineVar(sthis, othis, encl);
+  Rf_defineVar(Rf_install(".this"), R_NilValue, encl);
   return encl;
 }
 

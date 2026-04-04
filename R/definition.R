@@ -224,12 +224,14 @@ definitions_return <- \(i, name, env, err)
     expr <- call('{', expr);
   }
 
-  ats <- findInExpr(expr, \(e) {
-    iscall(e, "return") && (
-         isname(e[[2L]], "this")
-      || iscall(e[[2L]], "invisible") && isname(e[[c(2L, 2L)]], "this")
-    )
-  });
+  ats <- findInExpr(expr, \(e) (
+       iscall(e, "return")
+    && length(e) > 1L
+    && (
+           isname(e[[2L]], "this")
+        || iscall(e[[2L]], "invisible") && isname(e[[c(2L, 2L)]], "this")
+       )
+  ));
   if(!length(ats)) return();
 
   sub <- list(this = quote(.this));

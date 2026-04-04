@@ -1,6 +1,22 @@
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @useDynLib oopr, .registration = TRUE, .fixes = "Cpp_"
+#' @include utils.R
+#' @include meta.R
+#' @include error.R
+#' @include evaluate.R
+#' @include property.R
+#' @include static.R
+#' @include S3.R
+#' @include classmem.R
+#' @include inherit.R
+#' @include specifiers.R
+#' @include definition.R
+#' @include reference.R
+#' @include enclosure.R
+#' @include construct.R
+#' @include oopr.R
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+NULL
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @intern
 #' This is called so I have access to foreign functions for use when creating

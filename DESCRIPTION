@@ -16,3 +16,25 @@ Depends:
     R (>= 4.1.0)
 Config/testthat/edition: 3
 RoxygenNote: 7.3.3
+Collate: 
+    'S3.R'
+    'classmem.R'
+    'oopr.R'
+    'construct.R'
+    'enclosure.R'
+    'reference.R'
+    'definition.R'
+    'specifiers.R'
+    'inherit.R'
+    'static.R'
+    'property.R'
+    'evaluate.R'
+    'error.R'
+    'meta.R'
+    'utils.R'
+    'init.R'
+    'completion.R'
+    'install.R'
+    'roxy.R'
+    'vector.R'
+    'zzz.R'

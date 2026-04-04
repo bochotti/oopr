@@ -224,7 +224,7 @@ test_that("get_missing_vars",
 
   it("knows that loops create new variables",
   {
-    expect_equal(get_missing_vars(\( ) { for(i in 1L) { } })$var, character(0L));
+    expect_equal(get_missing_vars(\( ) { for(i in 1L) {} })$var, character(0L));
   })
 
   it("does not collect items inside a function",
