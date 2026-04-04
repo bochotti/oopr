@@ -264,6 +264,18 @@ test_that("references_classmem",
      ,class = "ooprRefBadCall"
     );
   })
+
+  it("allows for access of the class",
+  {
+    oopr("memb",, { })
+    expect_no_error(
+      oopr("test",, { a <- memb; b <- \( ) { this$a; }})
+    );
+    expect_error(
+      oopr("test",, { a <- memb; b <- \( ) { this$a <- 1L; }})
+     ,class = "ooprRefBadAssignment"
+    );
+  })
 })
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##

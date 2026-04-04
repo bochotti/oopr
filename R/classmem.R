@@ -92,6 +92,14 @@ references_classmem <- \(i, name, refs, meta, access, encl, this, env, err)
   {
     refs <- classmem_ignore_init(i, name, refs, classes, env, err);
   }
+
+  # remove non-nested member references
+  rm  <- logical(length(refs$at))
+  len <- vapply(refs$at, length, integer(1L));
+  rm[refs$type == "access" & len <= 1L] <- TRUE;
+  rm[refs$type == "assign" & len <= 2L] <- TRUE;
+  refs <- lapply(refs, `[`, !rm);
+
   if(!length(refs$at)) return();
 
   refs2 <- classmem_make_expr(refs, contain);
@@ -109,7 +117,6 @@ references_classmem <- \(i, name, refs, meta, access, encl, this, env, err)
       cthis <- oopr@encl$this;
       references_method(i, name, refs, cmeta, "public", class, cthis, env, err);
     }
-
   }
   return();
 }
@@ -182,10 +189,10 @@ classmem_make_expr <- \(refs, contain)
   slct <- logical(length(refs$at));
   for(j in seq_along(refs$at))
   {
-    # be careful of calls within access
     at   <- refs$at[[j]];
     len  <- length(at);
     memb <- refs$memb[[j]];
+    # be careful of calls within access
     adj  <- at == 1L;
     if(any(adj))
     {
@@ -228,10 +235,6 @@ classmem_make_expr <- \(refs, contain)
         nest[[c(j)]] <- a;
         expr[[c(j + 1L, at[[1L]])]] <- as.name(memb);
         slct[[j]] <- TRUE;
-      }
-      else
-      {
-        slct[[j]] <- FALSE;
       }
     }
   }
