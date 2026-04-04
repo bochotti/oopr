@@ -138,10 +138,10 @@ names.oopr <- \(x, ...)
 {
   names <- NextMethod();
   class <- class(x)[1L];
-  gen   <- get0(class, envir = x);
-  if(is.ooprC(gen, class))
+  ooprC <- get0(class, parent.env(parent.env(x)), inherits = FALSE);
+  if(is.ooprC(ooprC, class))
   {
-    names <- gen@meta$subs("names", names = names);
+    names <- ooprC@meta$subs("names", names = names);
   }
   return(names);
 }
@@ -242,6 +242,55 @@ print.oopr <- \(x, max.level = 5L, ...)
 {
   str.oopr(x, max.level = max.level, ...);
   return(invisible(x))
+}
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @exportS3Method utils::.DollarNames
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+.DollarNames.oopr <- \(x, pattern = "", invert = FALSE)
+{
+  names <- grep(pattern, names(x), invert = invert, value = TRUE);
+  if(match("tools:rstudio", search(), 0L))
+  {
+    attributes(names) <- dollar_attr(x, names);
+  }
+  return(names);
+}
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+dollar_attr <- \(x, names)
+{
+  types <- integer(length(names));
+  meta  <- character(length(names));
+  t <- get(".rs.getCompletionType", envir = as.environment("tools:rstudio"));
+  for(i in seq_along(names)) tryCatch(
+  {
+    mem      <- x[[names[i]]];
+    types[i] <- if(is.null(mem)) 22L else t(mem);
+    if(match(types[i], 0:1, 0L))
+    {
+      meta[i] <- abbreviate(typeof(mem), minlength = 3L);
+      meta[i] <- switch(meta[i], lgc = "lgl", meta[i]);
+    }
+  }
+  ,error = \(e)
+  {
+    types[i] <<- 19L;
+  });
+
+  #TODO: delete this
+  ins <- get_in_stack(".rs.getCompletionsDollar");
+  if(!is.null(ins))
+  {
+    expr <- substitute({
+      ret <- returnValue();
+      ret$type <- types[match(names, ret$results, 0L)];
+      return(ret)
+    });
+    do.call(on.exit, list(expr, TRUE, FALSE), envir = ins);
+  }
+
+  return(list(types = as.integer(types), meta = meta));
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##

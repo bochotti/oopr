@@ -60,3 +60,37 @@ matchsig <- \(fun, call)
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @intern
+#' To obtain the environment in a stack
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+get_in_stack <- \(call, off = 0L)
+{
+  call <- substitute(call);
+  if(is.name(call))
+  {
+    call <- as.character(call);
+  }
+  len <- sys.nframe() - 1L;
+  for(i in -seq_len(len))
+  {
+    if(iscall(sys.call(i), call))
+    {
+      i <- i + off;
+      if(-i > len) return(NULL)
+      return(sys.frame(i))
+    }
+  }
+  return(NULL);
+}
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+on.exit2 <- \(expr, envir = parent.frame(), sub = TRUE)
+{
+  force(envir);
+  expr <- substitute(expr);
+  if(sub)
+  {
+    expr <- do.call(substitute, list(expr, envir));
+  }
+  do.call(base::on.exit, list(expr, TRUE, FALSE), envir = envir);
+}
