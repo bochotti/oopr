@@ -86,6 +86,21 @@ ooprC <- setClass("ooprC", contains = "function", slots = c(
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @exportS3Method "[" ooprC
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+`[.ooprC` <- \(x, name)
+{
+  comp  <- OoprCompletion();
+  if(comp$isRStudioCompletion())
+  {
+    if(comp$isContainerMember(x, name))
+    {
+      return(comp$obj);
+    }
+  }
+}
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @exportS3Method base::names ooprC
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 names.ooprC <- \(x) { return(names(x@encl$.this)); }

@@ -217,9 +217,6 @@ classmem_make_expr <- \(refs, contain)
     {
       nest[[j]] <- call(refs$oper[[j]], as.name(refs$encl[[j]]), as.name(memb));
     }
-    # nest[[j]] <- call(refs$oper[[j]], nest[[j]], as.name(memb))
-    #expr[[c(j + 1L, adj)]];
-    # replace encl$memb with memb
     expr[[c(j + 1L, adj)]] <- as.name(memb);
     # remove [
     if(contain[memb])

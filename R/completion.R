@@ -174,9 +174,10 @@ private:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   parseFile <- \(try = FALSE)
   {
+    srcf <- srcfile(this$file_);
     if(try)
     {
-      parsed <- this$tryParse(
+      parsed <- this$tryParse(srcf = srcf,
         # remove name after $
       {
         line <- text[this$row_];
@@ -201,7 +202,7 @@ private:
     }
     else
     {
-      parsed <- parse(text = this$text_, keep.source = TRUE);
+      parsed <- parse(text = this$text_, keep.source = TRUE, srcfile = srcf);
     }
     ats  <- findInExpr(parsed, \(e) is.ooprcall(e));
     defs <- rep_len(list(), length(ats));
@@ -214,16 +215,16 @@ private:
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  tryParse <- \(..., text = this$text_)
+  tryParse <- \(..., text = this$text_, srcf)
   {
-    dots       <- as.list(substitute(list(...)))[-1L];
-    err        <- NULL;
+    dots <- as.list(substitute(list(...)))[-1L];
+    err  <- NULL;
     for(i in seq_along(dots))
     {
       eval(dots[[i]]);
       tryCatch(
       {
-        out <- parse(text = text, keep.source = TRUE);
+        out <- parse(text = text, keep.source = TRUE, srcfile = srcf);
         break;
       }
       ,error = \(e)
@@ -259,6 +260,7 @@ private:
   posIsInSrcRef <- \(row, col, def)
   {
     src <- attr(def, "srcref", TRUE);
+    if(is.null(src))                     return(FALSE);
     if(src[1L]  < row && row <  src[3L]) return(TRUE);
     if(src[1L] == row && col >= src[5L]) return(TRUE);
     if(src[3L] == row && col <= src[6L]) return(TRUE);
@@ -277,20 +279,12 @@ oopr("OoprCompletion", private:OoprSourceContext,
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  get:this  <- \( ) { get0("this", envir = topenv()); }
   get:obj   <- \( ) { if(!is.null(this$obj_)) return(this$obj_@encl$this); }
   get:names <- \( )
   {
     if(is.null(this$obj_)) return(character(0L));
     oopr  <- this$obj_@encl$this;
     class <- this$obj_@name;
-    # for(name in names(oopr))
-    # {
-    #   if(match(name, sprintf("%s%s", c("", "~"), class), 0L)) next;
-    #   symlink(oopr, "this", this$this, name);
-    # }
-    # class(oopr) <- c(class, "oopr");
-
     access <- character(1L);
     if(this$isCMem_)
     {
@@ -315,6 +309,7 @@ public:
     if(!OoprSourceContext$rStudioIsAvailable()) return(FALSE);
     for(i in rev(seq_len(sys.nframe())))
     {
+      if(iscall(sys.call(i), ".rs.getCompletionType")) return(FALSE);
       if(iscall(sys.call(i), ".rs.getCompletionsDollar"))
       {
         return(this$cursorInClass(i));
@@ -324,41 +319,36 @@ public:
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  isClassMember <- \(memb, name = NULL)
+  isClassMember <- \(memb, name = NULL, call = sys.call(-1L))
   {
     if(!is.ooprC(memb))                      return(FALSE);
     if(!grepl("$", this$str_, fixed = TRUE)) return(FALSE);
-
-    class <- memb@name;
-    obj   <- this$obj_;
-    str   <- this$str_;
-    thiz  <- obj@encl$this;
-    if(!is.null(name))
+    if(is.null(name))
     {
-      str <- sub(sprintf("\\$%s$", name), "", str);
+      call <- str2lang(this$str_);
     }
-    str   <- sub("^.*\\$", "", str);
-    if(any(obj@meta$subs(names = str, class = TRUE)))
+    if(this$isNestedMember(call, name))
     {
-      if(is.ooprC(thiz[[str]], class))
-      {
-        this$isCMem_ <- TRUE;
-        this$obj_    <- thiz[[str]];
-        return(TRUE)
-      }
+      this$isCMem_ <- TRUE;
+      return(TRUE);
     }
     return(FALSE);
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  isInheritedClass <- \(memb, name = NULL)
+  isInheritedClass <- \(memb, name = NULL, call = sys.call(-1L))
   {
-    if(!is.ooprC(memb))                                      return(FALSE);
-    if(is.null(name) && grepl("$", this$str_, fixed = TRUE)) return(FALSE);
+    if(!is.ooprC(memb)) return(FALSE);
 
-    class <- memb@name;
+    str <- this$str_;
+    if(is.null(name))
+    {
+      call <- str2lang(str);
+    }
+    class <- sub("\\$.*$", "", str);
     obj   <- this$obj_;
     encl  <- obj@encl;
+
     if(match(class, obj@inhr, 0L) && is.ooprC(encl[[class]], class))
     {
       this$isInhr_ <- TRUE;
@@ -368,6 +358,22 @@ public:
     return(FALSE);
   }
 
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  isContainerMember <- \(memb, name = NULL, call = sys.call(-1L))
+  {
+    if(!is.ooprC(memb, c("OoprVec", "OoprMap"))) return(FALSE);
+    if(!grepl("[", this$str_, fixed = TRUE))     return(FALSE);
+    name <- call[[3L]];
+    if(is.name(name)) { }
+    else if(is.character(name) && memb@name != "OoprMap") return(FALSE)
+    else if(is.numeric(name)   && memb@name != "OoprVec") return(FALSE);
+    if(this$isNestedMember(call))
+    {
+      this$isCMem_ <- TRUE;
+      return(TRUE);
+    }
+    return(FALSE);
+  }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 private:
@@ -389,5 +395,66 @@ private:
     return(!is.null(this$obj_));
   }
 
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  isNestedMember <- \(call, name = NULL, encl = "this")
+  {
+    calls <- this$flattenCall(call);
+    if(!isname(calls[[1]], c("this", this$obj_@inhr))) return(FALSE);
+    calls[[1L]] <- NULL;
+    if(!is.null(name))
+    {
+      calls[[length(calls)]] <- NULL;
+    }
+    obj <- this$obj_;
+    len <- length(calls);
+    for(i in seq_len(len))
+    {
+      call <- calls[[i]];
+      if(isname(call$oper, c("$", "$.ooprC")))
+      {
+        if(!is.name(call$rhs)) return(FALSE);
+        rhs <- as.character(call$rhs);
+        if(!any(obj@meta$subs(names = rhs, class = TRUE))) return(FALSE);
+
+        # if next call is `[`, then it is accessing a container
+        if(i < len && isname(calls[[i + 1]]$oper, c("[", "[.ooprC")))
+        {
+          cont <- classmem_get_containers(obj@meta, obj@encl$this);
+          if(!cont[rhs]) return(FALSE);
+          obj  <- classmem_get_ooprC(rhs, obj@meta, obj@encl$this, cont, TRUE);
+          next;
+        }
+        obj <- obj@encl$this[[rhs]];
+      }
+      else if(i == len && isname(call$oper, c("[", "[.ooprC")))
+      {
+        # the last `[` call needs to display public members only
+        obj <- this$makeContainerInterface(obj);
+      }
+    }
+    this$obj_ <- obj;
+    return(TRUE);
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  flattenCall <- \(x)
+  {
+    if(!is.call(x)) return(list(x))
+    c(this$flattenCall(x[[2L]]), list(list(oper = x[[1L]], rhs = x[[3L]])));
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  makeContainerInterface <- \(obj)
+  {
+    encl <- new.env(parent = parent.env(obj@encl));
+    encl$this <- interface(
+      obj@encl$this
+     ,names = obj@meta$subs("names", access = "public")
+     ,class = class(obj@encl$.this)
+     ,sym   = quote(this)
+    );
+    attr(obj, "encl") <- encl;
+    return(obj);
+  }
 })
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##

@@ -114,16 +114,6 @@ test_that("OoprCompletion",
     expect_equal(.rs.rpc.get_completions()$results, c("method", "field"));
   })
 
-  # it("places the members inside `this`",
-  # {
-  #   expect_named(this, c("method", "field"));
-  #   expect_identical(
-  #     .subset2(this, "method"), \( ) { this; },
-  #    ,ignore_attr = TRUE, ignore_function_env = TRUE
-  #   );
-  #   expect_equal(.subset2(this, "field"), 1L);
-  # })
-
   it("can complete partial names",
   {
     text <- r"{
@@ -216,7 +206,31 @@ test_that("OoprCompletion",
     oopr("memb",,
     {
     public:
-      a <- list(a = 1, b = 2, c = 3);
+      a <- list(a = 1, b = list(e = 1, f = 2, g = 3), c = 3);
+    protected:
+      b <- NULL;
+    private:
+      c <- NULL;
+    })
+
+    oopr("memb2",,
+    {
+    public:
+      b <- memb;
+    protected:
+      c <- NULL;
+    private:
+      d <- NULL;
+    })
+
+    oopr("memb3",,
+    {
+    public:
+      c <- memb2;
+    protected:
+      d <- NULL;
+    private:
+      e <- NULL;
     })
 
     oopr("test",,
@@ -224,115 +238,182 @@ test_that("OoprCompletion",
     public:
       method <- \( )
       {
-        this$field$
+        this$field$c$b$a
       }
     private:
-      field  <- memb;
+      field  <- memb3;
     })
     }"
     cat(text, file = tmp);
-    id <- rstudioapi::documentOpen(tmp, 13, 20, TRUE);
+    id <- rstudioapi::documentOpen(tmp, 38, 20, TRUE);
     on.exit2(rstudioapi::documentClose(id, FALSE));
     expect_equal(
       .rs.rpc.get_completions(string = "this$field")$results
+     ,c("c")
+    );
+    expect_equal(
+      .rs.rpc.get_completions(string = "this$field$c")$results
+     ,c("b")
+    );
+    expect_equal(
+      .rs.rpc.get_completions(string = "this$field$c$b")$results
      ,c("a")
     );
-  })
-
-  it("can complete on class members members",
-  {
-    text <- r"{
-    oopr("memb",,
-    {
-    public:
-      a <- list(a = 1, b = 2, c = 3);
-    })
-
-    oopr("test",,
-    {
-    public:
-      method <- \( )
-      {
-        this$field$a$
-      }
-    private:
-      field  <- memb;
-    })
-    }"
-    cat(text, file = tmp);
-    id <- rstudioapi::documentOpen(tmp, 13, 22, TRUE);
-    on.exit2(rstudioapi::documentClose(id, FALSE));
     expect_equal(
-      .rs.rpc.get_completions(string = "this$field$a")$results
+      .rs.rpc.get_completions(string = "this$field$c$b$a")$results
      ,c("a", "b", "c")
+    );
+    expect_equal(
+      .rs.rpc.get_completions(string = "this$field$c$b$a$b")$results
+     ,c("e", "f", "g")
     );
   })
 
   it("can complete on inherited class",
   {
-    oopr("memb",,{})
+    oopr("memb",,{}); oopr("memb2",,{}); oopr("memb3",,{})
     text <- r"{
     oopr("memb",,
     {
     public:
-      a <- list(a = 1, b = list(a = 1, b = 2, c = 3), c = 3);
+      a <- list(a = 1, b = list(e = 1, f = 2, g = 3), c = 3);
+      b <- \() { this$a; }
     protected:
-      b <- NULL;
-    private:
       c <- NULL;
+    private:
+      d <- NULL;
     })
 
-    oopr("test", memb,
+    oopr("memb2", public:memb,
+    {
+    protected:
+      e <- 1L;
+    })
+
+    oopr("memb3", public:memb2,
+    {
+    private:
+      g <- 2L;
+    })
+
+    oopr("test", public:memb3,
     {
     public:
       method <- \( )
       {
-        memb$
+        memb3
       }
     private:
-      field  <- memb;
+      field  <- memb3;
     })
     }"
     cat(text, file = tmp);
-    id <- rstudioapi::documentOpen(tmp, 17, 14, TRUE);
+    id <- rstudioapi::documentOpen(tmp, 30, 14, TRUE);
     on.exit2(rstudioapi::documentClose(id, FALSE));
     expect_equal(
-      .rs.rpc.get_completions(string = "memb")$results
+      .rs.rpc.get_completions(string = "memb3")$results
+     ,c("e", "a", "b", "c")
+    );
+    expect_equal(
+      .rs.rpc.get_completions(string = "memb3$a")$results
+     ,c("a", "b", "c")
+    );
+    expect_equal(
+      .rs.rpc.get_completions(string = "memb3$a$b")$results
+     ,c("e", "f", "g")
+    );
+    expect_equal(
+      .rs.rpc.get_completions(string = "memb2")$results
+     ,character(0L)
+    );
+    expect_equal(
+      .rs.rpc.get_completions(string = "this$field")$results
      ,c("a", "b")
     );
   })
 
-  it("can complete on inherited class members",
+  it("can complete on class containers",
   {
-    oopr("memb",,{})
     text <- r"{
     oopr("memb",,
     {
     public:
-      a <- list(a = 1, b = list(a = 1, b = 2, c = 3), c = 3);
-    protected:
+      a <- list(a = 1, b = list(e = 1, f = 2, g = 3), c = 3);
       b <- NULL;
     private:
       c <- NULL;
     })
 
-    oopr("test", memb,
+    oopr("memb2",,
+    {
+    public:
+      b <- memb[];
+    protected:
+      c <- NULL;
+    private:
+      d <- NULL;
+    })
+
+    oopr("memb3",,
+    {
+    public:
+      c <- memb2[];
+    protected:
+      d <- NULL;
+    private:
+      e <- NULL;
+    })
+
+    oopr("test",,
     {
     public:
       method <- \( )
       {
-        memb$a$
+        this$field
       }
     private:
-      field  <- memb;
+      field  <- memb3[];
     })
     }"
     cat(text, file = tmp);
-    id <- rstudioapi::documentOpen(tmp, 17, 16, TRUE);
+    id <- rstudioapi::documentOpen(tmp, 36, 20, TRUE);
     on.exit2(rstudioapi::documentClose(id, FALSE));
+    names <- c(
+      "class", "empty", "size", "data", "insert", "emplace", "resize", "erase"
+     ,"swap", "apply", "[", "[<-"
+    );
     expect_equal(
-      .rs.rpc.get_completions(string = "memb$a")$results
+      .rs.rpc.get_completions(string = "this$field")$results
+     ,names
+    );
+    expect_equal(
+      .rs.rpc.get_completions(string = "this$field[1L]")$results
+     ,c("c")
+    );
+    expect_equal(
+      .rs.rpc.get_completions(string = "this$field[1L]$c")$results
+     ,names
+    );
+    expect_equal(
+      .rs.rpc.get_completions(string = "this$field[1L]$c[1L]")$results
+     ,c("b")
+    );
+    expect_equal(
+      .rs.rpc.get_completions(string = "this$field[1L]$c[1L]$b")$results
+     ,names
+    );
+    expect_equal(
+      .rs.rpc.get_completions(string = "this$field[1L]$c[1L]$b[1L]")$results
+     ,c("a", "b")
+    );
+    expect_equal(
+      .rs.rpc.get_completions(string = "this$field[1L]$c[1L]$b[1L]$a")$results
      ,c("a", "b", "c")
     );
+    expect_equal(
+      .rs.rpc.get_completions(string = "this$field[1L]$c[1L]$b[1L]$a$b")$results
+     ,c("e", "f", "g")
+    );
   })
+
 })

@@ -266,7 +266,7 @@ dollar_attr <- \(x, names)
   t <- get(".rs.getCompletionType", envir = as.environment("tools:rstudio"));
   for(i in seq_along(names)) tryCatch(
   {
-    mem      <- x[[names[i]]];
+    mem      <- .subset2(x, names[i]);
     types[i] <- if(is.null(mem)) 22L else t(mem);
     if(match(types[i], 0:1, 0L))
     {
