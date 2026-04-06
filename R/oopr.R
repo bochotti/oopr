@@ -291,7 +291,8 @@ dollar_attr <- \(x, names)
     do.call(on.exit, list(expr, TRUE, FALSE), envir = ins);
   }
 
-  return(list(types = as.integer(types), meta = meta));
+  help <- OoprCompletionHelp@encl$.this$makeHelpHandler(x);
+  return(list(types = as.integer(types), meta = meta, helpHandler = help));
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##

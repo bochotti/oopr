@@ -123,6 +123,10 @@ protected:
     );
   }
 
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  get:text <- \( ) { return(this$text_); }
+  set:text <- \(x) { stopifnot(is.character(x)); this$text_ <- x; }
+
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 private:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -280,11 +284,13 @@ oopr("OoprCompletion", private:OoprSourceContext,
 public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   get:obj   <- \( ) { if(!is.null(this$obj_)) return(this$obj_@encl$this); }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   get:names <- \( )
   {
     if(is.null(this$obj_)) return(character(0L));
-    oopr  <- this$obj_@encl$this;
-    class <- this$obj_@name;
+    oopr   <- this$obj;
+    class  <- this$obj_@name;
     access <- character(1L);
     if(this$isCMem_)
     {
@@ -316,6 +322,32 @@ public:
       }
     }
     return(FALSE);
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  isRStudioHelp <- \( )
+  {
+    if(!OoprSourceContext$rStudioIsAvailable()) return(FALSE);
+    env <- get_in_stack(".rs.getCompletionsCustomHelpHandler", -1L);
+    if(is.null(env)) return(FALSE);
+    OoprSourceContext$id  <- env$documentId;
+    text <- paste(OoprSourceContext$text, collapse = "\n");
+    line <- OoprSourceContext$text[OoprSourceContext$row];
+    line <- sub("\\((?!.*\\().*$", "", line, perl = TRUE);
+
+    ptrn <- sprintf(
+      "^(([^\n]*?\n){%i})(\\Q%s\\E)(?'b'\\(([^()]|(?&b))*\\))"
+     ,OoprSourceContext$row - 1L
+     ,line
+    );
+    text <- sub(ptrn, "\\1\\3\\5", text, perl = TRUE);
+    OoprSourceContext$text <- strsplit(text, "\n")[[1L]];
+    try(OoprSourceContext$sourceFile(env$envir, try = TRUE), silent = TRUE);
+    obj <- OoprSourceContext$getByPos(stop = FALSE);
+    obj <- this$replaceGlobalWithLoadedPackage(obj);
+    this$obj_ <- obj;
+    this$str_ <- env$string[[1L]];
+    return(!is.null(this$obj_));
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -390,9 +422,32 @@ private:
     env <- sys.frame(pos - 1L);
     OoprSourceContext$id  <- env$documentId;
     try(OoprSourceContext$sourceFile(env$envir, try = TRUE), silent = TRUE);
-    this$obj_ <- OoprSourceContext$getByPos(stop = FALSE);
+    obj <- OoprSourceContext$getByPos(stop = FALSE);
+    obj <- this$replaceGlobalWithLoadedPackage(obj);
+    this$obj_ <- obj;
     this$str_ <- env$string[[1L]];
     return(!is.null(this$obj_));
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  replaceGlobalWithLoadedPackage <- \(obj)
+  {
+    if(is.null(obj)) return(obj);
+    encl <- obj@encl;
+    if(environmentName(topenv(encl)) != "R_GlobalEnv") return(obj);
+    for(par in search()[-1L])
+    {
+      name <- sub("^package:", "", par);
+      if(par == name || !requireNamespace(name, quietly = TRUE)) next;
+      ns <- getNamespace(name);
+      if(!exists(".__DEVTOOLS__", envir = ns, inherits = FALSE)) next;
+      if(exists(obj@name, envir = ns, inherits = FALSE))
+      {
+        parent.env(encl) <- ns;
+        return(obj);
+      }
+    }
+    return(obj);
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -456,5 +511,166 @@ private:
     attr(obj, "encl") <- encl;
     return(obj);
   }
+
+})
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#'
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+OoprCompletionHelp <- NULL;
+oopr("OoprCompletionHelp",,
+{
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+OoprCompletionHelp <- \(topic, source, class, package)
+{
+  ns <- if(package == "R_GlobalEnv") globalenv() else getNamespace(package);
+  if(is.null(topic) && grepl("$", source, fixed = TRUE))
+  {
+    topic  <- sub("^.*\\$", "", source);
+    source <- sub("\\$(?!.*\\$).*?$", "", source, perl = TRUE);
+  }
+
+  oopr <- tryCatch(eval(str2lang(source), ns), error = identity);
+  if(!is.oopr(oopr, class))
+  {
+    if(startsWith(source, "this"))
+    {
+      oopr <- get0(class, ns);
+    }
+    if(!is.ooprC(oopr, class)) return(NULL);
+    oopr <- oopr@encl$this;
+  }
+
+  this$tpc_  <- topic;
+  this$src_  <- source;
+  this$cls_  <- class;
+  this$pkg_  <- package;
+  this$oopr_ <- oopr;
+  this$fail_ <- FALSE;
+}
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+public:
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  static:makeHelpHandler <- \(x)
+  {
+    if(!is.environment(x)) return(NULL);
+    x       <- parent.env(x);
+    class   <- base::class(x$.this)[1L];
+    package <- environmentName(topenv(x));
+    expr    <- substitute({
+      fun <- get("OoprCompletionHelp", envir = getNamespace("oopr"))$getHelp;
+      formals(fun)[c("class", "package")] <- list(class, package);
+      return(fun);
+    })
+    return(deparse1(expr, collapse = "\n"));
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  static:getHelp <- \(type, topic, source, class, package)
+  {
+    comp <- OoprCompletionHelp(topic, source, class, package);
+    if(comp$fail) return(NULL);
+    comp$makeHelp(type);
+    return(comp$out);
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  get:fail <- \( ) { return(this$fail_); }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  get:out <- \( )
+  {
+    out <- this$out_;
+    out <- out[vapply(out, length, integer(1L)) > 0L];
+    if(length(out)) return(out) else return(NULL);
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  makeHelp <- \(type)
+  {
+    switch(type,
+      completion = this$makeCompletion()
+     ,parameter  = this$makeParameter()
+     ,url        = this$makeUrl()
+    );
+  }
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+private:
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  fail_ <- TRUE;
+  tpc_  <- character(0L);
+  src_  <- character(0L);
+  cls_  <- character(0L);
+  pkg_  <- character(0L);
+  oopr_ <- emptyenv();
+
+  #https://github.com/rstudio/rstudio/blob/main/src/gwt/src/org/rstudio/studio/
+  #client/workbench/views/help/model/HelpInfo.java#L28
+  out_     <- list(
+    package_name     = character(0L)
+   ,title            = character(0L)
+   ,signature        = character(0L)
+   ,description      = character(0L)
+   ,args             = character(0L)
+   ,arg_descriptions = character(0L)
+   ,type             = integer(0L)
+  );
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  makeCompletion <- \(topic = this$tpc_, class = this$cls_, oopr = this$oopr_)
+  {
+    description <- sprintf("A description of `%s$%s`", class, topic);
+    obj         <- tryCatch(oopr[[topic]], error = \(e) NULL);
+    signature   <- topic;
+    if(is.ooprC(obj) || is.oopr(obj))
+    {
+      signature <- format(obj);
+    }
+    else if(is.function(obj))
+    {
+      signature <- deparse(args(obj), width.cutoff = 500L, nlines = 1);
+      signature <- sub("function ", topic, signature);
+    }
+    else
+    {
+      signature <- typeof(obj);
+      if(is.vector(obj))
+      {
+        signature <- sprintf("%s(%iL)", signature, length(obj));
+      }
+    }
+    this$out_$description <- description;
+    this$out_$signature   <- signature;
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  makeParameter  <- \(topic = this$tpc_, class = this$cls_, oopr = this$oopr_)
+  {
+    args  <- names(formals(.subset2(oopr, topic)));
+    arg_descriptions <- sprintf(
+      "a description of `%s$%s(%s)`", class, topic, args
+    );
+    this$out_$args <- args;
+    this$out_$arg_descriptions <- arg_descriptions;
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  makeUrl <- \( )
+  {
+
+  }
+
 })
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+help_formals_handler.oopr <- \(topic, source)
+{
+  if(is.oopr(source, "oopr_this")) stop()
+  formals <- sprintf("%s = ", names(formals(.subset2(source, topic))));
+  help    <- OoprCompletionHelp@encl$.this$makeHelpHandler(source);
+  return(list(formals = formals, helpHandler = help))
+}
