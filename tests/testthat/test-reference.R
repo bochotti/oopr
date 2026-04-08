@@ -291,6 +291,22 @@ test_that("references_call",
      ,class = "ooprRefBadCall"
     );
   })
+
+  it("doesnt allow calling methods with mismatched signature",
+  {
+    expect_error(
+      oopr("test",, { a <- \(x) { this$a(); } } )
+     ,class = "ooprRefUnmatchedCall"
+    );
+    expect_error(
+      oopr("test",, { a <- \(x) { this$a(y = 1L); } } )
+     ,class = "ooprRefUnmatchedCall"
+    );
+    expect_error(
+      oopr("test",, { a <- \(x) { }; test <- \( ) { this$a(); } } )
+     ,class = "ooprRefUnmatchedCall"
+    );
+  })
 })
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##

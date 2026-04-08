@@ -131,7 +131,7 @@ definitions_init <- \(i, name, ats, call, envir, along, fun, env, err)
       # adjust any prior positions
       for(j in rev(along))
       {
-        if(j <= i) next;
+        if(j <= i || !env$succ$get(j)) next;
         at <- env$spec$get(j);
         at[[c(1, 1)]] <- at[[c(1, 1)]] + 1L;
         env$spec$set(j, at);

@@ -103,11 +103,24 @@ test_that("references_classmem",
   {
     oopr("memb",, { public:a <- 1L; })
     expect_error(
-       oopr("test",, { a <- memb; test <- \( ) { this$a$a; this$a(); } })
-      ,class = "ooprClassMemUsageBeforeInit"
+      oopr("test",, { a <- memb; test <- \( ) { this$a$a; this$a(); } })
+     ,class = "ooprClassMemUsageBeforeInit"
     );
     expect_no_error(
-       oopr("test",, { a <- memb; test <- \( ) { this$a(); this$a$a; } })
+      oopr("test",, { a <- memb; test <- \( ) { this$a(); this$a$a; } })
+    );
+  })
+
+  it("allows for > 1 class members",
+  {
+    oopr("m1",, { public:a <- 1L; })
+    oopr("m2",, { public:a <- 1L; })
+    expect_no_error(
+      oopr("test",, { a <- m1; b <- m2; test <- \( ) { } })
+    );
+    expect_error(
+      oopr("test",, { a <- m1; b <- m2; test <- \( ) { this$b(); this$b(); } })
+     ,class = "ooprDefMultipleInit"
     );
   })
 

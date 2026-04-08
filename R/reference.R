@@ -100,6 +100,12 @@ references <- \(env, err)
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 references_method <- \(i, name, refs, meta, access, encl, this, env, err)
 {
+  # skip the first call of a class member in the constructor method.
+  refs$skip <- logical(length(refs$at));
+  if(env$name == name && is.null(refs$nest))
+  {
+    refs$skip <- !duplicated.default(refs$memb) & refs$type == "call";
+  }
   for(ref in .mapply(list, refs, NULL))
   {
     if(!match(ref$encl, encl, 0L)) next;
@@ -123,11 +129,7 @@ references_method <- \(i, name, refs, meta, access, encl, this, env, err)
       }
      ,call   =
       {
-        # skip first init call of a class member
-        if(!(
-             name == env$name   && meta$class$get(j)
-          && ref$type == "call" && identical(ref$at, refs$at[[1L]])
-        ))
+        if(!(ref$skip && meta$class$get(j)))
         {
           fun <- this[[ref$memb]];
           references_call(i, name, j, meta, ref, "non-method", fun, env, err);
@@ -215,7 +217,7 @@ references_call <- \(i, name, j, meta, ref, type = "field", fun, env, err)
       cls = "ooprRefBadCall"
      ,src = ref$src %||% env$src[[i]]
      ,msg = "Member `%s` is attempting to call %s `%s`."
-     ,name, type, references_expr(ref)#deparse1(ref$nest %||% ref$expr)
+     ,name, type, references_expr(ref)
     );
     env$succ$set(i, FALSE);
   }
