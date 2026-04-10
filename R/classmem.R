@@ -7,7 +7,7 @@ evaluate_classmem <- \(i, name, rhs, env, err)
   isvec <- iscall(rhs, "[");
   ismap <- iscall(rhs, "[[");
   if(!(isvec || ismap) || !isname(rhs[[3L]], "")) return(rhs);
-  rhs[[1L]] <- if(isvec) quote(oopr::OoprVec) else quote(oopr::OoprMap);
+  rhs[[1L]] <- if(isvec) quote(oopr:::OoprVec) else quote(oopr:::OoprMap);
   rhs[[3L]] <- NULL;
   return(rhs);
 }
@@ -131,8 +131,8 @@ classmem_get_containers <- \(meta, this)
   names(contain) <- meta$names$data
   is.containercall <- \(obj) is.call(obj) &&
     (
-        identical(obj[[1L]], quote(oopr::OoprVec))
-     || identical(obj[[1L]], quote(oopr::OoprMap))
+        identical(obj[[1L]], quote(oopr:::OoprVec))
+     || identical(obj[[1L]], quote(oopr:::OoprMap))
     )
   for(nm in names(contain))
   {
@@ -187,37 +187,16 @@ classmem_make_expr <- \(refs, contain)
   expr <- do.call(call, c('{', refs$expr), TRUE);
   nest <- refs$nest %||% rep(list(NULL), length(refs$at));
   slct <- logical(length(refs$at));
+
   for(j in seq_along(refs$at))
   {
-    at   <- refs$at[[j]];
-    len  <- length(at);
-    memb <- refs$memb[[j]];
-    # be careful of calls within access
-    adj  <- at == 1L;
-    if(any(adj))
-    {
-      adj <- at[which.max(adj):len];
-    }
-    else
-    {
-      # 2L identifies LHS of assignment, or $ access - get the last one
-      adj <- at != 2L;
-      if(any(adj))
-      {
-        adj <- at[(which.max(adj) + 1L):len];
-      }
-      else
-      {
-        # if all assignment/access, then pull from back of expr
-        adj <- if(refs$type[[j]] == "assign") 2L else 1L;
-        adj <- at[seq.int(to = len, length.out = max(adj, len - 1L))];
-      }
-    }
-    if(is.null(nest[[j]]))
-    {
-      nest[[j]] <- call(refs$oper[[j]], as.name(refs$encl[[j]]), as.name(memb));
-    }
-    expr[[c(j + 1L, adj)]] <- as.name(memb);
+    oper <- refs$oper[j];
+    encl <- refs$encl[j];
+    memb <- refs$memb[j];
+    call <- call(oper, as.name(encl), if(oper == "$") as.name(memb) else memb);
+    at   <- findInExpr(expr[[j + 1]], \(e) identical(e, call))[[1L]];
+    nest[[j]] <- nest[[j]] %||% call;
+    expr[[c(j + 1L, at)]] <- as.name(memb);
     # remove [
     if(contain[memb])
     {
@@ -235,18 +214,23 @@ classmem_make_expr <- \(refs, contain)
       }
     }
   }
-  refs2 <- .Call(Cpp_find_member_refs, expr);
+
+  keep <- vapply(expr, is.call, logical(1L))[-1L];
+  refs <- lapply(refs, `[`, keep);
+  nest <- nest[keep];
+  slct <- slct[keep];
+
+  refs2      <- .Call(Cpp_find_member_refs, expr);
   refs2$src  <- refs$src;
-  nest <- .mapply(
+  refs2$nest <- .mapply(
     list(nest, .mapply(list, refs2, NULL))
    ,NULL
    ,FUN = \(nest, ref)
     {
       memb <- if(ref$oper == "$") as.name(ref$memb) else ref$memb;
-      call(ref$oper[[j]], nest, memb);
+      call(ref$oper, nest, memb);
     }
   )
-  refs2$nest <- nest;
   refs2$slct <- slct;
   return(refs2);
 }

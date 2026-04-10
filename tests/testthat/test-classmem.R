@@ -306,6 +306,12 @@ test_that("references_containers",
 
   it("handles containers",
   {
+    expect_no_error(
+      oopr("test",, { a <- memb[]; b <- \(x) { this$a; }})
+    );
+    expect_no_error(
+      oopr("test",, { a <- memb[]; b <- \(x) { if(TRUE) { this$a; } }})
+    );
     expect_error(
       oopr("test",, { a <- memb[]; b <- \(x) { this$a$a; } })
      ,class = "ooprRefNotDefined"
