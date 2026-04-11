@@ -18,7 +18,7 @@ extern SEXP on_load         (SEXP, SEXP);
 extern SEXP oopr_make       (SEXP);
 extern SEXP oopr_tidy       (SEXP, SEXP, SEXP);
 extern SEXP symlink         (SEXP, SEXP, SEXP, SEXP);
-extern SEXP oopr_vec_init   (SEXP, SEXP);
+extern SEXP oopr_cont_init  (SEXP, SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
     {"find_member_refs", (DL_FUNC) &find_member_refs, 1},
@@ -31,7 +31,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"oopr_make",        (DL_FUNC) &oopr_make,        1},
     {"oopr_tidy",        (DL_FUNC) &oopr_tidy,        3},
     {"symlink",          (DL_FUNC) &symlink,          4},
-    {"oopr_vec_init",    (DL_FUNC) &oopr_vec_init,    3},
+    {"oopr_cont_init",   (DL_FUNC) &oopr_cont_init,   3},
     {NULL, NULL, 0}
 };
 

@@ -34,7 +34,7 @@ Collate:
     'utils.R'
     'init.R'
     'completion.R'
+    'container.R'
     'install.R'
     'roxy.R'
-    'vector.R'
     'zzz.R'

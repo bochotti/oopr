@@ -45,7 +45,7 @@ oopr("OoprVec",,
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 OoprVec <- \(ooprC)
 {
-  .Call(Cpp_oopr_vec_init, ooprC, this, FALSE);
+  .Call(Cpp_oopr_cont_init, ooprC, this, FALSE);
   this$ooprC_ <- ooprC;
 }
 
@@ -194,7 +194,7 @@ oopr("OoprMap",,
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 OoprMap <- \(ooprC)
 {
-  .Call(Cpp_oopr_vec_init, ooprC, this, TRUE);
+  .Call(Cpp_oopr_cont_init, ooprC, this, TRUE);
   this$ooprC_ <- ooprC;
 }
 
@@ -238,6 +238,14 @@ public:
   {
     stopifnot(this$isSingleCharacter(key) && this$exists(key));
     this$data_[[key]] <- NULL;
+    return(invisible(this));
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  resize <- \(keys = character(0L))
+  {
+    this$data_ <- this$data_[keys];
+    names(this$data_) <- keys;
     return(invisible(this));
   }
 
