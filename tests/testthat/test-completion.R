@@ -269,6 +269,75 @@ test_that("OoprCompletion",
     );
   })
 
+  it("can complete on static class members",
+  {
+    text <- r"{
+    oopr("memb",,
+    {
+    public:
+      a <- list(a = 1, b = list(e = 1, f = 2, g = 3), c = 3);
+    protected:
+      b <- NULL;
+    private:
+      c <- NULL;
+    })
+
+    oopr("memb2",,
+    {
+    public:
+      static:b <- memb;
+    protected:
+      c <- NULL;
+    private:
+      d <- NULL;
+    })
+
+    oopr("memb3",,
+    {
+    public:
+      static:c <- memb2;
+    protected:
+      d <- NULL;
+    private:
+      e <- NULL;
+    })
+
+    oopr("test",,
+    {
+    public:
+      method <- \( )
+      {
+        this$field$c$b$a
+      }
+    private:
+      static:field  <- memb3;
+    })
+    }"
+    cat(text, file = tmp);
+    id <- rstudioapi::documentOpen(tmp, 38, 20, TRUE);
+    on.exit2(rstudioapi::documentClose(id, FALSE));
+    expect_equal(
+      .rs.rpc.get_completions(string = "this$field")$results
+     ,c("c")
+    );
+    expect_equal(
+      .rs.rpc.get_completions(string = "this$field$c")$results
+     ,c("b")
+    );
+    expect_equal(
+      .rs.rpc.get_completions(string = "this$field$c$b")$results
+     ,c("a")
+    );
+    expect_equal(
+      .rs.rpc.get_completions(string = "this$field$c$b$a")$results
+     ,c("a", "b", "c")
+    );
+    expect_equal(
+      .rs.rpc.get_completions(string = "this$field$c$b$a$b")$results
+     ,c("e", "f", "g")
+    );
+  })
+
   it("can complete on inherited class",
   {
     oopr("memb",,{}); oopr("memb2",,{}); oopr("memb3",,{})
@@ -373,6 +442,90 @@ test_that("OoprCompletion",
       }
     private:
       field  <- memb3[];
+    })
+    }"
+    cat(text, file = tmp);
+    id <- rstudioapi::documentOpen(tmp, 36, 20, TRUE);
+    on.exit2(rstudioapi::documentClose(id, FALSE));
+    names <- c(
+      "class", "empty", "size", "data", "insert", "emplace", "resize", "erase"
+     ,"swap", "apply", "[", "[<-"
+    );
+    expect_equal(
+      .rs.rpc.get_completions(string = "this$field")$results
+     ,names
+    );
+    expect_equal(
+      .rs.rpc.get_completions(string = "this$field[1L]")$results
+     ,c("c")
+    );
+    expect_equal(
+      .rs.rpc.get_completions(string = "this$field[1L]$c")$results
+     ,names
+    );
+    expect_equal(
+      .rs.rpc.get_completions(string = "this$field[1L]$c[1L]")$results
+     ,c("b")
+    );
+    expect_equal(
+      .rs.rpc.get_completions(string = "this$field[1L]$c[1L]$b")$results
+     ,names
+    );
+    expect_equal(
+      .rs.rpc.get_completions(string = "this$field[1L]$c[1L]$b[1L]")$results
+     ,c("a", "b")
+    );
+    expect_equal(
+      .rs.rpc.get_completions(string = "this$field[1L]$c[1L]$b[1L]$a")$results
+     ,c("a", "b", "c")
+    );
+    expect_equal(
+      .rs.rpc.get_completions(string = "this$field[1L]$c[1L]$b[1L]$a$b")$results
+     ,c("e", "f", "g")
+    );
+  })
+
+  it("can complete on static class containers",
+  {
+    text <- r"{
+    oopr("memb",,
+    {
+    public:
+      a <- list(a = 1, b = list(e = 1, f = 2, g = 3), c = 3);
+      b <- NULL;
+    private:
+      c <- NULL;
+    })
+
+    oopr("memb2",,
+    {
+    public:
+      static:b <- memb[];
+    protected:
+      c <- NULL;
+    private:
+      d <- NULL;
+    })
+
+    oopr("memb3",,
+    {
+    public:
+      static:c <- memb2[];
+    protected:
+      d <- NULL;
+    private:
+      e <- NULL;
+    })
+
+    oopr("test",,
+    {
+    public:
+      method <- \( )
+      {
+        this$field
+      }
+    private:
+      static:field  <- memb3[];
     })
     }"
     cat(text, file = tmp);

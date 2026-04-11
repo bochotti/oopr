@@ -30,6 +30,7 @@ class(this) <- c("oopr_this", "oopr");
   comp <- OoprCompletion();
   if(comp$isRStudioCompletion())
   {
+    comp$isStaticContainerMember(name);
     return(.subset2(comp$obj, name));
   }
   NextMethod();
@@ -124,8 +125,65 @@ protected:
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  get:text <- \( ) { return(this$text_); }
-  set:text <- \(x) { stopifnot(is.character(x)); this$text_ <- x; }
+  parseFile <- \(try = FALSE)
+  {
+    srcf <- srcfile(this$file_);
+    if(try)
+    {
+      parsed <- this$tryParse(srcf = srcf,
+        # remove name after $
+      {
+        line <- text[this$row_];
+        pos  <- gregexpr("\\$", line)[[1L]];
+        pos  <- pos[pos <= this$col_];
+        pos  <- pos[length(pos)] - 1L;
+        ptrn <- sprintf("(^.{%i})\\$(`(.*?)`|[[:alnum:]_.$]*)*", pos);
+        line <- sub(ptrn, "\\1", line);
+        text[this$row_] <- line;
+      }
+      , # add { ... } after control flows
+      {
+        ptrn <- "((if|for|while)\\s*(?'p'\\(([^()]|(?&p))*\\)))";
+        line <- sub(ptrn, "\\1 { }", line, perl = TRUE);
+        text[this$row_] <- line;
+      }
+      );
+    }
+    else if(nzchar(this$file_))
+    {
+      parsed <- parse(file = this$file_, keep.source = TRUE);
+    }
+    else
+    {
+      parsed <- parse(text = this$text_, keep.source = TRUE, srcfile = srcf);
+    }
+    ats  <- findInExpr(parsed, \(e) is.ooprcall(e));
+    defs <- rep_len(list(), length(ats));
+    for(i in seq_along(ats))
+    {
+      defs[[i]]      <- parsed[[ats[[i]]]];
+      names(defs)[i] <- match.call(oopr, defs[[i]])$name;
+      attr(defs[[i]], "srcref") <- attr(parsed, "srcref", TRUE)[[ats[[i]][1L]]];
+    }
+    this$defs_ <- defs;
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  evalExprs <- \(top)
+  {
+    env  <- new.env(parent = top);
+    defs <- this$defs_;
+    objs <- rep_len(list(), length(defs));
+    for(i in seq_along(defs))
+    {
+      eval(defs[[i]], env, NULL);
+      objs[[i]]                 <- env[[names(defs)[i]]];
+      attr(defs[[i]], "srcref") <- attr(objs[[i]], "srcref", TRUE);
+    }
+    names(objs) <- names(defs);
+    this$defs_  <- defs;
+    this$objs_  <- objs;
+  }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 private:
@@ -176,49 +234,6 @@ private:
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  parseFile <- \(try = FALSE)
-  {
-    srcf <- srcfile(this$file_);
-    if(try)
-    {
-      parsed <- this$tryParse(srcf = srcf,
-        # remove name after $
-      {
-        line <- text[this$row_];
-        pos  <- gregexpr("\\$", line)[[1L]];
-        pos  <- pos[pos <= this$col_];
-        pos  <- pos[length(pos)] - 1L;
-        ptrn <- sprintf("(^.{%i})\\$(`(.*?)`|[[:alnum:]_.$]*)*", pos);
-        line <- sub(ptrn, "\\1", line);
-        text[this$row_] <- line;
-      }
-      , # add { ... } after control flows
-      {
-        ptrn <- "((if|for|while)\\s*(?'p'\\(([^()]|(?&p))*\\)))";
-        line <- sub(ptrn, "\\1 { }", line, perl = TRUE);
-        text[this$row_] <- line;
-      }
-      );
-    }
-    else if(nzchar(this$file_))
-    {
-      parsed <- parse(file = this$file_, keep.source = TRUE);
-    }
-    else
-    {
-      parsed <- parse(text = this$text_, keep.source = TRUE, srcfile = srcf);
-    }
-    ats  <- findInExpr(parsed, \(e) is.ooprcall(e));
-    defs <- rep_len(list(), length(ats));
-    for(i in seq_along(ats))
-    {
-      defs[[i]]      <- parsed[[ats[[i]]]];
-      names(defs)[i] <- match.call(oopr, defs[[i]])$name;
-    }
-    this$defs_ <- defs;
-  }
-
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   tryParse <- \(..., text = this$text_, srcf)
   {
     dots <- as.list(substitute(list(...)))[-1L];
@@ -241,23 +256,6 @@ private:
       })
     }
     return(out)
-  }
-
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  evalExprs <- \(top)
-  {
-    env  <- new.env(parent = top);
-    defs <- this$defs_;
-    objs <- rep_len(list(), length(defs));
-    for(i in seq_along(defs))
-    {
-      eval(defs[[i]], env, NULL);
-      objs[[i]]                 <- env[[names(defs)[i]]];
-      attr(defs[[i]], "srcref") <- attr(objs[[i]], "srcref", TRUE);
-    }
-    names(objs) <- names(defs);
-    this$defs_  <- defs;
-    this$objs_  <- objs;
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -315,39 +313,14 @@ public:
     if(!OoprSourceContext$rStudioIsAvailable()) return(FALSE);
     for(i in rev(seq_len(sys.nframe())))
     {
-      if(iscall(sys.call(i), ".rs.getCompletionType")) return(FALSE);
+      if(iscall(sys.call(i), ".rs.getCompletionType"))      return(FALSE);
+      if(iscall(sys.call(i), ".rs.isDataTableExtractCall")) return(FALSE);
       if(iscall(sys.call(i), ".rs.getCompletionsDollar"))
       {
         return(this$cursorInClass(i));
       }
     }
     return(FALSE);
-  }
-
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  isRStudioHelp <- \( )
-  {
-    if(!OoprSourceContext$rStudioIsAvailable()) return(FALSE);
-    env <- get_in_stack(".rs.getCompletionsCustomHelpHandler", -1L);
-    if(is.null(env)) return(FALSE);
-    OoprSourceContext$id  <- env$documentId;
-    text <- paste(OoprSourceContext$text, collapse = "\n");
-    line <- OoprSourceContext$text[OoprSourceContext$row];
-    line <- sub("\\((?!.*\\().*$", "", line, perl = TRUE);
-
-    ptrn <- sprintf(
-      "^(([^\n]*?\n){%i})(\\Q%s\\E)(?'b'\\(([^()]|(?&b))*\\))"
-     ,OoprSourceContext$row - 1L
-     ,line
-    );
-    text <- sub(ptrn, "\\1\\3\\5", text, perl = TRUE);
-    OoprSourceContext$text <- strsplit(text, "\n")[[1L]];
-    try(OoprSourceContext$sourceFile(env$envir, try = TRUE), silent = TRUE);
-    obj <- OoprSourceContext$getByPos(stop = FALSE);
-    obj <- this$replaceGlobalWithLoadedPackage(obj);
-    this$obj_ <- obj;
-    this$str_ <- env$string[[1L]];
-    return(!is.null(this$obj_));
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -393,12 +366,7 @@ public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   isContainerMember <- \(memb, name = NULL, call = sys.call(-1L))
   {
-    if(!is.ooprC(memb, c("OoprVec", "OoprMap"))) return(FALSE);
     if(!grepl("[", this$str_, fixed = TRUE))     return(FALSE);
-    name <- call[[3L]];
-    if(is.name(name)) { }
-    else if(is.character(name) && memb@name != "OoprMap") return(FALSE)
-    else if(is.numeric(name)   && memb@name != "OoprVec") return(FALSE);
     if(this$isNestedMember(call))
     {
       this$isCMem_ <- TRUE;
@@ -406,6 +374,23 @@ public:
     }
     return(FALSE);
   }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  isStaticContainerMember <- \(name)
+  {
+    if(any(this$obj_@meta$subs(names = name, static = TRUE, class = TRUE)))
+    {
+      encl  <- this$obj_@encl;
+      thiz  <- encl$this;
+      class <- class(thiz[[name]])[1L];
+      ooprC <- get0(class, parent.env(encl));
+      if(!is.ooprC(ooprC, class)) return(FALSE);
+      thiz[[name]] <- ooprC;
+      return(TRUE);
+    }
+    return(FALSE);
+  }
+
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 private:
@@ -470,16 +455,21 @@ private:
         if(!is.name(call$rhs)) return(FALSE);
         rhs <- as.character(call$rhs);
         if(!any(obj@meta$subs(names = rhs, class = TRUE))) return(FALSE);
-
         # if next call is `[`, then it is accessing a container
         if(i < len && isname(calls[[i + 1]]$oper, c("[", "[.ooprC")))
         {
           cont <- classmem_get_containers(obj@meta, obj@encl$this);
           if(!cont[rhs]) return(FALSE);
           obj  <- classmem_get_ooprC(rhs, obj@meta, obj@encl$this, cont, TRUE);
-          next;
         }
-        obj <- obj@encl$this[[rhs]];
+        else if(any(obj@meta$subs(static = TRUE)))
+        {
+          obj <- get0(class(obj@encl$this[[rhs]])[1L], parent.env(obj@encl));
+        }
+        else
+        {
+          obj <- obj@encl$this[[rhs]];
+        }
       }
       else if(i == len && isname(call$oper, c("[", "[.ooprC")))
       {
@@ -501,13 +491,22 @@ private:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   makeContainerInterface <- \(obj)
   {
-    encl <- new.env(parent = parent.env(obj@encl));
-    encl$this <- interface(
-      obj@encl$this
-     ,names = obj@meta$subs("names", access = "public")
-     ,class = class(obj@encl$.this)
-     ,sym   = quote(this)
-    );
+    meta  <- obj@meta;
+    thiz  <- obj@encl$this;
+    names <- meta$subs("names", access = "public");
+    class <- class(obj@encl$.this)
+
+    encl      <- new.env(parent = parent.env(obj@encl));
+    encl$this <- interface(thiz, names, class, quote(this));
+
+    cont <- classmem_get_containers(meta, thiz);
+    cont <- cont & obj@meta$subs(static = TRUE);
+    for(name in names(cont)[cont])
+    {
+      if(!match(name, names, 0L)) next;
+      encl$this[[name]] <- classmem_get_ooprC(name, meta, thiz, cont, TRUE);
+    }
+
     attr(obj, "encl") <- encl;
     return(obj);
   }
@@ -557,7 +556,7 @@ public:
   {
     if(!is.environment(x)) return(NULL);
     x       <- parent.env(x);
-    class   <- base::class(x$.this)[1L];
+    class   <- base::class(.subset2(x, ".this"))[1L];
     package <- environmentName(topenv(x));
     expr    <- substitute({
       fun <- get("OoprCompletionHelp", envir = getNamespace("oopr"))$getHelp;
@@ -674,3 +673,4 @@ help_formals_handler.oopr <- \(topic, source)
   help    <- OoprCompletionHelp@encl$.this$makeHelpHandler(source);
   return(list(formals = formals, helpHandler = help))
 }
+

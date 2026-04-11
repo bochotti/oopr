@@ -91,13 +91,11 @@ ooprC <- setClass("ooprC", contains = "function", slots = c(
 `[.ooprC` <- \(x, name)
 {
   comp  <- OoprCompletion();
-  if(comp$isRStudioCompletion())
+  if(comp$isRStudioCompletion() && comp$isContainerMember(x, name))
   {
-    if(comp$isContainerMember(x, name))
-    {
-      return(comp$obj);
-    }
+    return(comp$obj);
   }
+  return(NULL);
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
