@@ -115,7 +115,7 @@ references_classmem <- \(i, name, refs, meta, access, encl, this, env, err)
       if(!is.ooprC(oopr)) next;
       cmeta <- oopr@meta;
       cthis <- oopr@encl$this;
-      references_method(i, name, refs, cmeta, "public", class, cthis, env, err);
+      references_method(i, name, ref, cmeta, "public", class, cthis, env, err);
     }
   }
   return();
@@ -221,6 +221,7 @@ classmem_make_expr <- \(refs, contain)
   slct <- slct[keep];
 
   refs2      <- .Call(Cpp_find_member_refs, expr);
+  refs2      <- lapply(refs2, `[`, match(refs2$encl, refs$memb, 0L) > 0L);
   refs2$src  <- refs$src;
   refs2$nest <- .mapply(
     list(nest, .mapply(list, refs2, NULL))
@@ -255,7 +256,7 @@ classmem_get_ooprC <- \(class, meta, this, contain, slct, env)
     }
   }
   # If `[` is used, then need to obtain the container's underlying class
-  if(contain[class] && slct)
+  if(contain[class] && any(slct))
   {
     if(meta$subs("static", names = class))
     {

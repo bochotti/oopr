@@ -143,6 +143,7 @@ references_method <- \(i, name, refs, meta, access, encl, this, env, err)
       references_static(i, name, j, meta, ref, env, err);
     }
   }
+  refs$skip <- NULL;
   references_classmem(i, name, refs, meta, access, encl, this, env, err);
 }
 
