@@ -242,6 +242,14 @@ public:
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  resize <- \(keys = character(0L))
+  {
+    this$data_ <- this$data_[keys];
+    names(this$data_) <- keys;
+    return(invisible(this));
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   apply <- \(fun, ...)
   {
     names      <- names(this$data_);
