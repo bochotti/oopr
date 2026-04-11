@@ -1,7 +1,7 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-#include "vector.h"
+#include "container.h"
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-SEXP oopr_vec_init(SEXP ooprC, SEXP thiz, SEXP map)
+SEXP oopr_cont_init(SEXP ooprC, SEXP thiz, SEXP map)
 {
   if(!is_ooprC(ooprC))        Rf_error("`ooprC` must be an ooprC object");
   if(!Rf_isEnvironment(thiz)) Rf_error("`thiz` not an environment");

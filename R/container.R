@@ -45,7 +45,7 @@ oopr("OoprVec",,
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 OoprVec <- \(ooprC)
 {
-  .Call(Cpp_oopr_vec_init, ooprC, this, FALSE);
+  .Call(Cpp_oopr_cont_init, ooprC, this, FALSE);
   this$ooprC_ <- ooprC;
 }
 
@@ -194,7 +194,7 @@ oopr("OoprMap",,
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 OoprMap <- \(ooprC)
 {
-  .Call(Cpp_oopr_vec_init, ooprC, this, TRUE);
+  .Call(Cpp_oopr_cont_init, ooprC, this, TRUE);
   this$ooprC_ <- ooprC;
 }
 
