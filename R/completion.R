@@ -102,6 +102,7 @@ public:
     {
       if(this$posIsInSrcRef(row, col, defs[[i]]))
       {
+        if(i > length(objs)) break;
         if(which == "at") return(objs[[i]]) else return(objs[seq_len(i)]);
       }
     }
@@ -132,21 +133,29 @@ protected:
     {
       parsed <- this$tryParse(srcf = srcf,
         # remove name after $
-      {
-        line <- text[this$row_];
-        pos  <- gregexpr("\\$", line)[[1L]];
-        pos  <- pos[pos <= this$col_];
-        pos  <- pos[length(pos)] - 1L;
-        ptrn <- sprintf("(^.{%i})\\$(`(.*?)`|[[:alnum:]_.$]*)*", pos);
-        line <- sub(ptrn, "\\1", line);
-        text[this$row_] <- line;
-      }
-      , # add { ... } after control flows
-      {
-        ptrn <- "((if|for|while)\\s*(?'p'\\(([^()]|(?&p))*\\)))";
-        line <- sub(ptrn, "\\1 { }", line, perl = TRUE);
-        text[this$row_] <- line;
-      }
+        {
+          line <- text[this$row_];
+          pos  <- gregexpr("\\$", line)[[1L]];
+          pos  <- pos[pos <= this$col_];
+          if(length(pos))
+          {
+            pos  <- pos[length(pos)] - 1L;
+            ptrn <- sprintf("(^.{%i})\\$(`(.*?)`|[[:alnum:]_.$]*)*", pos);
+            line <- sub(ptrn, "\\1", line);
+
+            # if a call, then change `this`, otherwise triggers error
+            ptrn <- sprintf("(^.{%i})(this)([[:space:]]*\\()", pos - 4L);
+            line <- sub(ptrn, "\\1list\\3", line);
+
+            text[this$row_] <- line;
+          }
+        }
+        , # add { ... } after control flows
+        {
+          ptrn <- "((if|for|while)\\s*(?'p'\\(([^()]|(?&p))*\\)))";
+          line <- sub(ptrn, "\\1 { }", line, perl = TRUE);
+          text[this$row_] <- line;
+        }
       );
     }
     else if(nzchar(this$file_))
@@ -169,7 +178,7 @@ protected:
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  evalExprs <- \(top)
+  evalExprs <- \(top, pos = FALSE)
   {
     env  <- new.env(parent = top);
     defs <- this$defs_;
@@ -179,6 +188,7 @@ protected:
       eval(defs[[i]], env, NULL);
       objs[[i]]                 <- env[[names(defs)[i]]];
       attr(defs[[i]], "srcref") <- attr(objs[[i]], "srcref", TRUE);
+      if(pos && this$posIsInSrcRef(def = defs[[i]])) break;
     }
     names(objs) <- names(defs);
     this$defs_  <- defs;
@@ -259,7 +269,7 @@ private:
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  posIsInSrcRef <- \(row, col, def)
+  posIsInSrcRef <- \(row = this$row_, col = this$col_, def)
   {
     src <- attr(def, "srcref", TRUE);
     if(is.null(src))                     return(FALSE);
@@ -274,7 +284,42 @@ private:
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @intern
+#' This could be improved...
+#' At the moment, the repeated `$` calls are prompting the file to be
+#' re-parsed when it does not need to be.
+#' What would work better is to have `oopr_this$` return itself and
+#' keep going until it reaches the end of the call - then parse and do work.
+#' Can also support standard .DollarNames to make it more portable.
 #'
+#' Something like this:
+#' call <- NULL;
+#' test <- structure(list(), class = "test");
+#' `$.test` <- \(x, name)
+#' {
+#'   if(is.null(call))
+#'   {
+#'     if(iscall(sys.call(1L), ".DollarNames"))
+#'     {
+#'       call <<- sys.call(1L)[[2L]];
+#'     }
+#'     else if(iscall(sys.call(1L), ".rs.rpc.get_completions"))
+#'     {
+#'       call <<- str2lang(get("string", sys.frame(1L))[[1L]])
+#'     }
+#'   }
+#'
+#'   if(identical(substitute(name), as.character(call[[3L]])))
+#'   {
+#'     # do stuff ...
+#'     browser();
+#'     call <<- NULL;
+#'   }
+#'
+#'   return(x);
+#' }
+#'
+#' .DollarNames(test$b$c$d$)
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 oopr("OoprCompletion", private:OoprSourceContext,
 {
@@ -366,7 +411,7 @@ public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   isContainerMember <- \(memb, name = NULL, call = sys.call(-1L))
   {
-    if(!grepl("[", this$str_, fixed = TRUE))     return(FALSE);
+    if(!grepl("[", this$str_, fixed = TRUE)) return(FALSE);
     if(this$isNestedMember(call))
     {
       this$isCMem_ <- TRUE;
@@ -405,8 +450,9 @@ private:
   {
     if(!iscall(sys.call(pos - 1L), ".rs.rpc.get_completions")) return(FALSE);
     env <- sys.frame(pos - 1L);
-    OoprSourceContext$id  <- env$documentId;
-    try(OoprSourceContext$sourceFile(env$envir, try = TRUE), silent = TRUE);
+    OoprSourceContext$id <- env$documentId;
+    try(OoprSourceContext$parseFile(try = TRUE)     , outFile = stdout());
+    try(OoprSourceContext$evalExprs(env$envir, TRUE), outFile = stdout());
     obj <- OoprSourceContext$getByPos(stop = FALSE);
     obj <- this$replaceGlobalWithLoadedPackage(obj);
     this$obj_ <- obj;
@@ -668,7 +714,7 @@ private:
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 help_formals_handler.oopr <- \(topic, source)
 {
-  if(is.oopr(source, "oopr_this")) stop()
+  if(is.oopr(source, "oopr_this")) stop() #TODO - redo comp
   formals <- sprintf("%s = ", names(formals(.subset2(source, topic))));
   help    <- OoprCompletionHelp@encl$.this$makeHelpHandler(source);
   return(list(formals = formals, helpHandler = help))

@@ -43,7 +43,14 @@ ooprC <- setClass("ooprC", contains = "function", slots = c(
   {
     if(comp$isClassMember(x, name) || comp$isInheritedClass(x, name))
     {
-      return(.subset2(comp$obj, name));
+      out <- .subset2(comp$obj, name);
+      # TODO: this is to stop S4 multi dispacth when doing this$mem[sym]$<TAB>
+      if(isS4(out) && is.ooprC(out))
+      {
+        out <- asS4(out, flag = FALSE);
+        class(out) <- "ooprC";
+      }
+      return(out);
     }
   }
   .this <- x@encl$.this;
