@@ -7,5 +7,12 @@
     assign("this", this, envir = .AutoloadEnv);
   }
 }
+.onUnload <- \(libpath)
+{
+  if(OoprBreakpoints$isLoadedInGlobal())
+  {
+    OoprBreakpoints$loadInGlobal(FALSE, TRUE);
+  }
+}
 oopr_onInstall();
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##

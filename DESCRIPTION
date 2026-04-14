@@ -18,7 +18,6 @@ Config/testthat/edition: 3
 RoxygenNote: 7.3.3
 Collate: 
     'S3.R'
-    'classmem.R'
     'oopr.R'
     'construct.R'
     'enclosure.R'
@@ -26,6 +25,7 @@ Collate:
     'definition.R'
     'specifiers.R'
     'inherit.R'
+    'classmem.R'
     'static.R'
     'property.R'
     'evaluate.R'
@@ -35,6 +35,7 @@ Collate:
     'init.R'
     'completion.R'
     'container.R'
+    'breakpoint.R'
     'install.R'
     'roxy.R'
     'zzz.R'

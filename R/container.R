@@ -204,6 +204,7 @@ public:
   get:class <- \( ) { if(!is.null(this$ooprC_)) return(this$ooprC_@name); }
   get:empty <- \( ) { return(this$size == 0L);    }
   get:size  <- \( ) { return(length(this$data_)); }
+  get:keys  <- \( ) { return(names(this$data_));  }
   get:data  <- \( ) { return(this$data_);         }
   set:data  <- \(x)
   {

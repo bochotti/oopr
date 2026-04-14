@@ -82,3 +82,39 @@ get_in_stack <- \(call, off = 0L)
   }
   return(NULL);
 }
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @intern
+#' Print a tree-list
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+tree <- \(x, pfx = "")
+{
+  if(is.list(x))
+  {
+    for(i in seq_along(x))
+    {
+      if(i == length(x))
+      {
+        pre <- "\u2514\u2500";
+        ind <- "  ";
+      }
+      else
+      {
+        pre <- "\u251c\u2500";
+        ind <- "\u2502 ";
+      }
+      cat(pfx, pre, names(x)[i], "\n", sep = "");
+      if(!is.list(x[[i]]) && !identical(x[[i]], quote(expr=)))
+      {
+        y <- rep(list(quote(expr=)), length(x[[i]]));
+        names(y) <- as.character(x[[i]]);
+        x[[i]]   <- y;
+      }
+      tree(x[[i]], paste0(pfx, ind));
+    }
+  }
+  else if(!identical(x, quote(expr=)))
+  {
+    cat(pfx, x, "\n", sep = "")
+  }
+}

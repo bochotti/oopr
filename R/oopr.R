@@ -190,6 +190,17 @@ str.oopr <- \(
     cat(sub("function ", "\\\\", deparse(x, 500L, nlines = 1L)), '\n');
     return(invisible(x));
   }
+  str.functionWithTrace <- \(x, ...)
+  {
+    cat("X");
+    if(isS4(x))
+    {
+      x <- x@original;
+    }
+    NextMethod();
+    # str.function(x@original, ...);
+  }
+
   out <- capture.output({
     top <- format(object);
     cat(top, '\n', sep = "");
@@ -270,8 +281,24 @@ dollar_attr <- \(x, names)
     types[i] <- if(is.null(mem)) 22L else t(mem);
     if(match(types[i], 0:1, 0L))
     {
-      meta[i] <- abbreviate(typeof(mem), minlength = 3L);
-      meta[i] <- switch(meta[i], lgc = "lgl", meta[i]);
+      if(inherits(mem, "Date"))
+      {
+        meta[i] <- "dte";
+      }
+      else if(inherits(mem, "POSIXt"))
+      {
+        meta[i] <- "dtm";
+      }
+      else
+      {
+        meta[i] <- abbreviate(typeof(mem), minlength = 3L);
+        meta[i] <- switch(meta[i], lgc = "lgl", meta[i]);
+      }
+    }
+    if(isS4(mem) && inherits(mem, "functionWithTrace"))
+    {
+      types[i] <- 6L;
+      meta[i]  <- "X";
     }
   }
   ,error = \(e)
