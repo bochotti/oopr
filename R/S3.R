@@ -99,7 +99,7 @@ S3_match_arguments <- \(i, name, generic, env, err)
 {
   method <- env$this[[name]];
   gargs  <- names(formals(generic))[-1L];
-  margs  <- names(formals(method));
+  margs  <- names(formals(method)) %||% character(0L);
   pass   <- TRUE;
   dots   <- match("...", gargs, 0L);
   if(dots)

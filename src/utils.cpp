@@ -139,23 +139,25 @@ std::map<std::string, SEXP> Symbols::syms() { return syms_; };
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 bool is_ooprC(SEXP obj, const std::string& name)
 {
-  if(!(Rf_isS4(obj) && Rf_inherits(obj, "ooprC"))) return false;
+  if(!(Rf_isS4(obj) && Rf_inherits(obj, "ooprC")))                 return false;
 
   SEXP nm = Rf_getAttrib(obj, Rf_install("name"));
-  if(!(Rf_isString(nm) && Rf_xlength(nm) == 1)) return false;
+  if(!(Rf_isString(nm) && Rf_xlength(nm) == 1))                    return false;
   if(!name.empty())
   {
-    if(strcmp(name.c_str(), CHAR(STRING_ELT(nm, 0))) != 0) return false;
+    if(strcmp(name.c_str(), CHAR(STRING_ELT(nm, 0))) != 0)         return false;
   }
 
   SEXP inhr = Rf_getAttrib(obj, Rf_install("inhr"));
-  if(!Rf_isString(inhr)) return false;
+  if(!Rf_isString(inhr))                                           return false;
 
   SEXP meta = Rf_getAttrib(obj, Rf_install("meta"));
-  if(!(Rf_isEnvironment(meta) && Rf_inherits(meta, "oopr_meta"))) return false;
+  if(!(Rf_isEnvironment(meta) && Rf_inherits(meta, "oopr_meta")))  return false;
 
   SEXP encl = Rf_getAttrib(obj, Rf_install("encl"));
-  if(!Rf_isEnvironment(encl)) return false;
+  if(!Rf_isEnvironment(encl))                                      return false;
+
+  if(!is_oopr(Rf_findVarInFrame(encl, Rf_install(".this")), name)) return false;
 
   return true;
 }
@@ -178,3 +180,54 @@ bool is_ooprC(SEXP obj, SEXP name)
   }
   return is_ooprC(obj, name2);
 }
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+ * Check the structure of an oopr instance.
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+bool is_oopr(SEXP obj, const std::string& name)
+{
+  if(!(Rf_isEnvironment(obj) && Rf_inherits(obj, "oopr"))) return false;
+  if(!name.empty() && !Rf_inherits(obj, name.c_str()))     return false;
+
+  // the enclosure should have both this and .this
+  SEXP encl = ENCLOS(obj);
+  SEXP thiz = Rf_install("this");
+  SEXP intf = Rf_install(".this");
+  if(!R_existsVarInFrame(encl, thiz))                      return false;
+  if(!R_existsVarInFrame(encl, intf))                      return false;
+
+  // this and .this should have encl as their parent
+  thiz = Rf_findVarInFrame(encl, thiz);
+  intf = Rf_findVarInFrame(encl, intf);
+  if(obj != intf || encl != ENCLOS(thiz))                  return false;
+
+  // all bindings inside .this should also be in this
+  SEXP names = R_lsInternal3(intf, TRUE, FALSE);
+  const R_xlen_t len = Rf_xlength(names);
+  for(R_xlen_t i = 0; i < len; ++i)
+  {
+    SEXP name = Rf_installChar(STRING_ELT(names, i));
+    if(!R_existsVarInFrame(thiz, name))                    return false;
+  }
+  return true;
+}
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+bool is_oopr(SEXP obj, SEXP name)
+{
+  std::string name2;
+  if(Rf_isSymbol(name))
+  {
+    name2 = CHAR(PRINTNAME(name));
+  }
+  else if(Rf_isString(name) && Rf_length(name) > 0)
+  {
+    name2 = CHAR(STRING_ELT(name, 0));
+  }
+  else
+  {
+    return false;
+  }
+  return is_oopr(obj, name2);
+}
+
