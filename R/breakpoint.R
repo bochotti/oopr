@@ -875,7 +875,7 @@ public:
     }
 
     # now check for ooprs in the file
-    env  <- if(pkg == "R_GlobalEnv") as.environment(pkg) else getNamespace(pkg);
+    env  <- if(nzchar(pkg)) getNamespace(pkg) else globalenv();
     name <- as.character(str2lang(name));
 
     if(!this$files$exists(file))
@@ -1091,14 +1091,7 @@ private:
   {
     if(is.character(env))
     {
-      if(env == "R_GlobalEnv")
-      {
-        env <- as.environment(env);
-      }
-      else
-      {
-        env <- getNamespace(env);
-      }
+      env <- if(nzchar(env)) getNamespace(env) else globalenv();
     }
     name  <- as.character(str2lang(name));
     if(exists(name, envir = env, mode = "function", inherits = FALSE))
