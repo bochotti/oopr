@@ -367,7 +367,7 @@ private:
   Symbols loop{"for"};
   Symbols fun{"function"};
   Symbols pkg{"::", ":::"};
-  Symbols quo{"quote", "substitute", "bquote"};
+  Symbols quo{"quote", "substitute", "bquote", "with", "within"};
   SEXP env_;
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   std::vector<SEXP> locals;

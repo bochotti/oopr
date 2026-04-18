@@ -170,7 +170,7 @@ test_that("OoprCompletion",
     })
     }"
     cat(text, file = tmp);
-    id <- rstudioapi::documentOpen(tmp, 38, 20, TRUE);
+    id <- rstudioapi::documentOpen(tmp, 37, 20, TRUE);
     on.exit2(rstudioapi::documentClose(id, FALSE));
     expect_equal(
       .rs.rpc.get_completions(string = "this$field")$results
@@ -239,7 +239,7 @@ test_that("OoprCompletion",
     })
     }"
     cat(text, file = tmp);
-    id <- rstudioapi::documentOpen(tmp, 38, 20, TRUE);
+    id <- rstudioapi::documentOpen(tmp, 37, 20, TRUE);
     on.exit2(rstudioapi::documentClose(id, FALSE));
     expect_equal(
       .rs.rpc.get_completions(string = "this$field")$results

@@ -76,7 +76,7 @@ class(this) <- c("oopr_this", "oopr");
 #'
 #' .DollarNames(test$b$c$d$)
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-oopr("OoprCompletion", private:OoprSourceContext,
+oopr("OoprCompletion", private:OoprSourceRStudio,
 {
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 public:
@@ -110,12 +110,12 @@ public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   isRStudioCompletion <- \( )
   {
-    if(!OoprSourceContext$rStudioIsAvailable()) return(FALSE);
+    if(!OoprSourceRStudio$rStudioIsAvailable()) return(FALSE);
     for(i in rev(seq_len(sys.nframe())))
     {
       if(iscall(sys.call(i), ".rs.getCompletionType"))      return(FALSE);
       if(iscall(sys.call(i), ".rs.isDataTableExtractCall")) return(FALSE);
-      if(iscall(sys.call(i), ".rs.getCompletionsDollar"))
+      if(iscall(sys.call(i), c(".rs.getCompletionsDollar", ".rs.getCompletionsCustomHelpHandler")))
       {
         return(this$cursorInClass(i));
       }
@@ -205,10 +205,10 @@ private:
   {
     if(!iscall(sys.call(pos - 1L), ".rs.rpc.get_completions")) return(FALSE);
     env <- sys.frame(pos - 1L);
-    OoprSourceContext$id <- env$documentId;
-    try(OoprSourceContext$parseFile(try = TRUE)     , outFile = stdout());
-    try(OoprSourceContext$evalExprs(env$envir, TRUE), outFile = stdout());
-    obj <- OoprSourceContext$getByPos(stop = FALSE);
+    OoprSourceRStudio$id <- env$documentId;
+    try(OoprSourceRStudio$parse()        , outFile = stdout());
+    try(OoprSourceRStudio$eval(env$envir), outFile = stdout());
+    obj <- OoprSourceRStudio$obj;
     obj <- this$replaceGlobalWithLoadedPackage(obj);
     this$obj_ <- obj;
     this$str_ <- env$string[[1L]];
@@ -469,7 +469,11 @@ private:
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 help_formals_handler.oopr <- \(topic, source)
 {
-  if(is.oopr(source, "oopr_this")) stop() #TODO - redo comp
+  if(is.oopr(source, "oopr_this"))
+  {
+    comp <- OoprCompletion();
+    source <- if(comp$isRStudioCompletion()) comp$obj else stop();
+  }
   formals <- sprintf("%s = ", names(formals(.subset2(source, topic))));
   help    <- OoprCompletionHelp@encl$.this$makeHelpHandler(source);
   return(list(formals = formals, helpHandler = help))

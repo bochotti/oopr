@@ -394,11 +394,19 @@ private:
       active <- bindingIsActive(name, thiz);
       if((property && !active) || !property && active)  next;
       # setting $encl changes references of $fun property
-      this$encl        <- inst;
-      environment(fun) <- inst;
+      this$encl <- inst;
+      old       <- this$fun;
+      if(isS4(fun) && inherits(fun, "functionWithTrace"))
+      {
+        environment(fun@original) <- environment(old);
+      }
+      else
+      {
+        environment(fun) <- environment(old);
+      }
       # if in sync, then the definition matches `fun`
       # otherwise, force the non-traced version (of the instance)
-      this$fun  <- if(this$isInSync()) fun else this$fun;
+      this$fun  <- if(this$isInSync()) fun else old;
     }
   }
 
@@ -571,7 +579,7 @@ private:
 #' @description
 #' Represents a source file that contains `oopr` classes.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-oopr("OoprBreakpointsFile", OoprSourceContext,
+oopr("OoprBreakpointsFile", OoprSource,
 {
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @param file `character(1L)` \cr
@@ -583,7 +591,7 @@ oopr("OoprBreakpointsFile", OoprSourceContext,
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 OoprBreakpointsFile <- \(file, env)
 {
-  OoprSourceContext$file <- file;
+  OoprSource$file <- file;
   this$loadClassesFromEnvironment(env);
 }
 
@@ -595,7 +603,7 @@ public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   get:file <- \( )
   {
-    return(OoprSourceContext$file);
+    return(OoprSource$file);
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -755,10 +763,10 @@ private:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   loadClassesFromEnvironment <- \(env)
   {
-    OoprSourceContext$parseFile();
-    if(length(OoprSourceContext$defs))
+    OoprSource$parse();
+    if(length(OoprSource$defs))
     {
-      for(class in names(OoprSourceContext$defs))
+      for(class in names(OoprSource$defs))
       {
         ooprC <- get0(class, envir = env, inherits = FALSE);
         if(!is.ooprC(ooprC, class)) next;

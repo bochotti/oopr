@@ -106,6 +106,7 @@ references_method <- \(i, name, refs, meta, access, encl, this, env, err)
   {
     refs$skip <- !duplicated.default(refs$memb) & refs$type == "call";
   }
+  refs <- lapply(refs, `[`, match(refs$encl, encl, 0L) > 0L);
   for(ref in .mapply(list, refs, NULL))
   {
     if(!match(ref$encl, encl, 0L)) next;

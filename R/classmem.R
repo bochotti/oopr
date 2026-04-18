@@ -87,7 +87,7 @@ references_classmem <- \(i, name, refs, meta, access, encl, this, env, err)
   if(!length(classes)) return();
   contain <- classmem_get_containers(meta, this);
 
-  refs    <- lapply(refs, `[`, match(refs$memb, classes, 0L) > 0L);
+  refs <- lapply(refs, `[`, match(refs$memb, classes, 0L) > 0L);
   if(name == env$name && encl[1L] == "this")
   {
     refs <- classmem_ignore_init(i, name, refs, classes, env, err);
