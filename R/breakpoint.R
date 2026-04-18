@@ -3,7 +3,7 @@
 #' @title Breakpoints for oopr
 #' @include init.R
 #' @include container.R
-#' @include completion.R
+#' @include source.R
 #' @export
 #' @description
 #' Use RStudio breakpoints with `oopr` classes.
