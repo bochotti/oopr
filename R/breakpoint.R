@@ -390,6 +390,12 @@ private:
     for(inst in instances)
     {
       thiz  <- inst$this;
+      # skip over instances that have the fun but not inherited
+      ooprC <- get0(class(inst$.this)[1L], parent.env(inst), inherits = FALSE);
+      if(ooprC@name != this$ooprC@name)
+      {
+        if(!any(ooprC@meta$subs(names = name, inherit = this$ooprC@name))) next;
+      }
       if(!exists(name, envir = thiz, inherits = FALSE)) next;
       active <- bindingIsActive(name, thiz);
       if((property && !active) || !property && active)  next;
@@ -400,10 +406,7 @@ private:
       {
         environment(fun@original) <- environment(old);
       }
-      else
-      {
-        environment(fun) <- environment(old);
-      }
+      environment(fun) <- environment(old);
       # if in sync, then the definition matches `fun`
       # otherwise, force the non-traced version (of the instance)
       this$fun  <- if(this$isInSync()) fun else old;
@@ -1042,6 +1045,7 @@ public:
       this$rsFun("setFunctionBreakpoints", name, env, steps);
     }
     return(name);
+
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -1052,7 +1056,7 @@ public:
     {
       rm(file$classes$apply(\(key, class)
       {
-        rm(class$funs$apply(\(key, fun)
+        rm(class$functions$apply(\(key, fun)
         {
           if(length(fun$breaks))
           {

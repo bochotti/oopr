@@ -51,6 +51,7 @@ oopr_onInstall <- \(ns, refhook = NULL)
       env[[nm]] <- ns[[nm]];
     }
   }
+  rm(list = names(env), envir = ns);
   ns[[".__OOPR__."]] <- serialize(env, NULL, refhook = refhook);
 }
 
