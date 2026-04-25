@@ -8,9 +8,9 @@
 \usage{
 OoprSource()
 
-OoprSourceTry()
+OoprSourceTry(file = NULL, text = NULL, row = NULL, col = NULL)
 
-OoprSourceRStudio()
+OoprSourceRStudio(id = NULL)
 }
 \arguments{
 \item{top}{\code{environment} \cr

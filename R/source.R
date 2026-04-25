@@ -55,7 +55,7 @@ public:
   set:row  <- \(x)
   {
     stopifnot(is.numeric(x) && length(x) == 1L && x %% 1L == 0L);
-    this$row_ <- x;
+    this$row_ <- as.integer(x);
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -69,7 +69,7 @@ public:
   set:col  <- \(x)
   {
     stopifnot(is.numeric(x) && length(x) == 1L && x %% 1L == 0L);
-    this$col_ <- x;
+    this$col_ <- as.integer(x);
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -151,6 +151,9 @@ public:
   #'
   #' @param top `environment` \cr
   #'            An environment to be the top-level of the `oopr` objects.
+  #'
+  #' @details
+  #' If `$row` & `$col` are set, then evaluation stops at that `oopr` call.
   #'
   #' @returns
   #' Saves the `oopr` objects to `$objs`.
@@ -256,6 +259,13 @@ OoprSourceTry <- \(file = NULL, text = NULL, row = NULL, col = NULL)
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @field call `call` \cr
+  #'             The evaluation string/call at the position `row` & `col` in
+  #'             the file, e.g. `this$a$b`.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  call <- NULL;
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   #' @description
   #' Try to parse the file.
   #'
@@ -277,26 +287,20 @@ public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   parse <- \( )
   {
-    text <- character(0L);
+    text  <- paste(this$text, collapse = '\n');
+    parts <- .Call(Cpp_eval_context, text, this$row, this$col);
+    text  <- this$replaceThis(text, parts);
+    text  <- this$collectCall(text, parts[[1L]]);
+    this$text <- text <- strsplit(text, '\n')[[1L]];
     this$tryParse(
-      # remove $
+      # , # add { ... } after control flows
       {
         line <- text[this$row];
-        if(grepl("\\$([^[:alpha:].`]|$)", substr(line, this$col - 1, this$col)))
-        {
-          substr(line, this$col - 1L, this$col - 1L) <- " ";
-          this$col <- this$col - 1L;
-        }
-        text[this$row] <- line;
-      }
-      , # add { ... } after control flows
-      {
-        ptrn <- "((if|for|while)\\s*(?'p'\\(([^()]|(?&p))*\\)))";
+        ptrn <- "((if|for|while)\\s*(?'p'\\(([^()]|(?&p))*\\)))(?!.*\\{)";
         line <- sub(ptrn, "\\1 { }", line, perl = TRUE);
         text[this$row] <- line;
       }
     );
-    this$replaceThis();
     return(invisible(this));
   }
 
@@ -329,38 +333,42 @@ private:
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  replaceThis <- \( )
+  replaceThis <- \(text, parts)
   {
-    pd  <- utils::getParseData(this$expr);
-    row <- this$row;
-    col <- this$col - 1L;
-    csr <- with(pd, {
-      line1 <= row & row <= line2 & col1 <= col & col <= col2 & terminal
-    });
-    if(!any(csr)) return();
-    id <- pd[csr, "id"];
-    at <- this$walkParseData(pd, id);
-    list <- format("list", width = 1L + at$col2 - at$col1);
-    substr(this$text[row], at$col1, at$col2) <- list;
-    OoprSource$parse();
+    for(part in parts)
+    {
+      if(is.null(part)) next;
+      # skip over `for` because of `in`
+      if(grepl("^for(\\s|$)", part$ctx)) next;
+      # adjust the line number if we are removing a row
+      this$row <- this$row - sum(charToRaw(part$ctx) == as.raw(10));
+      # replace `this`, ensuring the length remains unchanged
+      substr(text, part$stt, part$end) <- format.default(
+        "c", width = 1L + part$end - part$stt
+      );
+    }
+    return(text);
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  walkParseData <- \(pd, id, up = TRUE)
+  collectCall <- \(text, part)
   {
-    i   <- match(id, pd$id, 0L);
-    if(up)
-    {
-      j <- match(pd[["parent"]][i], pd$id, 0L);
-    }
-    else
-    {
-      j <- match(pd[["id"]][i], pd$parent, 0L);
-      if(pd[j, "terminal"]) return(pd[j, ])
-    }
-    up <- pd[j, "terminal"];
-    id <- pd[j, "id"];
-    this$walkParseData(pd, id, up);
+    if(is.null(part)) return(text)
+
+    # collect the evaluation call
+    this$call <- str2lang(part$ctx);
+
+    # we have already replaced the LHS of `$, but if there is nothing on
+    # the RHS, then we will have a problem parsing
+    pos <- part$end + 1L;
+    one <- substr(text, pos, pos);
+    if(one != "$")                     return(text);
+    two <- substr(text, pos + 1L, pos + 1L);
+    if(grepl("[[:alpha:].`\"']", two)) return(text);
+
+    # remove the dollar
+    substr(text, pos, pos) <- " ";
+    return(text);
   }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -403,7 +411,8 @@ public:
     {
       stop("RStudio and rstudioapi package must be available");
     }
-    context <- rstudioapi::getSourceEditorContext(x);
+    context <- get("getSourceEditorContext", getNamespace("rstudioapi"))(x);
+    # context <- rstudioapi::getSourceEditorContext(x);
     if(is.null(context))
     {
       stop(sprintf("id %s is not a valid document ID", deparse1(x)));
