@@ -6,6 +6,12 @@
   {
     assign("this", this, envir = .AutoloadEnv);
   }
+  if(   identical(.Platform$GUI, "RStudio")
+     && requireNamespace("rstudioapi", quietly = TRUE)
+  )
+  {
+    OoprCompletion$source <- OoprCompletionRStudio();
+  }
 }
 .onUnload <- \(libpath)
 {

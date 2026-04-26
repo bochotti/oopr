@@ -38,22 +38,12 @@ ooprC <- setClass("ooprC", contains = "function", slots = c(
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 `$.ooprC` <- \(x, name)
 {
-  comp  <- OoprCompletion();
-  if(comp$isRStudioCompletion())
+  comp <- OoprCompletion();
+  if(comp$isCompletion() && !comp$isGettingNames)
   {
-    if(comp$isClassMember(x, name) || comp$isInheritedClass(x, name))
-    {
-      out <- .subset2(comp$obj, name);
-      # TODO: this is to stop S4 multi dispacth when doing this$mem[sym]$<TAB>
-      if(isS4(out) && is.ooprC(out))
-      {
-        out <- asS4(out, flag = FALSE);
-        class(out) <- "ooprC";
-      }
-      return(out);
-    }
+    return(this);
   }
-  .this <- x@encl$.this;
+  .this <- if(comp$isGettingNames) x@encl$this else x@encl$.this;
   if(!exists(name, envir = .this, inherits = FALSE))
   {
     msg  <- sprintf("`%s` is not a public static member", name);
@@ -93,19 +83,6 @@ ooprC <- setClass("ooprC", contains = "function", slots = c(
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-#' @exportS3Method "[" ooprC
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-`[.ooprC` <- \(x, name)
-{
-  comp  <- OoprCompletion();
-  if(comp$isRStudioCompletion() && comp$isContainerMember(x, name))
-  {
-    return(comp$obj);
-  }
-  return(NULL);
-}
-
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @exportS3Method base::names ooprC
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 names.ooprC <- \(x) { return(names(x@encl$.this)); }
@@ -116,14 +93,8 @@ names.ooprC <- \(x) { return(names(x@encl$.this)); }
 .DollarNames.ooprC <- \(x, pattern)
 {
   comp <- OoprCompletion();
-  if(comp$isRStudioCompletion())
-  {
-    if(comp$isClassMember(x) || comp$isInheritedClass(x))
-    {
-      return(comp$names)
-    }
-  }
-  NextMethod();
+  if(comp$isCompletion()) return(comp$names());
+  return(.DollarNames.oopr(x@encl$.this));
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##

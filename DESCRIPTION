@@ -9,7 +9,9 @@ Encoding: UTF-8
 Suggests: 
     testthat (>= 3.0.0),
     callr,
-    withr
+    withr,
+    rstudioapi,
+    roxygen2
 Imports:
     methods
 Depends:

@@ -5,10 +5,41 @@
 #' @include source.R
 #' @export
 #' @description
-#' Code-completion / intellisense for `oopr` classes in RStudio.
+#' Code-completion / intellisense for `oopr` classes.
+#'
+#' @details
+#' While typing inside an `oopr` definition, use dollarnames on `this` to
+#' know what members are available. Inherited classes can also be accessed,
+#' if they exist on the search path.
+#'
+#' Currently only implemented for RStudio.
+#'
+#' @examples
+#' \dontrun{
+#' oopr("memb",,
+#' {
+#' public:
+#'   a <- 1L;
+#'   b <- list(c = 1L, b = "b");
+#' })
+#'
+#' oopr("test", memb,
+#' {
+#' public:
+#'   memb   <- memb;
+#'   method <- \( )
+#'   {
+#'     #    v press TAB here
+#'     this$memb$b
+#'     #         ^ or here
+#'
+#'     memb$b
+#'     #    ^ and even here
+#'   }
+#' })}
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 this <- new.env(parent = baseenv());
-class(this) <- c("oopr_this", "oopr");
+class(this) <- c("oopr_this");
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @exportS3Method utils::.DollarNames oopr_this
@@ -16,10 +47,7 @@ class(this) <- c("oopr_this", "oopr");
 .DollarNames.oopr_this <- \(x, pattern)
 {
   comp <- OoprCompletion();
-  if(comp$isRStudioCompletion())
-  {
-    return(comp$names);
-  }
+  if(comp$isCompletion()) return(comp$names());
   NextMethod();
 }
 
@@ -29,66 +57,419 @@ class(this) <- c("oopr_this", "oopr");
 `$.oopr_this` <- \(x, name)
 {
   comp <- OoprCompletion();
-  if(comp$isRStudioCompletion())
-  {
-    comp$isStaticContainerMember(name);
-    return(.subset2(comp$obj, name));
-  }
+  if(comp$isCompletion()) return(this);
   NextMethod();
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @exportS3Method "[" oopr_this
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-#' @intern
-#' This could be improved...
-#' At the moment, the repeated `$` calls are prompting the file to be
-#' re-parsed when it does not need to be.
-#' What would work better is to have `oopr_this$` return itself and
-#' keep going until it reaches the end of the call - then parse and do work.
-#' Can also support standard .DollarNames to make it more portable.
-#'
-#' Something like this:
-#' call <- NULL;
-#' test <- structure(list(), class = "test");
-#' `$.test` <- \(x, name)
-#' {
-#'   if(is.null(call))
-#'   {
-#'     if(iscall(sys.call(1L), ".DollarNames"))
-#'     {
-#'       call <<- sys.call(1L)[[2L]];
-#'     }
-#'     else if(iscall(sys.call(1L), ".rs.rpc.get_completions"))
-#'     {
-#'       call <<- str2lang(get("string", sys.frame(1L))[[1L]])
-#'     }
-#'   }
-#'
-#'   if(identical(substitute(name), as.character(call[[3L]])))
-#'   {
-#'     # do stuff ...
-#'     browser();
-#'     call <<- NULL;
-#'   }
-#'
-#'   return(x);
-#' }
-#'
-#' .DollarNames(test$b$c$d$)
+`[.oopr_this` <- \(x, name)
+{
+  comp <- OoprCompletion();
+  if(comp$isCompletion()) return(this);
+  NextMethod();
+}
+
+
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-oopr("OoprCompletion", private:OoprSourceRStudio,
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @name OoprCompletion
+#' @title Completion for oopr internals
+#' @keywords internal
+#' @aliases NULL
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+NULL
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @rdname OoprCompletion
+#' @description
+#' A virtual class that can be inherited to use as a completion identifier.
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+oopr("OoprCompletionSource", public:OoprSourceTry,
 {
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  get:obj   <- \( ) { if(!is.null(this$obj_)) return(this$obj_@encl$this); }
+  #' @field env `environment` \cr
+  #'            The environment provided to `$load`.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  get:env  <- \( ) { return(this$env_); }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  get:names <- \( )
+  #' @description
+  #' Check if the call is currently a completion.
+  #'
+  #' @details
+  #' This method should check the call stack to ensure the appropriate
+  #' completion call is being made above. It should also use the `$load`
+  #' method.
+  #'
+  #' @returns
+  #' `logical(1L)`.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  virtual:isAvailable <- \( ) { return(FALSE); }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @description
+  #' Load the completion context into the class.
+  #'
+  #' @param env  `environment` \cr
+  #'             The environment which acts as the parent of oopr classes.
+  #'
+  #' @param file `character(1L)` \cr
+  #'             File path to the source file containing the oopr class. If
+  #'             it does not exist, `text` will be sufficient.
+  #'
+  #' @param text `character()` \cr
+  #'             The text containing lines of the source file. If `NULL` and
+  #'             `file` exists, then its lines are read.
+  #'
+  #' @param row  `integer(1L)` \cr
+  #'             Text cursor position of the line number, indexed by 1.
+  #'
+  #' @param col  `integer(1L)` \cr
+  #'             Text cursor position of column on the line, indexed by 1.
+  #'
+  #' @details
+  #' Cannot be over-ridden. This is used inside `OoprCompletion` class.
+  #'
+  #' @returns
+  #' `this` invisibly.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  virtual:final:load  <- \(env = globalenv(), file, text = NULL, row, col)
   {
-    if(is.null(this$obj_)) return(character(0L));
-    oopr   <- this$obj;
-    class  <- this$obj_@name;
+    stopifnot(
+      is.environment(env)
+     ,is.character(file)   && length(file) == 1L
+     ,is.null(text)        || is.character(text)
+    );
+    this$env_   <- env;
+    if(file.exists(file))
+    {
+      this$file <- file;
+      text      <- text %||% readLines(file, warn = FALSE);
+    }
+    this$text   <- text;
+    this$row    <- row;
+    this$col    <- col;
+    return(invisible(this));
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @description
+  #' Source the file being completed.
+  #'
+  #' @details
+  #' Cannot be over-ridden. This is used inside `OoprCompletion` class.
+  #'
+  #' @returns
+  #' `this` invisibly.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  virtual:final:source  <- \( )
+  {
+    this$parse();
+    this$eval(top = this$env_);
+    return(invisible(this));
+  }
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+private:
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  env_  <- emptyenv();
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+})
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @rdname OoprCompletion
+#' @description
+#' Use completion in RStudio.
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+oopr("OoprCompletionRStudio", public:OoprCompletionSource,
+{
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+public:
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @description
+  #' Pull information from the `.rs.rpc_get_completions` call.
+  #'
+  #' @details
+  #' Specifically pulls the rstudio `id` for the completion which contains
+  #' the file path, row and column.
+  #'
+  #' @returns
+  #' `logical(1L)`.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  isAvailable <- \( )
+  {
+    if(!this$rStudioIsAvailable())                          return(FALSE);
+    for(i in rev(seq_len(sys.nframe())))
+    {
+      if(iscall(sys.call(i), ".rs.getCompletionType"))      return(FALSE);
+      if(iscall(sys.call(i), ".rs.isDataTableExtractCall")) return(FALSE);
+      if(iscall(sys.call(i), c(
+        ".rs.getCompletionsDollar", ".rs.getCompletionsCustomHelpHandler"
+      )))
+      {
+        return(this$getItems(i));
+      }
+    }
+    return(FALSE);
+  }
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+private:
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  rStudioIsAvailable <- \( )
+  {
+    return(
+         requireNamespace("rstudioapi", quietly = TRUE)
+      && identical(.Platform$GUI, "RStudio")
+    );
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  getItems <- \(pos)
+  {
+    if(!iscall(sys.call(pos - 1L), ".rs.rpc.get_completions")) return(FALSE);
+    env     <- sys.frame(pos - 1L);
+    id      <- env$documentId;
+    if(!nzchar(id))                                            return(FALSE);
+    # context <- rstudioapi::getSourceEditorContext(id);
+    fun <- get("getSourceEditorContext", envir = getNamespace("rstudioapi"));
+    context <- fun(id);
+    if(is.null(context))                                       return(FALSE);
+    this$load(
+      env    = env$envir
+     ,file   = context$path
+     ,text   = context$contents
+     ,row    = context$selection[[1]]$range$start[[1]]
+     ,col    = context$selection[[1]]$range$start[[2]]
+    );
+    return(TRUE);
+  }
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+})
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @rdname OoprCompletion
+#' @description
+#' Use completion.
+#'
+#' @details
+#' Completion call on an object is in the form `this$a$b$`. The trick here
+#' is to check whether the text cursor is inside a class in the source file.
+#' If so, collect that information and skip over everything before the last
+#' dollar.
+#'
+#' When the last dollar is reached, `.DollarNames` is called on `oopr_this`
+#' object, which then fires the `names` method below. The evaluation context
+#' `this$a$b` is found, and `.DollarNames` provided.
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+oopr("OoprCompletion",,
+{
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+public:
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @field isCompleting `logical(1L)` \cr
+  #'                     Whether completion is currently in place. This will
+  #'                     skip over each `$` call in the evaluation context.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  static:get:isCompleting   <- \( ) { return(this$isCompleting_); }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @field isGettingNames `logical(1L)` \cr
+  #'                       Whether names of an `ooprC` are being saught.
+  #'                       This is used from `.DollarNames.ooprC` to provide
+  #'                       more than just public static members.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  static:get:isGettingNames <- \( ) { return(this$isGettingNames_); }
+  static:set:isGettingNames <- \(x)
+  {
+    stopifnot(is.logical(x) && length(x) == 1L && !is.na(x));
+    this$isGettingNames_ <- x;
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @field source `OoprCompletionSource` \cr
+  #'               A instanced class advising whether completion is being
+  #'               sought.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  static:get:source <- \( )
+  {
+    return(this$source_);
+  }
+  static:set:source <- \(x)
+  {
+    stopifnot(is.oopr(x, "OoprCompletionSource"));
+    this$source_ <- x;
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @description
+  #' Is completion being sought?
+  #'
+  #' @details
+  #' Checks the `source` member as to whether the `$` or `.DollarNames` calls
+  #' are within a completion context. If so, then the file is parsed,
+  #' `oopr` class constructor collected, and `$isCompleting` set to `TRUE`.
+  #'
+  #' @returns
+  #' `logical(1L)`.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  isCompletion <- \( )
+  {
+    if(this$isCompleting)           return(TRUE);
+    if(!this$source_$isAvailable()) return(FALSE);
+    try(this$source_$source(), outFile = stdout());
+    if(!is.ooprC(this$source_$obj)) return(FALSE);
+    this$isCompleting_ <- TRUE;
+    return(TRUE);
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @description
+  #' Get the dollar names of the completion context.
+  #'
+  #' @returns
+  #' `character()` of names.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  names <- \( )
+  {
+    if(!this$isCompleting_) return(character(0L));
+    this$isGettingNames_ <- TRUE;
+    on.exit({
+      this$isGettingNames_ <- FALSE;
+      this$isCompleting_   <- FALSE;
+    });
+    obj <- this$evaluateCall();
+    if(is.null(obj)) return(character(0L));
+    if(is.ooprC(obj))
+    {
+      names <- this$ooprCNames(obj);
+    }
+    else
+    {
+      names <- .DollarNames.oopr(obj);
+    }
+    return(names);
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @description
+  #' Get the object of the completion context.
+  #'
+  #' @details
+  #' Used within `.rs.rpc.get_custom_parameter_help`.
+  #'
+  #' @returns
+  #' `varies`.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  obj <- \( )
+  {
+    if(!this$isCompleting_) return(NULL);
+    on.exit(this$isCompleting_ <- FALSE);
+    obj <- this$evaluateCall();
+    if(is.ooprC(obj))
+    {
+      obj <- obj@encl$this;
+    }
+    return(obj)
+  }
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+private:
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  static:source_         <- OoprCompletionSource;
+  static:isCompleting_   <- FALSE;
+  static:isGettingNames_ <- FALSE;
+  isCMem_                <- FALSE;
+  isInhr_                <- FALSE;
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  evaluateCall <- \( )
+  {
+    obj   <- this$source_$obj;
+    calls <- this$flattenCall(this$source_$call);
+    if(length(calls) == 1L)
+    {
+      if(isname(calls[[1L]], "this"))
+      {
+        return(obj);
+      }
+      else if(isname(calls[[1L]], obj@inhr))
+      {
+        this$isInhr_ <- TRUE;
+        return(eval(calls[[1L]], obj@encl));
+      }
+      else
+      {
+        return(NULL);
+      }
+    }
+
+    calls[[1L]] <- NULL;
+    len <- length(calls);
+    for(i in seq_len(len))
+    {
+      if(is.null(obj)) return(NULL);
+      call <- calls[[i]];
+      oper <- as.character(call$oper);
+      rhs  <- as.character(call$rhs);
+
+      # access the class that a container holds
+      if(i < len && isname(calls[[i + 1]]$oper, "["))
+      {
+        cont <- classmem_get_containers(obj@meta, obj@encl$this);
+        if(!cont[rhs]) return(NULL);
+        obj  <- classmem_get_ooprC(rhs, obj@meta, obj@encl$this, cont, TRUE);
+        next;
+      }
+
+      # access the enclosure of each oopr class constructor
+      if(is.ooprC(obj)) switch(oper
+        ,"[" = # skip this (happened in prior loop)
+        {
+          next;
+        }
+        ,"$" = , "[[" =
+        {
+          obj <- if(any(obj@meta$subs(names = rhs))) obj@encl$this else NULL;
+        }
+        ,
+        {
+          obj <- NULL;
+        }
+      );
+
+      obj <- do.call(oper, list(obj, call$rhs));
+    }
+    if(is.ooprC(obj))
+    {
+      this$isCMem_ <- TRUE;
+    }
+    return(obj);
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  flattenCall <- \(x)
+  {
+    if(!is.call(x)) return(list(x))
+    c(this$flattenCall(x[[2L]]), list(list(oper = x[[1L]], rhs = x[[3L]])));
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  ooprCNames <- \(obj)
+  {
+    class  <- obj@name;
+    thiz   <- obj@encl$this;
     access <- character(1L);
     if(this$isCMem_)
     {
@@ -102,222 +483,19 @@ public:
     {
       access <- c("public", "protected", "private");
     }
-    names <- this$obj_@meta$subs("names", access = access);
+    names <- obj@meta$subs("names", access = access);
     names <- grep(sprintf("^~?%s$", class), names, value = TRUE, invert = TRUE);
-    return(.DollarNames.oopr(oopr, names = names));
+    return(.DollarNames.oopr(thiz, names = names));
   }
-
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  isRStudioCompletion <- \( )
-  {
-    if(!OoprSourceRStudio$rStudioIsAvailable()) return(FALSE);
-    for(i in rev(seq_len(sys.nframe())))
-    {
-      if(iscall(sys.call(i), ".rs.getCompletionType"))      return(FALSE);
-      if(iscall(sys.call(i), ".rs.isDataTableExtractCall")) return(FALSE);
-      if(iscall(sys.call(i), c(".rs.getCompletionsDollar", ".rs.getCompletionsCustomHelpHandler")))
-      {
-        return(this$cursorInClass(i));
-      }
-    }
-    return(FALSE);
-  }
-
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  isClassMember <- \(memb, name = NULL, call = sys.call(-1L))
-  {
-    if(!is.ooprC(memb))                      return(FALSE);
-    if(!grepl("$", this$str_, fixed = TRUE)) return(FALSE);
-    if(is.null(name))
-    {
-      call <- str2lang(this$str_);
-    }
-    if(this$isNestedMember(call, name))
-    {
-      this$isCMem_ <- TRUE;
-      return(TRUE);
-    }
-    return(FALSE);
-  }
-
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  isInheritedClass <- \(memb, name = NULL, call = sys.call(-1L))
-  {
-    if(!is.ooprC(memb)) return(FALSE);
-
-    str <- this$str_;
-    if(is.null(name))
-    {
-      call <- str2lang(str);
-    }
-    class <- sub("\\$.*$", "", str);
-    obj   <- this$obj_;
-    encl  <- obj@encl;
-
-    if(match(class, obj@inhr, 0L) && is.ooprC(encl[[class]], class))
-    {
-      this$isInhr_ <- TRUE;
-      this$obj_    <- encl[[class]];
-      return(TRUE);
-    }
-    return(FALSE);
-  }
-
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  isContainerMember <- \(memb, name = NULL, call = sys.call(-1L))
-  {
-    if(!grepl("[", this$str_, fixed = TRUE)) return(FALSE);
-    if(this$isNestedMember(call))
-    {
-      this$isCMem_ <- TRUE;
-      return(TRUE);
-    }
-    return(FALSE);
-  }
-
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  isStaticContainerMember <- \(name)
-  {
-    if(any(this$obj_@meta$subs(names = name, static = TRUE, class = TRUE)))
-    {
-      encl  <- this$obj_@encl;
-      thiz  <- encl$this;
-      class <- class(thiz[[name]])[1L];
-      ooprC <- get0(class, parent.env(encl));
-      if(!is.ooprC(ooprC, class)) return(FALSE);
-      thiz[[name]] <- ooprC;
-      return(TRUE);
-    }
-    return(FALSE);
-  }
-
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-private:
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  obj_    <- NULL;
-  str_    <- character(1L);
-  isCMem_ <- FALSE;
-  isInhr_ <- FALSE;
-
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  cursorInClass <- \(pos)
-  {
-    if(!iscall(sys.call(pos - 1L), ".rs.rpc.get_completions")) return(FALSE);
-    env <- sys.frame(pos - 1L);
-    OoprSourceRStudio$id <- env$documentId;
-    try(OoprSourceRStudio$parse()        , outFile = stdout());
-    try(OoprSourceRStudio$eval(env$envir), outFile = stdout());
-    obj <- OoprSourceRStudio$obj;
-    obj <- this$replaceGlobalWithLoadedPackage(obj);
-    this$obj_ <- obj;
-    this$str_ <- env$string[[1L]];
-    return(!is.null(this$obj_));
-  }
-
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  replaceGlobalWithLoadedPackage <- \(obj)
-  {
-    if(is.null(obj)) return(obj);
-    encl <- obj@encl;
-    if(environmentName(topenv(encl)) != "R_GlobalEnv") return(obj);
-    for(par in search()[-1L])
-    {
-      name <- sub("^package:", "", par);
-      if(par == name || !requireNamespace(name, quietly = TRUE)) next;
-      ns <- getNamespace(name);
-      if(!exists(".__DEVTOOLS__", envir = ns, inherits = FALSE)) next;
-      if(exists(obj@name, envir = ns, inherits = FALSE))
-      {
-        parent.env(encl) <- ns;
-        return(obj);
-      }
-    }
-    return(obj);
-  }
-
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  isNestedMember <- \(call, name = NULL, encl = "this")
-  {
-    calls <- this$flattenCall(call);
-    if(!isname(calls[[1]], c("this", this$obj_@inhr))) return(FALSE);
-    calls[[1L]] <- NULL;
-    if(!is.null(name))
-    {
-      calls[[length(calls)]] <- NULL;
-    }
-    obj <- this$obj_;
-    len <- length(calls);
-    for(i in seq_len(len))
-    {
-      call <- calls[[i]];
-      if(isname(call$oper, c("$", "$.ooprC")))
-      {
-        if(!is.name(call$rhs)) return(FALSE);
-        rhs <- as.character(call$rhs);
-        if(!any(obj@meta$subs(names = rhs, class = TRUE))) return(FALSE);
-        # if next call is `[`, then it is accessing a container
-        if(i < len && isname(calls[[i + 1]]$oper, c("[", "[.ooprC")))
-        {
-          cont <- classmem_get_containers(obj@meta, obj@encl$this);
-          if(!cont[rhs]) return(FALSE);
-          obj  <- classmem_get_ooprC(rhs, obj@meta, obj@encl$this, cont, TRUE);
-        }
-        else if(any(obj@meta$subs(static = TRUE)))
-        {
-          obj <- get0(class(obj@encl$this[[rhs]])[1L], parent.env(obj@encl));
-        }
-        else
-        {
-          obj <- obj@encl$this[[rhs]];
-        }
-      }
-      else if(i == len && isname(call$oper, c("[", "[.ooprC")))
-      {
-        # the last `[` call needs to display public members only
-        obj <- this$makeContainerInterface(obj);
-      }
-    }
-    this$obj_ <- obj;
-    return(TRUE);
-  }
-
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  flattenCall <- \(x)
-  {
-    if(!is.call(x)) return(list(x))
-    c(this$flattenCall(x[[2L]]), list(list(oper = x[[1L]], rhs = x[[3L]])));
-  }
-
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  makeContainerInterface <- \(obj)
-  {
-    meta  <- obj@meta;
-    thiz  <- obj@encl$this;
-    names <- meta$subs("names", access = "public");
-    class <- class(obj@encl$.this)
-
-    encl      <- new.env(parent = parent.env(obj@encl));
-    encl$this <- interface(thiz, names, class, quote(this));
-
-    cont <- classmem_get_containers(meta, thiz);
-    cont <- cont & obj@meta$subs(static = TRUE);
-    for(name in names(cont)[cont])
-    {
-      if(!match(name, names, 0L)) next;
-      encl$this[[name]] <- classmem_get_ooprC(name, meta, thiz, cont, TRUE);
-    }
-
-    attr(obj, "encl") <- encl;
-    return(obj);
-  }
-
 })
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #'
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 OoprCompletionHelp <- NULL;
 oopr("OoprCompletionHelp",,
@@ -360,7 +538,8 @@ public:
     class   <- base::class(.subset2(x, ".this"))[1L];
     package <- environmentName(topenv(x));
     expr    <- substitute({
-      fun <- get("OoprCompletionHelp", envir = getNamespace("oopr"))$getHelp;
+      fun <- get("OoprCompletionHelp", envir = getNamespace("oopr"));
+      fun <- fun@encl$.this$getHelp;
       formals(fun)[c("class", "package")] <- list(class, package);
       return(fun);
     })
@@ -423,7 +602,9 @@ private:
   makeCompletion <- \(topic = this$tpc_, class = this$cls_, oopr = this$oopr_)
   {
     description <- sprintf("A description of `%s$%s`", class, topic);
-    obj         <- tryCatch(oopr[[topic]], error = \(e) NULL);
+    OoprCompletion$isGettingNames <- TRUE;
+    on.exit(OoprCompletion$isGettingNames <- FALSE);
+    obj         <- tryCatch(.subset2(oopr, topic), error = identity);
     signature   <- topic;
     if(is.ooprC(obj) || is.oopr(obj))
     {
@@ -433,6 +614,10 @@ private:
     {
       signature <- deparse(args(obj), width.cutoff = 500L, nlines = 1);
       signature <- sub("function ", topic, signature);
+    }
+    else if(inherits(obj, "error"))
+    {
+      signature <- "?";
     }
     else
     {
@@ -472,7 +657,8 @@ help_formals_handler.oopr <- \(topic, source)
   if(is.oopr(source, "oopr_this"))
   {
     comp <- OoprCompletion();
-    source <- if(comp$isRStudioCompletion()) comp$obj else stop();
+    source <- if(comp$isCompletion()) comp$obj() else stop();
+    if(is.null(source)) stop();
   }
   formals <- sprintf("%s = ", names(formals(.subset2(source, topic))));
   help    <- OoprCompletionHelp@encl$.this$makeHelpHandler(source);

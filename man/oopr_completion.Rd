@@ -6,12 +6,43 @@
 \alias{this}
 \title{Completion for oopr}
 \format{
-An object of class \code{oopr_this} (inherits from \code{oopr}) of length 0.
+An object of class \code{oopr_this} of length 0.
 }
 \usage{
 this
 }
 \description{
-Code-completion / intellisense for \code{oopr} classes in RStudio.
+Code-completion / intellisense for \code{oopr} classes.
+}
+\details{
+While typing inside an \code{oopr} definition, use dollarnames on \code{this} to
+know what members are available. Inherited classes can also be accessed,
+if they exist on the search path.
+
+Currently only implemented for RStudio.
+}
+\examples{
+\dontrun{
+oopr("memb",,
+{
+public:
+  a <- 1L;
+  b <- list(c = 1L, b = "b");
+})
+
+oopr("test", memb,
+{
+public:
+  memb   <- memb;
+  method <- \( )
+  {
+    #    v press TAB here
+    this$memb$b
+    #         ^ or here
+
+    memb$b
+    #    ^ and even here
+  }
+})}
 }
 \keyword{datasets}

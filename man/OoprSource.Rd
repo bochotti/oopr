@@ -3,14 +3,11 @@
 \name{OoprSource}
 \alias{OoprSource}
 \alias{OoprSourceTry}
-\alias{OoprSourceRStudio}
 \title{Source files for oopr}
 \usage{
 OoprSource()
 
 OoprSourceTry(file = NULL, text = NULL, row = NULL, col = NULL)
-
-OoprSourceRStudio(id = NULL)
 }
 \arguments{
 \item{top}{\code{environment} \cr
@@ -34,15 +31,12 @@ Tries to parse and evaluate a file containing ooprs, intended for
 completion.
 
 Try to parse the file.
-
-RStudio specific source, relying on the output from
-\code{\link[rstudioapi:rstudio-editors]{rstudioapi::getSourceEditorContext}}.
-
-Check if RStudio is in session.
 }
 \details{
 If \verb{$file} is set, then it acts as the \code{srcfile} of the parsed
 object.
+
+If \verb{$row} & \verb{$col} are set, then evaluation stops at that \code{oopr} call.
 
 When completing, the contents of a file may fail to parse:
 \enumerate{
@@ -88,8 +82,9 @@ A named list of \code{oopr} object from \verb{$eval()}.}
 If \verb{$row} and \verb{$col} are set, then the \code{oopr} object that
 is at that location.}
 
-\item{\code{id}}{\code{character(1L)} \cr
-The RStudio document ID.}
+\item{\code{call}}{\code{call} \cr
+The evaluation string/call at the position \code{row} & \code{col} in
+the file, e.g. \code{this$a$b}.}
 }}
 
 \keyword{internal}

@@ -158,7 +158,7 @@ public:
   #' @returns
   #' Saves the `oopr` objects to `$objs`.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  eval <- \(top)
+  eval <- \(top = globalenv())
   {
     env  <- new.env(parent = top);
     defs <- this$defs_;
@@ -358,7 +358,7 @@ private:
     # collect the evaluation call
     this$call <- str2lang(part$ctx);
 
-    # we have already replaced the LHS of `$, but if there is nothing on
+    # we have already replaced the LHS of `$`, but if there is nothing on
     # the RHS, then we will have a problem parsing
     pos <- part$end + 1L;
     one <- substr(text, pos, pos);
@@ -370,75 +370,6 @@ private:
     substr(text, pos, pos) <- " ";
     return(text);
   }
-
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-})
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-
-
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-#' @rdname OoprSource
-#' @description
-#' RStudio specific source, relying on the output from
-#' [`rstudioapi::getSourceEditorContext`].
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-oopr("OoprSourceRStudio", public:OoprSourceTry,
-{
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-OoprSourceRStudio <- \(id = NULL)
-{
-  if(!is.null(id))
-  {
-    this$id <- id;
-  }
-}
-
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-public:
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  #' @field id `character(1L)` \cr
-  #'           The RStudio document ID.
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  get:id <- \( )
-  {
-    return(this$id_);
-  }
-  set:id <- \(x)
-  {
-    stopifnot(is.character(x) && length(x) == 1L);
-    if(!this$rStudioIsAvailable())
-    {
-      stop("RStudio and rstudioapi package must be available");
-    }
-    context <- get("getSourceEditorContext", getNamespace("rstudioapi"))(x);
-    # context <- rstudioapi::getSourceEditorContext(x);
-    if(is.null(context))
-    {
-      stop(sprintf("id %s is not a valid document ID", deparse1(x)));
-    }
-    this$file <- context$path;
-    this$text <- context$contents;
-    this$row  <- context$selection[[1]]$range$start[[1]];
-    this$col  <- context$selection[[1]]$range$start[[2]];
-    this$id_  <- x;
-  }
-
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  #' @description
-  #' Check if RStudio is in session.
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  rStudioIsAvailable <- \( )
-  {
-    return(
-         requireNamespace("rstudioapi", quietly = TRUE)
-      && identical(.Platform$GUI, "RStudio")
-    );
-  }
-
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-private:
-  id_ <- character(0L);
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 })

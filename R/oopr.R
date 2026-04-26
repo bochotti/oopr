@@ -314,7 +314,7 @@ dollar_attr <- \(x, names)
       ret <- returnValue();
       ret$type <- types[match(names, ret$results, 0L)];
       return(ret)
-    });
+    }, list(types = types, names = names));
     do.call(on.exit, list(expr, TRUE, FALSE), envir = ins);
   }
 
