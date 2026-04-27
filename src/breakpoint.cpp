@@ -44,6 +44,10 @@ public:
     {
       searchOoprC(x);
     }
+    else if(Rf_isList(x))
+    {
+      searchCAR(x);
+    }
   }
 
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
@@ -62,14 +66,14 @@ private:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   std::string name_;
   std::string pkg_;
-  Symbols sym{"meta", "encl", "this", ".this", "environmentName"};
+  Symbols sym{"meta", "encl", "this", ".this", "format.default"};
   std::vector<SEXP> searched_;
   std::vector<SEXP> instances_;
 
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   std::string getEnvName(SEXP x)
   {
-    pSEXP call = Rf_lang2(sym.get("environmentName"), x);
+    pSEXP call = Rf_lang2(sym.get("format.default"), x);
     return CHAR(STRING_ELT(Rf_eval(call, R_BaseEnv), 0));
   }
 
@@ -122,10 +126,16 @@ private:
       if(meta.isStatic(i)) walk(Rf_findVarInFrame(thiz, meta.name(i)));
     }
   }
+
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+  void searchCAR(SEXP x)
+  {
+    for(; x != R_NilValue; x = CDR(x)) walk(CAR(x));
+  }
 };
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-SEXP find_instances(SEXP ooprC)
+SEXP find_instances(SEXP ooprC, SEXP frames)
 {
   if(!is_ooprC(ooprC))                              return R_NilValue;
   SEXP name = getAttrib(ooprC, Rf_install("name"));
@@ -134,6 +144,7 @@ SEXP find_instances(SEXP ooprC)
   InstanceFinder obj(name, pkg);
   if(obj.skip)                                      return R_NilValue;
   obj.walk(pkg);
-  if(pkg != R_GlobalEnv) obj.walk(R_GlobalEnv);
+  if(pkg != R_GlobalEnv)   obj.walk(R_GlobalEnv);
+  if(frames != R_NilValue) obj.walk(frames);
   return obj.toList();
 }

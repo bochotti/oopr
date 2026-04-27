@@ -126,7 +126,10 @@ OoprBreakpointsFunction <- \(name, ooprC)
   this$encl     <- ooprC@encl;
   this$property <- nzchar(ooprC@meta$subs("property", names = name));
 }
-
+~OoprBreakpointsFunction <- \( )
+{
+  this$setBreakpoints();
+}
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -381,7 +384,7 @@ private:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   setInstances <- \(fun)
   {
-    instances <- .Call(Cpp_find_instances, this$ooprC);
+    instances <- .Call(Cpp_find_instances, this$ooprC, sys.frames());
     if(!length(instances)) return();
     encl     <- this$encl;
     name     <- this$name;
