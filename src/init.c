@@ -19,7 +19,7 @@ extern SEXP oopr_make       (SEXP);
 extern SEXP oopr_tidy       (SEXP, SEXP, SEXP);
 extern SEXP symlink         (SEXP, SEXP, SEXP, SEXP);
 extern SEXP oopr_cont_init  (SEXP, SEXP);
-extern SEXP find_instances  (SEXP, SEXP);
+extern SEXP find_instances  (SEXP, SEXP, SEXP);
 extern SEXP eval_context    (SEXP, SEXP, SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
@@ -34,7 +34,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"oopr_tidy",        (DL_FUNC) &oopr_tidy,        3},
     {"symlink",          (DL_FUNC) &symlink,          4},
     {"oopr_cont_init",   (DL_FUNC) &oopr_cont_init,   3},
-    {"find_instances",   (DL_FUNC) &find_instances,   2},
+    {"find_instances",   (DL_FUNC) &find_instances,   3},
     {"eval_context",     (DL_FUNC) &eval_context,     3},
     {NULL, NULL, 0}
 };

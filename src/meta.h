@@ -23,6 +23,7 @@ public:
   bool isClass(const int& i);
   bool isInherit(const int& i);
   SEXP subName(const std::string& access, const bool& inverse = false);
+  int  which(const std::string& name);
 private:
   std::map<std::string, SEXP> meta;
   bool        getLgl(const std::string& x, const int& i);

@@ -75,6 +75,17 @@ bool OoprMeta::isAccess(const int& i, const char* access)
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+int OoprMeta::which(const std::string &name)
+{
+  for(R_xlen_t i = 0; i < size(); ++i)
+  {
+    // printf("%i: %s\n", (int)i, getStr("names", i));
+    if(name == getStr("names", i)) return i;
+  }
+  return -1;
+}
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 bool OoprMeta::getLgl(const std::string& x, const int& i)
 {
   return LOGICAL_ELT(meta[x], i) == 1;

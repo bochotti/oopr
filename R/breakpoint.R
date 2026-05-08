@@ -237,11 +237,11 @@ public:
   {
     srcref <- this$srcref;
     if(is.null(srcref)) return(FALSE);
-    srcfile <- attr(srcref, "srcfile", TRUE);
-    if(is.null(srcfile$filename)) return(FALSE);
+    file <- attr(srcref, "srcfile", TRUE)$filename;
+    if(is.null(file) || !file.exists(file)) return(FALSE);
 
     inClass <- as.character(srcref);
-    inFile                 <- readLines(srcfile$filename, warn = FALSE);
+    inFile                 <- readLines(file, warn = FALSE);
     inFile                 <- inFile[srcref[1L]:srcref[3L]];
     inFile[length(inFile)] <- substr(inFile[length(inFile)], 1L, srcref[4L]);
     inFile[1L]             <- substr(inFile[1L], srcref[2L], nchar(inFile[1L]));
@@ -288,7 +288,10 @@ public:
     if(!is.function(fun)) return("");
     steps <- this$findSteps(body(fun), line);
     steps <- paste(steps, collapse = ",");
-    this$lines_[steps] <- line;
+    if(nzchar(steps))
+    {
+      this$lines_[steps] <- line;
+    }
     return(steps);
   }
 
@@ -384,21 +387,15 @@ private:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   setInstances <- \(fun)
   {
-    instances <- .Call(Cpp_find_instances, this$ooprC, sys.frames());
+    name      <- this$name;
+    instances <- .Call(Cpp_find_instances, this$ooprC, sys.frames(), name);
     if(!length(instances)) return();
     encl     <- this$encl;
-    name     <- this$name;
     property <- this$property;
     on.exit(this$encl <- encl);
     for(inst in instances)
     {
       thiz  <- inst$this;
-      # skip over instances that have the fun but not inherited
-      ooprC <- get0(class(inst$.this)[1L], parent.env(inst), inherits = FALSE);
-      if(ooprC@name != this$ooprC@name)
-      {
-        if(!any(ooprC@meta$subs(names = name, inherit = this$ooprC@name))) next;
-      }
       if(!exists(name, envir = thiz, inherits = FALSE)) next;
       active <- bindingIsActive(name, thiz);
       if((property && !active) || !property && active)  next;
@@ -437,7 +434,7 @@ OoprBreakpointsClass <- \(ooprC)
   if(!is.ooprC(ooprC))       return();
   name  <- ooprC@name;
   # make sure to get the actual class, not a copy of
-  ooprC <- get0(name, topenv(ooprC@encl), inherits = FALSE);
+  ooprC <- get0(name, parent.env(ooprC@encl), inherits = FALSE);
   if(!is.ooprC(ooprC, name)) return();
   this$ooprC <- ooprC;
   this$loadFunctions();
@@ -528,6 +525,7 @@ public:
   {
     if(!this$has(name, line)) return(list());
     steps <- this$functions[name]$getSteps(line);
+    if(!nzchar(steps))        return(list());
     if(make.names(name) != name)
     {
       name <- sprintf("`%s`", name);
@@ -656,9 +654,9 @@ public:
   #'             Optionally, a line that the function should contain.
   #'
   #' @returns
-  #' `logical()` the same length as `$classes`, indicating which class holds
-  #' the function and/or line. If only `name` is provided, can have more than
-  #' one `TRUE`.
+  #' Named `logical()` the same length as `$classes`, indicating which class
+  #' holds the function and/or line. If only `name` is provided, can have
+  #' more than one `TRUE`.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   has <- \(name, line = integer(0L))
   {
@@ -1096,8 +1094,7 @@ private:
   static:rsFun <- \(fun, ...)
   {
     if(!match("tools:rstudio", search(), 0L)) stop("RStudio must be available");
-    fun <- sprintf(".rs.%s", fun);
-    fun <- get(fun,, as.environment("tools:rstudio"), "function", FALSE);
+    fun <- get(sprintf(".rs.%s", fun), "tools:rstudio",, "function", FALSE);
     fun(...);
   }
 
