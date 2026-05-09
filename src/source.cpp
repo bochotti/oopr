@@ -253,6 +253,7 @@ public:
     case ')':
     case '{':
     case '}':
+    case '-':
     case ';': return false;
     default:  continue;
     }
@@ -351,6 +352,7 @@ public:
       {
         isInFun = true;
       }
+      case '-':
       case ';':
       {
         moveFwd();

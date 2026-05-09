@@ -15,6 +15,10 @@ whether they are currently enabled.}
 Force assigning or removing the required functions to/from
 the global environment.}
 }
+\value{
+\code{logical(1L)} indicating whether this functionality is enabled. Any
+breakpoints set are printed to the console.
+}
 \description{
 Use RStudio breakpoints with \code{oopr} classes.
 }
@@ -24,8 +28,10 @@ them for normal functions - use the gutter or \code{SHIFT+F9}.
 
 This feature requires intercepting RStudio calls to functions that
 normally reside within \code{tools:rstudio}, by assigning functions of the same
-name inside the global environment. It is disabled by default, as it is
-potentially destructive for an R session.
+name inside the global environment. It is disabled by default as it is
+potentially destructive for an R session. Environmental variable
+\code{R_OOPR_BREAKPOINTS=true} can be used to enable this functionality when
+\code{oopr} namespace is loaded.
 
 Breakpoints can be set for both methods and properties. One limitation is
 that breakpoints cannot be set on single line functions with a specifier,

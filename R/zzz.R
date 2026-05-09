@@ -6,16 +6,21 @@
   {
     assign("this", this, envir = .AutoloadEnv);
   }
-  if(   identical(.Platform$GUI, "RStudio")
-     && requireNamespace("rstudioapi", quietly = TRUE)
-  )
+  if(identical(.Platform$GUI, "RStudio"))
   {
-    OoprCompletion$source <- OoprCompletionRStudio();
+    if(requireNamespace("rstudioapi", quietly = TRUE))
+    {
+      OoprCompletion$source <- OoprCompletionRStudio();
+    }
+    if(Sys.getenv("R_OOPR_BREAKPOINTS") == "true")
+    {
+      OoprBreakpoints$loadInGlobal(TRUE, TRUE);
+    }
   }
 }
 .onUnload <- \(libpath)
 {
-  if(OoprBreakpoints$isLoadedInGlobal())
+  if(OoprBreakpoints$allLoadedInGlobal())
   {
     OoprBreakpoints$loadInGlobal(FALSE, TRUE);
   }

@@ -68,17 +68,15 @@ found, then \code{list()} is returned.
 
 \code{this} invisibly.
 
-\code{logical()} the same length as \verb{$classes}, indicating which class holds
-the function and/or line. If only \code{name} is provided, can have more than
-one \code{TRUE}.
+Named \code{logical()} the same length as \verb{$classes}, indicating which class
+holds the function and/or line. If only \code{name} is provided, can have
+more than one \code{TRUE}.
 
 \code{logical(1L)}.
 
 A list the same length of \code{lines}, containing further lists in the form:
 \code{list(name = character(1L), line = integer(1L), at = character(1L))}.
 Lines that cannot be found are returned as \code{list()}.
-
-\code{this} invisibly.
 
 \code{this} invisibly.
 
@@ -120,8 +118,6 @@ Check if any class inside the file contains a function and/or a line.
 Check if a function within the classes is in sync with the source file.
 
 Get the steps of multiple lines across the file.
-
-Clear breakpoints for a function across all classes.
 
 Set breakpoints for a function across classes.
 

@@ -22,8 +22,10 @@
 #'
 #' This feature requires intercepting RStudio calls to functions that
 #' normally reside within `tools:rstudio`, by assigning functions of the same
-#' name inside the global environment. It is disabled by default, as it is
-#' potentially destructive for an R session.
+#' name inside the global environment. It is disabled by default as it is
+#' potentially destructive for an R session. Environmental variable
+#' `R_OOPR_BREAKPOINTS=true` can be used to enable this functionality when
+#' `oopr` namespace is loaded.
 #'
 #' Breakpoints can be set for both methods and properties. One limitation is
 #' that breakpoints cannot be set on single line functions with a specifier,
@@ -39,6 +41,10 @@
 #'
 #' Tested with RStudio version 2026.1.1.403, there are no guarantees for
 #' earlier or later versions.
+#'
+#' @returns
+#' `logical(1L)` indicating whether this functionality is enabled. Any
+#' breakpoints set are printed to the console.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 oopr_breakpoints <- \(on = NA, force = FALSE)
 {
@@ -50,11 +56,11 @@ oopr_breakpoints <- \(on = NA, force = FALSE)
 
   if(is.na(on))
   {
-    if(OoprBreakpoints$isLoadedInGlobal())
+    if(OoprBreakpoints$allLoadedInGlobal())
     {
       if(length(OoprBreakpoints$printBreaks()))
       {
-        return(invisible(TRUE))
+        return(invisible(TRUE));
       }
       else
       {
@@ -70,32 +76,6 @@ oopr_breakpoints <- \(on = NA, force = FALSE)
   {
     return(OoprBreakpoints$loadInGlobal(on, force));
   }
-}
-
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-.rs.isFunctionInSync <- \(functionName, filePath, packageName)
-{
-  OoprBreakpoints$isFunctionInSync(functionName, filePath, packageName);
-}
-
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-.rs.rpc.get_function_steps <-\(functionName, fileName, packageName, lineNumbers)
-{
-  OoprBreakpoints$getFunctionSteps(
-    functionName, fileName, packageName, lineNumbers
-  );
-}
-
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-.rs.getEnvironmentOfFunction <- \(objName, fileName, packageName)
-{
-  OoprBreakpoints$getEnvironmentOfFunction(objName, fileName, packageName);
-}
-
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-.rs.setFunctionBreakpoints <- \(functionName, envir, steps)
-{
-  OoprBreakpoints$setFunctionBreakpoints(functionName, envir, steps);
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -710,27 +690,6 @@ public:
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   #' @description
-  #' Clear breakpoints for a function across all classes.
-  #'
-  #' @param name  `character(1L)` \cr
-  #'              Name of a function to search for.
-  #'
-  #' @returns
-  #' `this` invisibly.
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  clearBreakpoints <- \(name)
-  {
-    classes <- this$has(name);
-    classes <- names(classes)[classes];
-    for(class in classes)
-    {
-      this$classes[class]$functions[name]$setBreakpoints();
-    }
-    return(invisible(this));
-  }
-
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  #' @description
   #' Set breakpoints for a function across classes.
   #'
   #' @param name    `character(1L)` \cr
@@ -811,14 +770,9 @@ public:
   static:files <- OoprBreakpointsFile[[]];
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  static:isLoadedInGlobal <- \( )
+  static:allLoadedInGlobal <- \( )
   {
-    for(fun in this$funs_)
-    {
-      fun <- get0(fun, envir = globalenv(), inherits = FALSE);
-      if(!is.function(fun))                           return(FALSE);
-      if(environmentName(environment(fun)) != "oopr") return(FALSE);
-    }
+    for(nm in names(this$funs_)) if(!this$isLoadedInGlobal(nm)) return(FALSE);
     return(TRUE);
   }
 
@@ -827,25 +781,23 @@ public:
   {
     if(!force)
     {
-      ok <- vapply(this$funs_, logical(1L), FUN = \(fun)
-      {
-        exists <- exists(fun, envir = globalenv(), inherits = FALSE);
-        if(!exists) return(TRUE);
-        fun <- get0(fun, envir = globalenv(), inherits = FALSE);
-        return(is.function(fun) && environmentName(environment(fun)) == "oopr");
-      })
+      ok <- vapply(names(this$funs_), logical(1L), FUN = \(nm) (
+           !exists(this$funs_[nm], envir = globalenv(), inherits = FALSE)
+        || this$isLoadedInGlobal(nm)
+      ));
       if(!all(ok))
       {
         stop(sprintf(
           "Symbols %s are already assigned to the global environment"
-         ,deparse1(this$funs_[!ok])
+         ,deparse1(unname(this$funs_[!ok]))
         ));
       }
     }
 
-    if(on) for(fun in this$funs_)
+    if(on) for(thisFun in names(this$funs_))
     {
-      assign(fun, get(fun, envir = getNamespace("oopr")), envir = globalenv());
+      rsFun <- this$funs_[thisFun];
+      assign(rsFun, this[[thisFun]], envir = globalenv());
     }
     else
     {
@@ -975,14 +927,14 @@ public:
   #' @returns
   #' `environment`
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  static:getEnvironmentOfFunction <-\(name, file, pkg)
+  static:getEnvironmentOfFunction <- \(name, file, pkg)
   {
     out  <- this$rsFun("getEnvironmentOfFunction", name, file, pkg);
 
     # only do this the first time
-    name <- as.character(str2lang(name));
     if(!nzchar(pkg))
     {
+      name <- as.character(str2lang(name));
       if(this$files$exists(file) && any(this$files[file]$has(name)))
       {
         this$file_ <- file;
@@ -1034,11 +986,9 @@ public:
         this$files[file]$setBreakpoints(name, class, cteps[[class]]);
       }
     }
-    else
-    {
-      # make sure class breakpoints do not make it to functions
-      steps <- steps[!grepl(":", steps)];
-    }
+
+    # make sure class breakpoints do not make it to functions
+    steps <- steps[!grepl(":", steps)];
 
     name <- sprintf("`%s`", name);
     if(this$isNonClassFunction(name, env))
@@ -1046,7 +996,6 @@ public:
       this$rsFun("setFunctionBreakpoints", name, env, steps);
     }
     return(name);
-
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -1057,7 +1006,7 @@ public:
     {
       rm(file$classes$apply(\(key, class)
       {
-        rm(class$functions$apply(\(key, fun)
+        out <- rm(class$functions$apply(\(key, fun)
         {
           if(length(fun$breaks))
           {
@@ -1067,7 +1016,9 @@ public:
             breaks <- sprintf("#%s [%s]", breaks, names(breaks));
             return(breaks);
           }
-        }))
+        }));
+        names(out) <- sprintf("$%s", names(out));
+        return(out);
       }))
     }))
     for(file in names(out))
@@ -1082,13 +1033,21 @@ public:
 private:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   static:funs_  <- c(
-    ".rs.isFunctionInSync"
-   ,".rs.rpc.get_function_steps"
-   ,".rs.getEnvironmentOfFunction"
-   ,".rs.setFunctionBreakpoints"
+    isFunctionInSync         = ".rs.isFunctionInSync"
+   ,getFunctionSteps         = ".rs.rpc.get_function_steps"
+   ,getEnvironmentOfFunction = ".rs.getEnvironmentOfFunction"
+   ,setFunctionBreakpoints   = ".rs.setFunctionBreakpoints"
   );
   static:inSync_ <- FALSE;
   static:file_   <- character(0L);
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  static:isLoadedInGlobal <- \(thisFun)
+  {
+    rsFun <- this$funs_[thisFun];
+    rsFun <- get0(rsFun, envir = globalenv(), inherits = FALSE);
+    return(identical(rsFun, this[[thisFun]]));
+  }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   static:rsFun <- \(fun, ...)

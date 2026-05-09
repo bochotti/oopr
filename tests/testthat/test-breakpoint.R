@@ -286,7 +286,7 @@ test_that("OoprBreakpointsFile",
     obj$setBreakpoints("method", "test1", c("2", "3,2"));
     expect_s4_class(test1@encl$this$method, "functionWithTrace");
     expect_false(inherits(test2@encl$this$method, "functionWithTrace"));
-    obj$clearBreakpoints("method");
+    obj$setBreakpoints("method");
     expect_identical(test1@encl$this$method, orig);
   })
 
