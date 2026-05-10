@@ -399,11 +399,9 @@ private:
   {
     if(!Rf_isSymbol(e)) return false;
     for(const SEXP x : locals) if(e == x) return true;
-    SEXP env = env_;
-    while(env != R_EmptyEnv)
+    for(SEXP env = env_; env != R_EmptyEnv; env = ENCLOS(env))
     {
       if(R_existsVarInFrame(env, e)) return true;
-      env = ENCLOS(env);
     }
     return false;
   }

@@ -290,13 +290,13 @@ public:
     text  <- paste(this$text, collapse = '\n');
     parts <- .Call(Cpp_eval_context, text, this$row, this$col);
     text  <- this$replaceThis(text, parts);
-    text  <- this$collectCall(text, parts[[1L]]);
+    text  <- this$collectCall(text, parts[[1L]] %||% parts[[2L]]);
     this$text <- text <- strsplit(text, '\n')[[1L]];
     this$tryParse(
       # , # add { ... } after control flows
       {
         line <- text[this$row];
-        ptrn <- "((if|for|while)\\s*(?'p'\\(([^()]|(?&p))*\\)))(?!.*\\{)";
+        ptrn <- "((if|for|while)\\s*(?'p'\\(([^()]|(?&p))*\\)))[ \t\r]*$";
         line <- sub(ptrn, "\\1 { }", line, perl = TRUE);
         text[this$row] <- line;
       }
