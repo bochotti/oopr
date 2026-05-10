@@ -73,6 +73,21 @@ public:
   }
 
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+   * Reset the counter
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+  void reset(const char& key)
+  {
+    if(open(key))
+    {
+      --opens[key]->count = 0;
+    }
+    else if(close(key))
+    {
+      --closes[key]->count = 0;
+    }
+  }
+
+  /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
    * Check if any complement has a count.
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
   bool inside(const char& key)
@@ -165,9 +180,18 @@ public:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
   bool atWS()
   {
-    atStart() || atEnd();
-    char val = this->val();
-    return val == ' ' || val == '\t' || val == '\n' || val == '\r';
+    return std::isspace(static_cast<unsigned char>(val()));
+  }
+
+  /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+   * Check if valid character for a name/symbol
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+  bool isValid(const char& val)
+  {
+    return
+         std::isalnum(static_cast<unsigned char>(val))
+      || val == '.'
+      || val == '_';
   }
 
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
@@ -195,7 +219,7 @@ public:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
   char peekBwd(const unsigned int& i = 1)
   {
-    if(i > pos_) return '\0'; else return text_[pos_ - i];
+    return (i > pos_) ? '\0' : text_[pos_ - i];
   }
   bool moveBwdToQuote(const char& key, const bool& lb = false)
   {
@@ -218,6 +242,7 @@ public:
   bool moveBwdToOpeningComplement(const char& key)
   {
     if(!comps.close(key)) return false;
+    unsigned int pos = pos_;
     comps.add(key);
     while(moveBwd())
     {
@@ -235,6 +260,8 @@ public:
         }
       }
     }
+    comps.reset(key);
+    pos_ = pos;
     return false;
   }
 
@@ -244,18 +271,18 @@ public:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
   bool moveToLastDollar()
   {
-    while(moveBwd()) switch(val())
+    while(moveBwd())
     {
-    case '$': return true;
-    case '(':
-    case ',':
-    case '=': isInFun = true;
-    case ')':
-    case '{':
-    case '}':
-    case '-':
-    case ';': return false;
-    default:  continue;
+      char val = this->val();
+      if(isValid(val)) continue;
+      switch(val)
+      {
+      case '$': return true;
+      case '(':
+      case ',':
+      case '=': isInFun = true;
+      default : return false;
+      }
     }
     return false;
   }
@@ -303,7 +330,11 @@ public:
     while(moveBwd())
     {
       char val = this->val();
-      if(comps.close(val))
+      if(isValid(val))
+      {
+        continue;
+      }
+      else if(comps.close(val))
       {
         if(!moveBwdToOpeningComplement(val)) return false;
       }
@@ -313,29 +344,19 @@ public:
         isInFun = true;
         break;
       }
-      else switch(val)
+      else if(atWS())
       {
-      case '\n':
-      {
-        // line break is OK, if the end of previous line is a $
-        moveUp();
-        while(atWS() && moveBwd()) { }
+        while(atWS() && moveBwd()) { if(this->val() == '\n') moveUp(); }
         val = this->val();
         if(val == '$' || val == '@') continue;
+        isInFun = (val == ',' || val == '=' || val == '(');
         moveFwd();
-        goto stop;
+        break;
       }
-      case ' ':
+      else switch(val)
       {
-        // make sure I dont go over for(i `in` this$a)
-        if(peekBwd(1) == 'n' && peekBwd(2) == 'i' && peekBwd(3) == ' ')
-        {
-          moveFwd();
-          isInFun = true;
-          goto stop;
-        }
-        continue;
-      }
+      case '$':
+      case '@': continue;
       case '\'':
       case '"':
       {
@@ -352,13 +373,11 @@ public:
       {
         isInFun = true;
       }
-      case '-':
-      case ';':
+      default:
       {
         moveFwd();
         goto stop;
       }
-      default:  continue;
       }
     }
 stop:

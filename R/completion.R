@@ -39,7 +39,7 @@
 #' })}
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 this <- new.env(parent = baseenv());
-class(this) <- c("oopr_this");
+class(this) <- c("oopr_this", "oopr");
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @exportS3Method utils::.DollarNames oopr_this
@@ -376,7 +376,7 @@ public:
   {
     if(!this$isCompleting_) return(NULL);
     on.exit(this$isCompleting_ <- FALSE);
-    obj <- this$evaluateCall();
+    obj <- this$evaluateCall(rmLast = TRUE);
     if(is.ooprC(obj))
     {
       obj <- obj@encl$this;
@@ -394,10 +394,14 @@ private:
   isInhr_                <- FALSE;
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  evaluateCall <- \( )
+  evaluateCall <- \(rmLast = FALSE)
   {
     obj   <- this$source_$obj;
     calls <- this$flattenCall(this$source_$call);
+    if(rmLast)
+    {
+      calls[[length(calls)]] <- NULL;
+    }
     if(length(calls) == 1L)
     {
       if(isname(calls[[1L]], "this"))
