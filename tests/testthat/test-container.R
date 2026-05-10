@@ -5,6 +5,7 @@ test_that("OoprVec$OoprVec",
 
   it("replaces the arguments for emplace method",
   {
+    skip_on_covr();
     oopr("test",, { test <- \(x) { this$a <- x; }; public:a <- 0L; })
     vec <- OoprVec(test);
     expect_named(formals(vec$emplace), c(".", "x"));
@@ -171,6 +172,7 @@ test_that("OoprMap$OoprMap",
 
   it("replaces the arguments for emplace method",
   {
+    skip_on_covr();
     oopr("test",, { test <- \(x) { this$a <- x; }; public:a <- 0L; })
     vec <- OoprMap(test);
     expect_named(formals(vec$emplace), c(".", "x"));

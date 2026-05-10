@@ -24,7 +24,7 @@ test_that("OoprBreakpointsFunction",
   })
   }";
   cat(text, file = tmp);
-  source(tmp, local = TRUE);
+  source(tmp, local = TRUE, keep.source = TRUE);
   obj <- OoprBreakpointsFunction("method", test);
 
   it("loads",
@@ -110,7 +110,7 @@ test_that("OoprBreakpointsFunction",
   oopr("test",, { public:memb <- base; })
   }";
   cat(text, file = tmp);
-  source(tmp, local = TRUE);
+  source(tmp, local = TRUE, keep.source = TRUE);
 
   obj <- OoprBreakpointsFunction("method", base);
   it("sets breakpoints for inheriting classes",
@@ -169,7 +169,7 @@ test_that("OoprBreakpointsClass",
   })
   }";
   cat(text, file = tmp);
-  source(tmp, local = TRUE);
+  source(tmp, local = TRUE, keep.source = TRUE);
 
   obj <- OoprBreakpointsClass(test);
 
@@ -239,7 +239,7 @@ test_that("OoprBreakpointsFile",
   }";
   cat(text, file = tmp);
   local <- environment();
-  source(tmp, local = local);
+  source(tmp, local = local, keep.source = TRUE);
   obj <- OoprBreakpointsFile(tmp, local);
 
   it("loads",
@@ -252,7 +252,7 @@ test_that("OoprBreakpointsFile",
   it("can reload classes when file is modified",
   {
     cat(sub("1L", "5L", text), file = tmp);
-    source(tmp, local = local);
+    source(tmp, local = local, keep.source = TRUE);
     expect_false(obj$isInSync(name = "method"));
     obj$syncClassesWithFile(local);
     expect_true(obj$isInSync(name = "method"));
@@ -330,7 +330,7 @@ test_that("OoprBreakpoints",
   }
   }";
   cat(text, file = tmp);
-  source(tmp, local = FALSE);
+  source(tmp, local = FALSE, keep.source = TRUE);
   on.exit(rm(test1, test2, envir = globalenv()));
 
   it("creates a file class when checking sync the first time",
