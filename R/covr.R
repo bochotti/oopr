@@ -26,12 +26,16 @@ oopr("OoprCovr",,
 OoprCovr <- \( )
 {
   if(!this$covrIsRunning()) return();
-  pkg <- get("package", sys.frame(1L));
-  ns  <- getNamespace(pkg);
+
+  root <- this$covr$package_root(".");
+  pkg  <- read.dcf(file.path(root, "DESCRIPTION"), "Package")[[1L]];
+  ns   <- getNamespace(pkg);
+
   for(name in names(ns))
   {
     if(is.ooprC(ns[[name]])) this$traceOoprC(ns[[name]]);
   }
+
   this$rplc <- this$covr$compact(this$rplc);
 
   lapply(this$rplc, this$covr$replace);
@@ -93,7 +97,6 @@ private:
     return(
          requireNamespace("covr", quietly = TRUE)
       && Sys.getenv("R_COVR") == "true"
-      && iscall(sys.call(1), "test_check")
     );
   }
   static:get:covr <- \( ) { return(getNamespace("covr")); }
