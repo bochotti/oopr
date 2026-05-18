@@ -16,173 +16,54 @@ OoprBreakpointsFile(file, env)
 OoprBreakpoints()
 }
 \arguments{
-\item{name}{\code{character(1L)}
-Name of the function.}
+\item{name}{\code{character(1L)} \cr
+The name of the function.}
 
 \item{ooprC}{\code{ooprC} \cr
 The \code{ooprC} object.}
 
 \item{file}{\code{character(1L)} \cr
-Path of the file.}
+The name of the source file.}
 
-\item{env}{\code{character(1L)} \cr
-The environment that holds function \code{name}.}
-
-\item{line}{\code{integer(1L)} \cr
-Optionally, a line that the function should contain.}
-
-\item{classes}{\code{character()} \cr
-The classes to set breakpoints for. If
-\code{length(classes) == 0L}, then all classes.}
-
-\item{lines}{\code{list()} \cr
-A list of \code{integer(1L)} of the line numbers.}
-
-\item{pkg}{\code{character(1L)} \cr
-The name of the package, or \code{"R_GlobalEnv"}.}
-
-\item{steps}{\code{list()} \cr
-A list of \code{character(1L)} of breakpoints to set.}
-}
-\value{
-\code{logical(1L)}.
-
-\code{logical(1L)}.
-
-\code{character(1L)} of the steps separated by \verb{,}. \code{line} is also saved
-inside a private member for \verb{$breaks} to return line numbers set.
-
-\code{this} invisibly. \code{steps} is also saved inside a private member for
-\verb{$breaks} to return line numbers set.
-
-\code{logical(1L)}.
-
-\code{logical(1L)}.
-
-\code{list(name = character(1L), line = integer(1L), at = character(1L))}.
-\code{at} is in the form \code{"class:steps"}, where \code{steps} are the integer
-position of the function body, separated by \verb{,}. If no steps can be
-found, then \code{list()} is returned.
-
-\code{this} invisibly.
-
-\code{this} invisibly.
-
-Named \code{logical()} the same length as \verb{$classes}, indicating which class
-holds the function and/or line. If only \code{name} is provided, can have
-more than one \code{TRUE}.
-
-\code{logical(1L)}.
-
-A list the same length of \code{lines}, containing further lists in the form:
-\code{list(name = character(1L), line = integer(1L), at = character(1L))}.
-Lines that cannot be found are returned as \code{list()}.
-
-\code{this} invisibly.
-
-\code{logical(1L)}
-
-\code{list(name =, line =, at = )} - \code{at} should be separated by \verb{,}.
-
-\code{environment}
-
-\code{functionName}
+\item{env}{\code{environment} \cr
+The environment that holds the class definitions. Either a
+package namespace or the global environment.}
 }
 \description{
+Breakpoint Internals
+}
+\section{}{
+\newcommand{\br}{\if{html}{\out{<br>}}\if{latex}{\out{\newline}}}
+\newcommand{\hr}{\if{html}{\out{<hr>}}\if{latex}{\out{\hrule}}}
+\if{latex}{\out{
+\ExplSyntaxOn
+\cs_gset:Npn \Tabularr #1 #2
+{
+  \begin{ldescription}
+  \seq_set_split:Nnn \l_tmpa_seq { \\\\ } { #2 }
+  \seq_map_inline:Nn \l_tmpa_seq
+  {
+    \tl_if_blank:nF { ##1 }
+    {
+      \seq_set_split:Nnn \l_tmpb_seq { & } { ##1 }
+      \tl_set:Nx \l_tmpb_tl { \seq_item:Nn \l_tmpb_seq { 1 } }
+      \tl_remove_once:Nn \l_tmpb_tl { ~ }
+      \item[ \l_tmpb_tl ] \seq_item:Nn \l_tmpb_seq { 2 }
+    }
+  }
+  \end{ldescription}
+}
+\ExplSyntaxOff
+}}
+}
+
+\section{\hr\hr OoprBreakpointsFunction}{
+
+\subsection{Description}{
 Represents a function object inside a class.
-
-Check whether \verb{$srcref} matches the source file.
-
-Check whether a line number is inside the function.
-
-Get the steps of the function required to reach a line number.
-
-Set breakpoints inside the class, and any class instances.
-
-Represents a class inside a file.
-
-Check if the class contains a function and/or a line.
-
-Check if a function is in sync.
-
-Get the steps required to get to a line in a function.
-
-Set breakpoints for a function in the class.
-
-Represents a source file that contains \code{oopr} classes.
-
-Check if the source file has been modified, if so reload the classes.
-
-Check if any class inside the file contains a function and/or a line.
-
-Check if a function within the classes is in sync with the source file.
-
-Get the steps of multiple lines across the file.
-
-Set breakpoints for a function across classes.
-
-The controller of the breakpoints. Process of setting a breakpoint is:
-\enumerate{
-\item Check the function is in sync.
-\item Get the steps of the functions body to arrive at a line.
-\item Get the environment that the function is assigned to.
-\item Set the breakpoints into the function.
-Only steps 3 & 4 are conducted when unsetting a breakpoint.
 }
 
-RStudio maintains its own database for breakpoints and is  recorded by
-file and function name. However, multiple classes in a file could share a
-function name.
-
-Checks whether the srcref matches the file.
-
-Gets the steps required for a line.
-
-Gets the environment of a function.
-
-Sets the breakpoints for a function.
-}
-\details{
-The source file is read, and cut by the positions of \verb{$srcref}.
-
-The srcrefs inside the body of \verb{$fun} is searched to find where the line
-can be found. Steps is the integer position to enter the body of the
-function, e.g. \code{body(fun)[[steps]]}.
-
-If \code{length(steps) == 0L}, then all breakpoints are removed.
-Uses \code{\link[base:trace]{base::trace}} to create a traced function, steps are ordered by
-their depth of nesting so \code{trace} doesn't overwrite its own breakpoints.
-
-The srcref at the requested lines are added to the newly added breakpoints
-to ensure that the line number is available when being hit.
-
-Instances are found (refer \code{./src/breakpoint.cpp}) and they also have
-their functions amended. If the instance becomes out of sync of the
-source file, then its untraced version is set instead.
-
-If the function is not in the class \code{TRUE} is returned.
-
-The trick here is to append the steps with the name of the class. This
-way when receiving them for setting a breakpoints, the class holding the
-function is known.
-
-If \code{length(steps) == 0L}, then all breakpoints are removed.
-
-The first function to be called when setting a breakpoint.
-
-\code{lines} include only the lines to be added.
-
-This is called first when unsetting a breakpoint.
-Returning \code{emptenv()} ensures that the next step is called. This can
-be called multiple times, so I only want to do this once.
-
-The function is fully untraced first, meaning that \code{steps} always
-contains all active breakpoints (except those being removed) plus any
-that are being added. If \code{length(steps) == 0L}, then all breakpoints are
-being removed.
-}
-\section{Fields}{
-
+\subsection{Fields}{
 \describe{
 \item{\code{name}}{\code{character(1L)} \cr
 The name of the function.}
@@ -209,7 +90,148 @@ The srcref for \code{this$fun}.}
 
 \item{\code{breaks}}{\code{integer()} \cr
 Line numbers of actively set breakpoints.}
+}
+}
 
+\subsection{Methods}{
+\describe{
+
+\item{\code{isInSync}}{Check whether \verb{$srcref} matches the source file.}
+
+\item{\code{hasLine}}{Check whether a line number is inside the function.}
+
+\item{\code{getSteps}}{Get the steps of the function required to reach a line number.}
+
+\item{\code{setBreakpoints}}{Set breakpoints inside the class, and any class instances.}
+
+}
+}
+
+\subsection{\hr isInSync}{
+\subsection{Description}{
+Check whether \verb{$srcref} matches the source file.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+isInSync()
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Details}{
+The source file is read, and cut by the positions of \verb{$srcref}.
+}
+
+\subsection{Returns}{
+\code{logical(1L)}.
+}
+}
+
+\subsection{\hr hasLine}{
+\subsection{Description}{
+Check whether a line number is inside the function.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+hasLine(line)
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
+\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
+\tabular{ll}{
+\code{line} \tab \code{integer(1L)} \br
+The line number. \cr
+}
+}
+
+\subsection{Returns}{
+\code{logical(1L)}.
+}
+}
+
+\subsection{\hr getSteps}{
+\subsection{Description}{
+Get the steps of the function required to reach a line number.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+getSteps(line)
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
+\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
+\tabular{ll}{
+\code{line} \tab \code{integer(1L)} \br
+The line number. \cr
+}
+}
+
+\subsection{Details}{
+The srcrefs inside the body of \verb{$fun} is searched to find where the line
+can be found. Steps is the integer position to enter the body of the
+function, e.g. \code{body(fun)[[steps]]}.
+}
+
+\subsection{Returns}{
+\code{character(1L)} of the steps separated by \verb{,}. \code{line} is also saved
+inside a private member for \verb{$breaks} to return line numbers set.
+}
+}
+
+\subsection{\hr setBreakpoints}{
+\subsection{Description}{
+Set breakpoints inside the class, and any class instances.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+setBreakpoints(steps = character())
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
+\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
+\tabular{ll}{
+\code{steps} \tab \code{character()} \br
+Integer positions separated by \verb{,}. \cr
+}
+}
+
+\subsection{Details}{
+If \code{length(steps) == 0L}, then all breakpoints are removed.
+Uses \code{\link[base:trace]{base::trace}} to create a traced function, steps are ordered by
+their depth of nesting so \code{trace} doesn't overwrite its own breakpoints.
+
+The srcref at the requested lines are added to the newly added breakpoints
+to ensure that the line number is available when being hit.
+
+Instances are found (refer \code{./src/breakpoint.cpp}) and they also have
+their functions amended. If the instance becomes out of sync of the
+source file, then its untraced version is set instead.
+}
+
+\subsection{Returns}{
+\code{this} invisibly. \code{steps} is also saved inside a private member for
+\verb{$breaks} to return line numbers set.
+}
+}
+}
+
+\section{\hr\hr OoprBreakpointsClass}{
+
+\subsection{Description}{
+Represents a class inside a file.
+}
+
+\subsection{Fields}{
+\describe{
 \item{\code{name}}{\code{character(1L)} \cr
 The name of the class.}
 
@@ -218,7 +240,158 @@ The \code{ooprC} object.}
 
 \item{\code{functions}}{\code{OoprBreakpointsFunction[[]]} \cr
 An array of each function inside the class.}
+}
+}
 
+\subsection{Methods}{
+\describe{
+
+\item{\code{has}}{Check if the class contains a function and/or a line.}
+
+\item{\code{isInSync}}{Check if a function is in sync.}
+
+\item{\code{getSteps}}{Get the steps required to get to a line in a function.}
+
+\item{\code{setBreakpoints}}{Set breakpoints for a function in the class.}
+
+}
+}
+
+\subsection{\hr has}{
+\subsection{Description}{
+Check if the class contains a function and/or a line.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+has(name, line = integer(0L))
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
+\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
+\tabular{ll}{
+\code{name} \tab \code{character(1L)} \br
+Name of a function to search for. \cr
+\code{line} \tab \code{integer(1L)} \br
+Optionally, a line that the function should contain. \cr
+}
+}
+
+\subsection{Returns}{
+\code{logical(1L)}.
+}
+}
+
+\subsection{\hr isInSync}{
+\subsection{Description}{
+Check if a function is in sync.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+isInSync(name)
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
+\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
+\tabular{ll}{
+\code{name} \tab \code{character(1L)} \br
+The name of the function. \cr
+}
+}
+
+\subsection{Details}{
+If the function is not in the class \code{TRUE} is returned.
+}
+
+\subsection{Returns}{
+\code{logical(1L)}.
+}
+}
+
+\subsection{\hr getSteps}{
+\subsection{Description}{
+Get the steps required to get to a line in a function.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+getSteps(name, line)
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
+\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
+\tabular{ll}{
+\code{name} \tab \code{character(1L)} \br
+Then name of the function. \cr
+\code{line} \tab \code{integer(1L)} \br
+The line number. \cr
+}
+}
+
+\subsection{Details}{
+The trick here is to append the steps with the name of the class. This
+way when receiving them for setting a breakpoints, the class holding the
+function is known.
+}
+
+\subsection{Returns}{
+\code{list(name = character(1L), line = integer(1L), at = character(1L))}.
+\code{at} is in the form \code{"class:steps"}, where \code{steps} are the integer
+position of the function body, separated by \verb{,}. If no steps can be
+found, then \code{list()} is returned.
+}
+}
+
+\subsection{\hr setBreakpoints}{
+\subsection{Description}{
+Set breakpoints for a function in the class.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+setBreakpoints(
+  name 
+ ,steps = character(0L)
+)
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
+\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
+\tabular{ll}{
+\code{name} \tab \code{character(1L)} \br
+Then name of the function. \cr
+\code{steps} \tab \code{character()} \br
+Integer positions separated by \verb{,}. \cr
+}
+}
+
+\subsection{Details}{
+If \code{length(steps) == 0L}, then all breakpoints are removed.
+}
+
+\subsection{Returns}{
+\code{this} invisibly.
+}
+}
+}
+
+\section{\hr\hr OoprBreakpointsFile}{
+
+\subsection{Description}{
+Represents a source file that contains \code{oopr} classes.
+}
+
+\subsection{Fields}{
+\describe{
 \item{\code{file}}{\code{character(1L)} \cr
 The name of the source file.}
 
@@ -227,15 +400,350 @@ The last time the source file was read.}
 
 \item{\code{classes}}{\code{OoprBreakpointsClass[[]]} \cr
 The classes defined inside the source file.}
+}
+}
 
+\subsection{Methods}{
+\describe{
+
+\item{\code{syncClassesWithFile}}{Check if the source file has been modified, if so reload the classes.}
+
+\item{\code{has}}{Check if any class inside the file contains a function and/or a line.}
+
+\item{\code{isInSync}}{Check if a function within the classes is in sync with the source file.}
+
+\item{\code{getSteps}}{Get the steps of multiple lines across the file.}
+
+\item{\code{setBreakpoints}}{Set breakpoints for a function across classes.}
+
+}
+}
+
+\subsection{\hr syncClassesWithFile}{
+\subsection{Description}{
+Check if the source file has been modified, if so reload the classes.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+syncClassesWithFile(env)
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
+\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
+\tabular{ll}{
+\code{env} \tab \code{environment} \br
+The environment that holds the class definitions. Either a
+package namespace or the global environment. \cr
+}
+}
+
+\subsection{Returns}{
+\code{this} invisibly.
+}
+}
+
+\subsection{\hr has}{
+\subsection{Description}{
+Check if any class inside the file contains a function and/or a line.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+has(name, line = integer(0L))
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
+\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
+\tabular{ll}{
+\code{name} \tab \code{character(1L)} \br
+Name of a function to search for. \cr
+\code{line} \tab \code{integer(1L)} \br
+Optionally, a line that the function should contain. \cr
+}
+}
+
+\subsection{Returns}{
+Named \code{logical()} the same length as \verb{$classes}, indicating which class
+holds the function and/or line. If only \code{name} is provided, can have
+more than one \code{TRUE}.
+}
+}
+
+\subsection{\hr isInSync}{
+\subsection{Description}{
+Check if a function within the classes is in sync with the source file.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+isInSync(name)
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
+\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
+\tabular{ll}{
+\code{name} \tab \code{character(1L)} \br
+Name of a function to search for. \cr
+}
+}
+
+\subsection{Returns}{
+\code{logical(1L)}.
+}
+}
+
+\subsection{\hr getSteps}{
+\subsection{Description}{
+Get the steps of multiple lines across the file.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+getSteps(name, lines)
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
+\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
+\tabular{ll}{
+\code{name} \tab \code{character(1L)} \br
+Name of a function to search for. \cr
+\code{lines} \tab \code{list(integer(1L))} \br
+A list of line numbers. \cr
+}
+}
+
+\subsection{Returns}{
+A list the same length of \code{lines}, containing further lists in the form:
+\code{list(name = character(1L), line = integer(1L), at = character(1L))}.
+Lines that cannot be found are returned as \code{list()}.
+}
+}
+
+\subsection{\hr setBreakpoints}{
+\subsection{Description}{
+Set breakpoints for a function across classes.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+setBreakpoints(
+  name   
+ ,classes = character(0L)
+ ,steps   = character(0L)
+)
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
+\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
+\tabular{ll}{
+\code{name} \tab \code{character(1L)} \br
+Name of a function to search for. \cr
+\code{classes} \tab \code{character()} \br
+The classes to set breakpoints for. If
+\code{length(classes) == 0L}, then all classes. \cr
+\code{steps} \tab \code{character()} \br
+The steps to set the breakpoints at. If
+\code{length(classes) == 0L}, then all breakpoints are
+removed. \cr
+}
+}
+
+\subsection{Returns}{
+\code{this} invisibly.
+}
+}
+}
+
+\section{\hr\hr OoprBreakpoints}{
+
+\subsection{Description}{
+The controller of the breakpoints. Process of setting a breakpoint is:
+\enumerate{
+\item Check the function is in sync.
+\item Get the steps of the functions body to arrive at a line.
+\item Get the environment that the function is assigned to.
+\item Set the breakpoints into the function.
+Only steps 3 & 4 are conducted when unsetting a breakpoint.
+}
+
+RStudio maintains its own database for breakpoints and is  recorded by
+file and function name. However, multiple classes in a file could share a
+function name.
+}
+
+\subsection{Fields}{
+\describe{
 \item{\code{files}}{\code{OoprBreakpointsFile[[]]} \cr
 The source files that have/had breakpoints.}
-}}
-
-\seealso{
-\code{.rs.isFunctionInSyncImpl}
-\code{.rs.getUntracedFunction}
-\code{.rs.getEnvironmentOfFunction}
-
-\code{.rs.getFunctionSteps}
 }
+}
+
+\subsection{Methods}{
+\describe{
+
+\item{\code{isFunctionInSync}}{Checks whether the srcref matches the file.}
+
+\item{\code{getFunctionSteps}}{Gets the steps required for a line.}
+
+\item{\code{getEnvironmentOfFunction}}{Gets the environment of a function.}
+
+\item{\code{setFunctionBreakpoints}}{Sets the breakpoints for a function.}
+
+}
+}
+
+\subsection{\hr isFunctionInSync}{
+\subsection{Description}{
+Checks whether the srcref matches the file.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+isFunctionInSync(name, file, pkg)
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
+\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
+\tabular{ll}{
+\code{name} \tab \code{character(1L)} \br
+Name of the function. \cr
+\code{file} \tab \code{character(1L)} \br
+Path of the file. \cr
+\code{pkg} \tab \code{character(1L)} \br
+The name of the package, or \code{"R_GlobalEnv"}. \cr
+}
+}
+
+\subsection{Details}{
+The first function to be called when setting a breakpoint.
+}
+
+\subsection{Returns}{
+\code{logical(1L)}
+}
+}
+
+\subsection{\hr getFunctionSteps}{
+\subsection{Description}{
+Gets the steps required for a line.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+getFunctionSteps(name, file, pkg, lines)
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
+\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
+\tabular{ll}{
+\code{name} \tab \code{character(1L)} \br
+Name of the function. \cr
+\code{file} \tab \code{character(1L)} \br
+Path of the file. \cr
+\code{pkg} \tab \code{character(1L)} \br
+The name of the package, or \code{"R_GlobalEnv"}. \cr
+\code{lines} \tab \code{list()} \br
+A list of \code{integer(1L)} of the line numbers. \cr
+}
+}
+
+\subsection{Details}{
+\code{lines} include only the lines to be added.
+}
+
+\subsection{Returns}{
+\code{list(name =, line =, at = )} - \code{at} should be separated by \verb{,}.
+}
+}
+
+\subsection{\hr getEnvironmentOfFunction}{
+\subsection{Description}{
+Gets the environment of a function.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+getEnvironmentOfFunction(
+  name
+ ,file
+ ,pkg 
+)
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
+\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
+\tabular{ll}{
+\code{name} \tab \code{character(1L)}
+Name of the function. \cr
+\code{file} \tab \code{character(1L)} \br
+Path of the file. \cr
+\code{pkg} \tab \code{character(1L)} \br
+The name of the package, or \code{"R_GlobalEnv"}. \cr
+}
+}
+
+\subsection{Details}{
+This is called first when unsetting a breakpoint.
+Returning \code{emptenv()} ensures that the next step is called. This can
+be called multiple times, so I only want to do this once.
+}
+
+\subsection{Returns}{
+\code{environment}
+}
+}
+
+\subsection{\hr setFunctionBreakpoints}{
+\subsection{Description}{
+Sets the breakpoints for a function.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+setFunctionBreakpoints(name, env, steps)
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
+\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
+\tabular{ll}{
+\code{name} \tab \code{character(1L)}
+Name of the function. \cr
+\code{env} \tab \code{character(1L)} \br
+The environment that holds function \code{name}. \cr
+\code{steps} \tab \code{list()} \br
+A list of \code{character(1L)} of breakpoints to set. \cr
+}
+}
+
+\subsection{Details}{
+The function is fully untraced first, meaning that \code{steps} always
+contains all active breakpoints (except those being removed) plus any
+that are being added. If \code{length(steps) == 0L}, then all breakpoints are
+being removed.
+}
+
+\subsection{Returns}{
+\code{functionName}
+}
+}
+}
+

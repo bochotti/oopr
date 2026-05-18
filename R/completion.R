@@ -178,7 +178,7 @@ private:
   env_  <- emptyenv();
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-})
+}) ## OoprCompletionSource
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 
 
@@ -206,6 +206,7 @@ public:
   isAvailable <- \( )
   {
     if(!this$rStudioIsAvailable())                          return(FALSE);
+    if(!iscall(sys.call(1L), ".rs.rpc.get_completions"))    return(FALSE);
     for(i in rev(seq_len(sys.nframe())))
     {
       if(iscall(sys.call(i), ".rs.getCompletionType"))      return(FALSE);
@@ -230,6 +231,7 @@ private:
       && identical(.Platform$GUI, "RStudio")
     );
   }
+  get:rstudioapi     <- \( ) { return(getNamespace("rstudioapi")); }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   getItems <- \(pos)
@@ -238,9 +240,7 @@ private:
     env     <- sys.frame(pos - 1L);
     id      <- env$documentId;
     if(!nzchar(id))                                            return(FALSE);
-    # context <- rstudioapi::getSourceEditorContext(id);
-    fun <- get("getSourceEditorContext", envir = getNamespace("rstudioapi"));
-    context <- fun(id);
+    context <- this$rstudioapi$getSourceEditorContext(id);
     if(is.null(context))                                       return(FALSE);
     this$load(
       env    = env$envir
@@ -253,7 +253,7 @@ private:
   }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-})
+}) ## OoprCompletionRStudio
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 
 
@@ -493,7 +493,7 @@ private:
   }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-})
+}) ## OoprCompletion
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 
 
@@ -652,17 +652,17 @@ private:
 
   }
 
-})
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+}) ## OoprCompletionHelp
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 help_formals_handler.oopr <- \(topic, source)
 {
   if(is.oopr(source, "oopr_this"))
   {
-    comp <- OoprCompletion();
-    source <- if(comp$isCompletion()) comp$obj() else stop();
-    if(is.null(source)) stop();
+    comp   <- OoprCompletion();
+    source <- if(comp$isCompletion()) comp$obj() %||% stop() else stop();
   }
   formals <- sprintf("%s = ", names(formals(.subset2(source, topic))));
   help    <- OoprCompletionHelp@encl$.this$makeHelpHandler(source);

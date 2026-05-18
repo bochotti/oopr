@@ -12,72 +12,190 @@ OoprCompletionRStudio()
 
 OoprCompletion()
 }
-\arguments{
-\item{env}{\code{environment} \cr
-The environment which acts as the parent of oopr classes.}
-
-\item{file}{\code{character(1L)} \cr
-File path to the source file containing the oopr class. If
-it does not exist, \code{text} will be sufficient.}
-
-\item{text}{\code{character()} \cr
-The text containing lines of the source file. If \code{NULL} and
-\code{file} exists, then its lines are read.}
-
-\item{row}{\code{integer(1L)} \cr
-Text cursor position of the line number, indexed by 1.}
-
-\item{col}{\code{integer(1L)} \cr
-Text cursor position of column on the line, indexed by 1.}
-}
-\value{
-\code{logical(1L)}.
-
-\code{this} invisibly.
-
-\code{this} invisibly.
-
-\code{logical(1L)}.
-
-\code{logical(1L)}.
-
-\code{character()} of names.
-
-\code{varies}.
-}
 \description{
-A virtual class that can be inherited to use as a completion identifier.
-
-Check if the call is currently a completion.
-
-Load the completion context into the class.
-
-Source the file being completed.
-
-Use completion in RStudio.
-
-Pull information from the \code{.rs.rpc_get_completions} call.
-
-Use completion.
-
-Is completion being sought?
-
-Get the dollar names of the completion context.
-
-Get the object of the completion context.
+Completion for oopr internals
 }
-\details{
+\section{}{
+\newcommand{\br}{\if{html}{\out{<br>}}\if{latex}{\out{\newline}}}
+\newcommand{\hr}{\if{html}{\out{<hr>}}\if{latex}{\out{\hrule}}}
+\if{latex}{\out{
+\ExplSyntaxOn
+\cs_gset:Npn \Tabularr #1 #2
+{
+  \begin{ldescription}
+  \seq_set_split:Nnn \l_tmpa_seq { \\\\ } { #2 }
+  \seq_map_inline:Nn \l_tmpa_seq
+  {
+    \tl_if_blank:nF { ##1 }
+    {
+      \seq_set_split:Nnn \l_tmpb_seq { & } { ##1 }
+      \tl_set:Nx \l_tmpb_tl { \seq_item:Nn \l_tmpb_seq { 1 } }
+      \tl_remove_once:Nn \l_tmpb_tl { ~ }
+      \item[ \l_tmpb_tl ] \seq_item:Nn \l_tmpb_seq { 2 }
+    }
+  }
+  \end{ldescription}
+}
+\ExplSyntaxOff
+}}
+}
+
+\section{\hr\hr OoprCompletionSource}{
+
+\subsection{Description}{
+A virtual class that can be inherited to use as a completion identifier.
+}
+
+\subsection{Fields}{
+\describe{
+\item{\code{env}}{\code{environment} \cr
+The environment provided to \verb{$load}.}
+}
+}
+
+\subsection{Methods}{
+\describe{
+
+\item{\code{isAvailable}}{Check if the call is currently a completion.}
+
+\item{\code{load}}{Load the completion context into the class.}
+
+\item{\code{source}}{Source the file being completed.}
+
+}
+}
+
+\subsection{\hr isAvailable}{
+\subsection{Description}{
+Check if the call is currently a completion.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+isAvailable()
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Details}{
 This method should check the call stack to ensure the appropriate
 completion call is being made above. It should also use the \verb{$load}
 method.
+}
 
+\subsection{Returns}{
+\code{logical(1L)}.
+}
+}
+
+\subsection{\hr load}{
+\subsection{Description}{
+Load the completion context into the class.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+load(
+  env  = globalenv()
+ ,file
+ ,text = NULL
+ ,row 
+ ,col 
+)
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
+\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
+\tabular{ll}{
+\code{env} \tab \code{environment} \br
+The environment which acts as the parent of oopr classes. \cr
+\code{file} \tab \code{character(1L)} \br
+File path to the source file containing the oopr class. If
+it does not exist, \code{text} will be sufficient. \cr
+\code{text} \tab \code{character()} \br
+The text containing lines of the source file. If \code{NULL} and
+\code{file} exists, then its lines are read. \cr
+\code{row} \tab \code{integer(1L)} \br
+Text cursor position of the line number, indexed by 1. \cr
+\code{col} \tab \code{integer(1L)} \br
+Text cursor position of column on the line, indexed by 1. \cr
+}
+}
+
+\subsection{Details}{
 Cannot be over-ridden. This is used inside \code{OoprCompletion} class.
+}
 
+\subsection{Returns}{
+\code{this} invisibly.
+}
+}
+
+\subsection{\hr source}{
+\subsection{Description}{
+Source the file being completed.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+source()
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Details}{
 Cannot be over-ridden. This is used inside \code{OoprCompletion} class.
+}
 
+\subsection{Returns}{
+\code{this} invisibly.
+}
+}
+}
+
+\section{\hr\hr OoprCompletionRStudio}{
+
+\subsection{Description}{
+Use completion in RStudio.
+}
+
+\subsection{Methods}{
+\describe{
+
+\item{\code{isAvailable}}{Pull information from the \code{.rs.rpc_get_completions} call.}
+
+}
+}
+
+\subsection{\hr isAvailable}{
+\subsection{Description}{
+Pull information from the \code{.rs.rpc_get_completions} call.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+isAvailable()
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Details}{
 Specifically pulls the rstudio \code{id} for the completion which contains
 the file path, row and column.
+}
 
+\subsection{Returns}{
+\code{logical(1L)}.
+}
+}
+}
+
+\section{\hr\hr OoprCompletion}{
+
+\subsection{Description}{
+Use completion.
+}
+
+\subsection{Details}{
 Completion call on an object is in the form \verb{this$a$b$}. The trick here
 is to check whether the text cursor is inside a class in the source file.
 If so, collect that information and skip over everything before the last
@@ -86,19 +204,10 @@ dollar.
 When the last dollar is reached, \code{.DollarNames} is called on \code{oopr_this}
 object, which then fires the \code{names} method below. The evaluation context
 \code{this$a$b} is found, and \code{.DollarNames} provided.
-
-Checks the \code{source} member as to whether the \code{$} or \code{.DollarNames} calls
-are within a completion context. If so, then the file is parsed,
-\code{oopr} class constructor collected, and \verb{$isCompleting} set to \code{TRUE}.
-
-Used within \code{.rs.rpc.get_custom_parameter_help}.
 }
-\section{Fields}{
 
+\subsection{Fields}{
 \describe{
-\item{\code{env}}{\code{environment} \cr
-The environment provided to \verb{$load}.}
-
 \item{\code{isCompleting}}{\code{logical(1L)} \cr
 Whether completion is currently in place. This will
 skip over each \code{$} call in the evaluation context.}
@@ -111,6 +220,78 @@ more than just public static members.}
 \item{\code{source}}{\code{OoprCompletionSource} \cr
 A instanced class advising whether completion is being
 sought.}
-}}
+}
+}
+
+\subsection{Methods}{
+\describe{
+
+\item{\code{isCompletion}}{Is completion being sought?}
+
+\item{\code{names}}{Get the dollar names of the completion context.}
+
+\item{\code{obj}}{Get the object of the completion context.}
+
+}
+}
+
+\subsection{\hr isCompletion}{
+\subsection{Description}{
+Is completion being sought?
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+isCompletion()
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Details}{
+Checks the \code{source} member as to whether the \code{$} or \code{.DollarNames} calls
+are within a completion context. If so, then the file is parsed,
+\code{oopr} class constructor collected, and \verb{$isCompleting} set to \code{TRUE}.
+}
+
+\subsection{Returns}{
+\code{logical(1L)}.
+}
+}
+
+\subsection{\hr names}{
+\subsection{Description}{
+Get the dollar names of the completion context.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+names()
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Returns}{
+\code{character()} of names.
+}
+}
+
+\subsection{\hr obj}{
+\subsection{Description}{
+Get the object of the completion context.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+obj()
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Details}{
+Used within \code{.rs.rpc.get_custom_parameter_help}.
+}
+
+\subsection{Returns}{
+\code{varies}.
+}
+}
+}
 
 \keyword{internal}

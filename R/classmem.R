@@ -136,7 +136,7 @@ classmem_get_containers <- \(meta, this)
     )
   for(nm in names(contain))
   {
-    if(!meta$subs("class", names = nm)) next;
+    if(any(!meta$subs("class", names = nm))) next;
     obj <- this[[nm]];
     contain[[nm]] <- if(meta$subs("static", names = nm))
     {

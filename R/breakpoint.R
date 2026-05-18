@@ -810,7 +810,7 @@ public:
   #' @description
   #' Checks whether the srcref matches the file.
   #'
-  #' @param name `character(1L)`
+  #' @param name `character(1L)` \cr
   #'             Name of the function.
   #'
   #' @param file `character(1L)` \cr

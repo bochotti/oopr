@@ -6,7 +6,7 @@
 \alias{this}
 \title{Completion for oopr}
 \format{
-An object of class \code{oopr_this} of length 0.
+An object of class \code{oopr_this} (inherits from \code{oopr}) of length 0.
 }
 \usage{
 this

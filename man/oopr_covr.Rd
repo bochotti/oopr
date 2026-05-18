@@ -7,31 +7,83 @@
 \usage{
 OoprCovr()
 }
-\arguments{
-\item{ooprC}{\code{ooprC} \cr
-\code{ooprC} object.}
-
-\item{file}{\code{character(1L)} \cr
-The path to a test file. If \code{NULL}, then it is guessed.}
-
-\item{report}{\code{logical(1L)} \cr
-Whether to run \code{\link[covr:report]{covr::report}}.}
-}
-\value{
-An object of class \code{coverage}.
-}
 \description{
 Include \code{oopr} classes in package coverage, or test the coverage of a
 single class.
-
-Test a single class.
 }
 \details{
 For package coverage, write code to initialize this class inside
 \code{./tests/testthat/setup.R}
+}
+\section{}{
+\newcommand{\br}{\if{html}{\out{<br>}}\if{latex}{\out{\newline}}}
+\newcommand{\hr}{\if{html}{\out{<hr>}}\if{latex}{\out{\hrule}}}
+\if{latex}{\out{
+\ExplSyntaxOn
+\cs_gset:Npn \Tabularr #1 #2
+{
+  \begin{ldescription}
+  \seq_set_split:Nnn \l_tmpa_seq { \\\\ } { #2 }
+  \seq_map_inline:Nn \l_tmpa_seq
+  {
+    \tl_if_blank:nF { ##1 }
+    {
+      \seq_set_split:Nnn \l_tmpb_seq { & } { ##1 }
+      \tl_set:Nx \l_tmpb_tl { \seq_item:Nn \l_tmpb_seq { 1 } }
+      \tl_remove_once:Nn \l_tmpb_tl { ~ }
+      \item[ \l_tmpb_tl ] \seq_item:Nn \l_tmpb_seq { 2 }
+    }
+  }
+  \end{ldescription}
+}
+\ExplSyntaxOff
+}}
+}
 
+\section{\hr\hr OoprCovr}{
+
+\subsection{Methods}{
+\describe{
+
+\item{\code{class}}{Test a single class.}
+
+}
+}
+
+\subsection{\hr class}{
+\subsection{Description}{
+Test a single class.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+class(ooprC, file = NULL, report = TRUE)
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
+\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
+\tabular{ll}{
+\code{ooprC} \tab \code{ooprC} \br
+\code{ooprC} object. \cr
+\code{file} \tab \code{character(1L)} \br
+The path to a test file. If \code{NULL}, then it is guessed. \cr
+\code{report} \tab \code{logical(1L)} \br
+Whether to run \code{\link[covr:report]{covr::report}}. \cr
+}
+}
+
+\subsection{Details}{
 \code{file} guessing assumes \code{testhat} is being used in a "local" package.
 }
+
+\subsection{Returns}{
+An object of class \code{coverage}.
+}
+}
+}
+
 \examples{
 \dontrun{
 # ./tests/testthat/setup.R

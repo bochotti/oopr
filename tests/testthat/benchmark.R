@@ -13,7 +13,7 @@ public = list(
 })
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 OPq <- quote({
-oopr("OP",,
+oopr::oopr("OP",,
 {
 OP <- \(x = 1) { this$x <- x; }
 public:
@@ -43,7 +43,7 @@ microbenchmark::microbenchmark(
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 microbenchmark::microbenchmark(
   R6 = R6I <- R6::R6Class("R6I", inherit = R6)
- ,OP = oopr("OPI", public:OP, {})
+ ,OP = oopr::oopr("OPI", public:OP, {})
 )
 
 lobstr::obj_sizes(R6I, OPI)

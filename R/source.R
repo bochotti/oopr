@@ -290,7 +290,14 @@ public:
     text  <- paste(this$text, collapse = '\n');
     parts <- .Call(Cpp_eval_context, text, this$row, this$col);
     text  <- this$replaceThis(text, parts);
-    text  <- this$collectCall(text, parts[[1L]] %||% parts[[2L]]);
+    if(length(parts) > 1)
+    {
+      text  <- this$collectCall(text, parts[[1L]] %||% parts[[2L]]);
+    }
+    else
+    {
+      text  <- this$collectCall(text, parts[[1L]]);
+    }
     this$text <- text <- strsplit(text, '\n')[[1L]];
     this$tryParse(
       # , # add { ... } after control flows

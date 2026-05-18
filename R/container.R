@@ -8,7 +8,7 @@
 #'              An `oopr` constructor object.
 #'
 #' @examples
-#' ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' oopr("test",,
 #' {
 #' test <- \(x) { this$x <- x; }
@@ -20,14 +20,14 @@ NULL
 #' @rdname oopr_containers
 #' @export
 #' @examples
-#' ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' # create a vector
 #' vec <- OoprVec(test);
 #'
-#' # $emplace will pass create a new instance
+#' # $emplace create a new instance
 #' vec$emplace(, 1L);
 #'
-#' # $insert takes an existing class instance
+#' # $insert passes existing instance
 #' vec$insert(0L, test(2L));
 #'
 #' print(vec);
@@ -36,9 +36,9 @@ NULL
 #' vec$swap(2L, 1L);
 #' print(vec);
 #'
-#' # $apply can be used to loop over instances
-#' vec$apply(\(obj) { obj$x <- obj$x + 1L; })
-#' vec$apply(\(obj) { obj$x; })
+#' # $apply to loop over instances
+#' vec$apply(\(x) { x$x <- x$x + 1L; })
+#' vec$apply(\(x) { x$x; })
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 oopr("OoprVec",,
 {
@@ -115,6 +115,9 @@ public:
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @description TEST
+  #' @param a_super_long_argument_name a
+  #' @param another_super_long_argument_name a
   apply <- \(fun, ...)
   {
     return(lapply(this$data_, fun, ...));
@@ -170,7 +173,9 @@ private:
     });
     return(all(as.logical(test)));
   }
-})
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+}) ## OoprVec
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 
 
@@ -179,7 +184,7 @@ private:
 #' @rdname oopr_containers
 #' @export
 #' @examples
-#' ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' # create a key-value pair
 #' map <- OoprMap(test);
 #' map$emplace("a", "a")$emplace("b", "b");
@@ -291,5 +296,7 @@ private:
   }
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   isIdentical <- OoprVec@encl$this$isIdentical;
-})
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+}) ## OoprMap
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##

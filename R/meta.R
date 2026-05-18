@@ -5,7 +5,7 @@
 vector <- \(mode, size = 0L)
 {
   data <- base::vector(mode, size);
-  rm(mode, size);
+  rm(list = c("mode", "size"), envir = environment());
   makeActiveBinding("size", \( ) { return(length(data)); }, environment());
   get  <- \(i)    { return(data[i]); }
   set  <- \(i, x) { data[i] <<- x; }
@@ -20,7 +20,7 @@ vector <- \(mode, size = 0L)
     lockEnvironment(this, bindings = TRUE);
     return(this);
   }
-  return(structure(environment(), class = "oopr_vector"));
+  return(`class<-`(environment(), "oopr_vector"));
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##

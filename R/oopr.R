@@ -43,52 +43,58 @@
 #' **DO NOT** use an assignment operator.
 #'
 #' @examples
-#' ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' #  human as a class
-#' ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' oopr("human",,
 #' {
-#' ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' human <- \(first, last, age)
 #' {
 #'   stopifnot(
-#'     this$isScalar(first, "character")
-#'    ,this$isScalar(last,  "character")
-#'    ,this$isScalar(age,   "integer")
+#'     this$isScalar("character", first)
+#'    ,this$isScalar("character", last)
+#'    ,this$isScalar("integer"  , age)
 #'   );
 #'   this$first_ <- first;
 #'   this$last_  <- last;
 #'   this$age_   <- age;
 #' }
-#' ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' public:
-#'   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#'   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #'   get:name <- \( )
 #'   {
-#'     sprintf("%s %s", this$first_, this$last_)
+#'     return(sprintf(
+#'       "%s %s", this$first_, this$last_
+#'     ));
 #'   }
-#'   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#'   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #'   greet <- \( )
 #'   {
 #'     cat(sprintf(
-#'       "Hello, my name is %s %s, aged %i.\n"
-#'      ,this$first_, this$last_, this$age_
+#'       "Hello, my name is %s, aged %i.\n"
+#'      ,this$name, this$age_
 #'     ));
 #'     return(invisible(this));
 #'   }
-#' ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' private:
 #'   first_ <- character(1L);
 #'   last_  <- character(1L);
 #'   age_   <- integer(0L);
-#'   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-#'   isScalar <- \(x, type)
+#'   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#'   isScalar <- \(type, x)
 #'   {
-#'     typeof(x) == type && length(x) == 1L;
+#'     return(
+#'          length(x) == 1L
+#'       && typeof(x) == type
+#'     );
 #'   }
-#' ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-#' })
-#' ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' }) ## human
+#' ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#'
 #' john <- human("john", "smith", 50L);
 #' print(john);
 #' john$greet();
@@ -198,7 +204,6 @@ str.oopr <- \(
       x <- x@original;
     }
     NextMethod();
-    # str.function(x@original, ...);
   }
 
   out <- capture.output({
@@ -225,7 +230,7 @@ str.oopr <- \(
         obj <- tryCatch(object[[nms[i]]], error = identity);
         if(inherits(obj, "error")) { cat("<error>\n"); next; }
         pre <- sprintf("%s%s%s", indent.str, ind, strrep(' ', len));
-        str(
+        tryCatch(error = \(e) cat("?\n"), str(
           obj
          ,max.level    = max.level
          ,give.attr    = give.attr
@@ -234,7 +239,8 @@ str.oopr <- \(
          ,indent.str   = pre
          ,comp.str     = comp.str
          ,strict.width = strict.width
-        );
+         ,...
+        ));
       }
     }
   });

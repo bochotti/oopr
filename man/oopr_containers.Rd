@@ -29,21 +29,118 @@ An \code{oopr} constructor object.}
 \description{
 Create a vector or key-value pair of \code{oopr} instances.
 }
+\section{}{
+\newcommand{\br}{\if{html}{\out{<br>}}\if{latex}{\out{\newline}}}
+\newcommand{\hr}{\if{html}{\out{<hr>}}\if{latex}{\out{\hrule}}}
+\if{latex}{\out{
+\ExplSyntaxOn
+\cs_gset:Npn \Tabularr #1 #2
+{
+  \begin{ldescription}
+  \seq_set_split:Nnn \l_tmpa_seq { \\\\ } { #2 }
+  \seq_map_inline:Nn \l_tmpa_seq
+  {
+    \tl_if_blank:nF { ##1 }
+    {
+      \seq_set_split:Nnn \l_tmpb_seq { & } { ##1 }
+      \tl_set:Nx \l_tmpb_tl { \seq_item:Nn \l_tmpb_seq { 1 } }
+      \tl_remove_once:Nn \l_tmpb_tl { ~ }
+      \item[ \l_tmpb_tl ] \seq_item:Nn \l_tmpb_seq { 2 }
+    }
+  }
+  \end{ldescription}
+}
+\ExplSyntaxOff
+}}
+}
+
+\section{\hr\hr OoprVec}{
+
+\subsection{Methods}{
+\describe{
+
+\item{\code{apply}}{TEST}
+
+\item{\code{[}}{}
+
+\item{\code{[<-}}{}
+
+}
+}
+
+\subsection{\hr apply}{
+\subsection{Description}{
+TEST
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+apply(fun, ...)
+}\if{html}{\out{</code></pre>}}
+}
+}
+
+\subsection{\hr [}{
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+[(i, j, ..., drop)
+}\if{html}{\out{</code></pre>}}
+}
+}
+
+\subsection{\hr [<-}{
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+[<-(i, j, ..., value)
+}\if{html}{\out{</code></pre>}}
+}
+}
+}
+
+\section{\hr\hr OoprMap}{
+
+\subsection{Methods}{
+\describe{
+
+\item{\code{[}}{}
+
+\item{\code{[<-}}{}
+
+}
+}
+
+\subsection{\hr [}{
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+[(i, j, ..., drop)
+}\if{html}{\out{</code></pre>}}
+}
+}
+
+\subsection{\hr [<-}{
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+[<-(i, j, ..., value)
+}\if{html}{\out{</code></pre>}}
+}
+}
+}
+
 \examples{
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 oopr("test",,
 {
 test <- \(x) { this$x <- x; }
 public:x <- 0L;
 })
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 # create a vector
 vec <- OoprVec(test);
 
-# $emplace will pass create a new instance
+# $emplace create a new instance
 vec$emplace(, 1L);
 
-# $insert takes an existing class instance
+# $insert passes existing instance
 vec$insert(0L, test(2L));
 
 print(vec);
@@ -52,10 +149,10 @@ print(vec);
 vec$swap(2L, 1L);
 print(vec);
 
-# $apply can be used to loop over instances
-vec$apply(\(obj) { obj$x <- obj$x + 1L; })
-vec$apply(\(obj) { obj$x; })
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+# $apply to loop over instances
+vec$apply(\(x) { x$x <- x$x + 1L; })
+vec$apply(\(x) { x$x; })
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 # create a key-value pair
 map <- OoprMap(test);
 map$emplace("a", "a")$emplace("b", "b");

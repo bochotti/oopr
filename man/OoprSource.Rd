@@ -9,53 +9,41 @@ OoprSource()
 
 OoprSourceTry(file = NULL, text = NULL, row = NULL, col = NULL)
 }
-\arguments{
-\item{top}{\code{environment} \cr
-An environment to be the top-level of the \code{oopr} objects.}
-}
-\value{
-Saves the entire parse to \verb{$expr} and the \code{oopr} calls to \verb{$defs}.
-
-Saves the \code{oopr} objects to \verb{$objs}.
-
-See \code{OoprSource$parse()}.
-}
 \description{
+Source files for oopr
+}
+\section{}{
+\newcommand{\br}{\if{html}{\out{<br>}}\if{latex}{\out{\newline}}}
+\newcommand{\hr}{\if{html}{\out{<hr>}}\if{latex}{\out{\hrule}}}
+\if{latex}{\out{
+\ExplSyntaxOn
+\cs_gset:Npn \Tabularr #1 #2
+{
+  \begin{ldescription}
+  \seq_set_split:Nnn \l_tmpa_seq { \\\\ } { #2 }
+  \seq_map_inline:Nn \l_tmpa_seq
+  {
+    \tl_if_blank:nF { ##1 }
+    {
+      \seq_set_split:Nnn \l_tmpb_seq { & } { ##1 }
+      \tl_set:Nx \l_tmpb_tl { \seq_item:Nn \l_tmpb_seq { 1 } }
+      \tl_remove_once:Nn \l_tmpb_tl { ~ }
+      \item[ \l_tmpb_tl ] \seq_item:Nn \l_tmpb_seq { 2 }
+    }
+  }
+  \end{ldescription}
+}
+\ExplSyntaxOff
+}}
+}
+
+\section{\hr\hr OoprSource}{
+
+\subsection{Description}{
 Takes a file and parses the oopr definitions inside it.
-
-Parse \verb{$file} or \verb{$text}.
-
-Evaluate the \code{oopr}s in \verb{$defs}.
-
-Tries to parse and evaluate a file containing ooprs, intended for
-completion.
-
-Try to parse the file.
-}
-\details{
-If \verb{$file} is set, then it acts as the \code{srcfile} of the parsed
-object.
-
-If \verb{$row} & \verb{$col} are set, then evaluation stops at that \code{oopr} call.
-
-When completing, the contents of a file may fail to parse:
-\enumerate{
-\item \code{$} with no rhs, e.g. \verb{this$}
-\item Incomplete control-flow, e.g. \verb{if(i in this$)}
 }
 
-Additionally, evaluation may fail due to member names or method
-signatures:
-\enumerate{
-\item \code{this$mem} instead of \code{this$member}
-\item \code{this$method()} instead of \code{this$method(x = 1L)}
-}
-
-As such, \code{this} (or an inherited class) is replaced with \code{list} so the
-class members are not reference checked.
-}
-\section{Fields}{
-
+\subsection{Fields}{
 \describe{
 \item{\code{file}}{\code{character(1L)} \cr
 An R source file.}
@@ -81,10 +69,126 @@ A named list of \code{oopr} object from \verb{$eval()}.}
 \item{\code{obj}}{\code{ooprC}
 If \verb{$row} and \verb{$col} are set, then the \code{oopr} object that
 is at that location.}
+}
+}
 
+\subsection{Methods}{
+\describe{
+
+\item{\code{parse}}{Parse \verb{$file} or \verb{$text}.}
+
+\item{\code{eval}}{Evaluate the \code{oopr}s in \verb{$defs}.}
+
+}
+}
+
+\subsection{\hr parse}{
+\subsection{Description}{
+Parse \verb{$file} or \verb{$text}.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+parse()
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Details}{
+If \verb{$file} is set, then it acts as the \code{srcfile} of the parsed
+object.
+}
+
+\subsection{Returns}{
+Saves the entire parse to \verb{$expr} and the \code{oopr} calls to \verb{$defs}.
+}
+}
+
+\subsection{\hr eval}{
+\subsection{Description}{
+Evaluate the \code{oopr}s in \verb{$defs}.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+eval(top = globalenv())
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
+\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
+\tabular{ll}{
+\code{top} \tab \code{environment} \br
+An environment to be the top-level of the \code{oopr} objects. \cr
+}
+}
+
+\subsection{Details}{
+If \verb{$row} & \verb{$col} are set, then evaluation stops at that \code{oopr} call.
+}
+
+\subsection{Returns}{
+Saves the \code{oopr} objects to \verb{$objs}.
+}
+}
+}
+
+\section{\hr\hr OoprSourceTry}{
+
+\subsection{Description}{
+Tries to parse and evaluate a file containing ooprs, intended for
+completion.
+}
+
+\subsection{Fields}{
+\describe{
 \item{\code{call}}{\code{call} \cr
 The evaluation string/call at the position \code{row} & \code{col} in
 the file, e.g. \code{this$a$b}.}
-}}
+}
+}
+
+\subsection{Methods}{
+\describe{
+
+\item{\code{parse}}{Try to parse the file.}
+
+}
+}
+
+\subsection{\hr parse}{
+\subsection{Description}{
+Try to parse the file.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+parse()
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Details}{
+When completing, the contents of a file may fail to parse:
+\enumerate{
+\item \code{$} with no rhs, e.g. \verb{this$}
+\item Incomplete control-flow, e.g. \verb{if(i in this$)}
+}
+
+Additionally, evaluation may fail due to member names or method
+signatures:
+\enumerate{
+\item \code{this$mem} instead of \code{this$member}
+\item \code{this$method()} instead of \code{this$method(x = 1L)}
+}
+
+As such, \code{this} (or an inherited class) is replaced with \code{list} so the
+class members are not reference checked.
+}
+
+\subsection{Returns}{
+See \code{OoprSource$parse()}.
+}
+}
+}
 
 \keyword{internal}
