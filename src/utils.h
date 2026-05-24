@@ -25,18 +25,33 @@ extern "C" SEXP iscall(SEXP x, SEXP names, SEXP package);
 class pSEXP
 {
 public:
-  pSEXP(SEXP x)            { load(x); }
-  pSEXP()                  { }
-  ~pSEXP()                 { unload(); }
-  operator SEXP()          { return x; }
-  pSEXP& operator=(SEXP x) { load(x); return *this; }
+  pSEXP(SEXP x)              { load(x); }
+  pSEXP()                    { }
+  virtual ~pSEXP()           { unload(); }
+  operator SEXP()            { return x; }
+  pSEXP& operator=(SEXP x)   { load(x); return *this; }
+protected:
+  SEXP x = R_NilValue;
+  void load(SEXP x)          { unload(); if(nNull(x)) prtct(x); this->x = x; }
+  void unload()              { if(nNull(x)) unprtct(); x = R_NilValue; }
 private:
-  SEXP x           = R_NilValue;
-  bool isProtected = false;
-  void load(SEXP x)  { unload(); prtct(x); this->x = x; }
-  void unload()      { if(isProtected) { unprtct(); }; x = R_NilValue; }
-  void prtct(SEXP x) { PROTECT(x);       isProtected = true;  }
-  void unprtct()     { UNPROTECT_PTR(x); isProtected = false; }
+  inline  bool nNull(SEXP x) { return x != R_NilValue; }
+  virtual void prtct(SEXP x) { PROTECT(x);       }
+  virtual void unprtct()     { UNPROTECT_PTR(x); }
+};
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+ * Use this one if lifespan outlives multiple .Calls
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+class ppSEXP : public pSEXP
+{
+public:
+  ppSEXP(SEXP x)             { load(x);  }
+  ppSEXP()                   { }
+  ~ppSEXP()                  { unload(); }
+  ppSEXP& operator=(SEXP x)  { load(x); return *this; }
+private:
+  virtual void prtct(SEXP x) { R_PreserveObject(x); }
+  virtual void unprtct()     { R_ReleaseObject(x);  }
 };
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
@@ -82,6 +97,7 @@ public:
    * Get one of the symbols.
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
   SEXP get(const std::string& key);
+  SEXP operator[](const std::string& key) { return get(key); }
 
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   std::map<std::string, SEXP> syms();

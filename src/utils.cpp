@@ -230,4 +230,3 @@ bool is_oopr(SEXP obj, SEXP name)
   }
   return is_oopr(obj, name2);
 }
-

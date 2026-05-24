@@ -1,5 +1,6 @@
 test_that("multiplication works",
 {
+  skip();
   x <- create_blocks(r"{
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @name test

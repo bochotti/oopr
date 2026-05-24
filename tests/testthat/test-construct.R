@@ -68,7 +68,7 @@ test_that("constructor",
 
   it("uses the constructor method arguments",
   {
-    oopr("test",, { test <- \(a, b = TRUE) { }; })
+    oopr("test",, { test <- \(a, b = TRUE) { a; }; })
     expect_equal(formals(test@.Data), as.pairlist(alist(a=, b = TRUE)));
     expect_equal(body(test@.Data)[[4L]][-1L], as.call(alist(a, b)))
   })
@@ -128,6 +128,7 @@ test_that("construct_clean",
     env$a <- 1L;
     oopr("test",, { ~test <- \( ) { env$a <- 2L; } } )
     obj <- test();
+    gc();
     expect_false(hasName(obj, "~test"));
     rm(obj);
     gc();

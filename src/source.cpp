@@ -461,10 +461,6 @@ stop:
         SET_VECTOR_ELT(v, 2, Rf_mkString(m.ctx.c_str()));
         Rf_setAttrib(v, R_NamesSymbol, VectorString{"stt", "end", "ctx"});
       }
-      else
-      {
-        v = R_NilValue;
-      }
       SET_VECTOR_ELT(out, i, v);
     }
 

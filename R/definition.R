@@ -73,13 +73,16 @@ definitions_constructor <- \(i, name, env, err)
 {
   fun  <- env$this[[name]];
   args <- names(formals(fun));
-  if(!is.null(args) && any(match(args, c(".", ".."), 0L)))
+  bads <- c(".", name, ".Call", "Cpp_oopr_make", "Cpp_oopr_tidy");
+  if(!is.null(args) && any(match(args, bads, 0L)))
   {
     err$push(
       cls = "ooprConstructorBadArgNames"
      ,src = env$src[[i]]
-     ,msg = "Constructor method `%s` cannot have arguments \".\" or \"..\"."
+     ,msg = "Constructor method `%s` cannot have argument%s %s."
      ,name
+     ,if(sum(match(args, bads, 0L) > 0L) > 1L) "s" else ""
+     ,deparse1(bads[match(args, bads, 0L)])
     );
     env$succ$set(i, FALSE);
   }

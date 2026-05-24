@@ -20,7 +20,7 @@ test_that("definitions_special",
      ,class = "ooprConstructorBadArgNames"
     );
     expect_error(
-      oopr("test",, { private:test <- \(..) { } })
+      oopr("test",, { private:test <- \(.Call) { } })
      ,class = "ooprConstructorBadArgNames"
     );
     expect_no_error(

@@ -149,9 +149,18 @@ constructor <- \(name, inhr, meta, encl, src = NULL, parent)
   args <- formals(encl$this[[name]]);
   formals(fun) <- args;
   body <- body(fun);
-  body <- do.call(substitute, list(body, list(class = name, within = parent)));
-  body[[4L]] <- as.call(c(body[[4L]], lapply(names(args), as.name)));
-  body(fun)  <- body;
+  body <- do.call(substitute, list(body, list(
+    class = as.name(name), within = parent
+  )));
+  if(length(body(encl$this[[name]])) > 1L)
+  {
+    body[[4L]] <- as.call(c(body[[4L]], lapply(names(args), as.name)));
+  }
+  else
+  {
+    body[[4L]] <- NULL;
+  }
+  body(fun) <- body;
   attr(fun, "srcref") <- src;
   ooprC(.Data = fun, name = name, inhr = inhr, meta = meta, encl = encl);
 }
@@ -162,9 +171,8 @@ constructor <- \(name, inhr, meta, encl, src = NULL, parent)
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 construct_fun <- \(...)
 {
-  .  <- base::get(class, envir = within); #<- any unintended consequences?
-  .. <- base::.Call(Cpp_oopr_make, .);
-  ..$this[[class]];
-  .. <- base::.Call(Cpp_oopr_tidy, ., .., base::sys.frames());
-  return(..);
+  .     <- base::evalq(class, within, NULL);
+  class <- .Call(Cpp_oopr_make, ., base::quote(class), base::sys.frames());
+  class;
+  return(.Call(Cpp_oopr_tidy, class));
 }
