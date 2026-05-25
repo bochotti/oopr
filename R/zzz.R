@@ -10,19 +10,20 @@
   {
     if(requireNamespace("rstudioapi", quietly = TRUE))
     {
-      OoprCompletion$source <- OoprCompletionRStudio();
+      thiz = OoprCompletion@encl$this;
+      thiz$source <- OoprCompletionRStudio();
     }
     if(Sys.getenv("R_OOPR_BREAKPOINTS") == "true")
     {
-      OoprBreakpoints$loadInGlobal(TRUE, TRUE);
+      OoprBreakpoints@encl$this$loadInGlobal(TRUE, TRUE);
     }
   }
 }
 .onUnload <- \(libpath)
 {
-  if(OoprBreakpoints$allLoadedInGlobal())
+  if(OoprBreakpoints@encl$this$allLoadedInGlobal())
   {
-    OoprBreakpoints$loadInGlobal(FALSE, TRUE);
+    OoprBreakpoints@encl$this$loadInGlobal(FALSE, TRUE);
   }
 }
 oopr_onInstall();

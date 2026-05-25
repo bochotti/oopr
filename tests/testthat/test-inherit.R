@@ -485,20 +485,26 @@ test_that("specifiers_virtual",
 {
   it("collects virtual in meta",
   {
-    oopr("test",, { virtual:a <- \( ) { } })
+    oopr("test",, { public:virtual:a <- \( ) { } })
     expect_true(test@meta$virtual$get(1L));
   })
 })
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-test_that("specifiers_definition",
+test_that("definitions_virtual",
 {
   it("requires virtual members to be methods",
   {
     expect_error(
-      oopr("test",, { virtual:a <- 1L })
+      oopr("test",, { public:virtual:a <- 1L })
      ,class = "ooprVirtualNotMethod"
-    )
+    );
+
+    oopr("test",, { public:virtual:a <- \( ) { } })
+    expect_error(
+      oopr("test2", public:test, { a <- 2L; })
+     ,class = "ooprVirtualNotMethod"
+    );
   })
 })
 
@@ -593,28 +599,22 @@ test_that("inheritance_virtual",
     );
   })
 
-  it("ignores virtual status if inherited class is marked non-public",
+  it("ignores virtual status if inherited class is marked as private",
   {
     oopr("inhr",, { public:virtual:a <- \( ) { }})
     expect_no_error(
       oopr("test", inhr, { public:a <- \(x) { } })
     );
     expect_false(test@meta$virtual$get(1L));
-
-    oopr("inhr",, { public:virtual:a <- \( ) { }})
-    expect_no_error(
-      oopr("test", protected:inhr, { public:a <- \(x) { } })
-    );
-    expect_false(test@meta$virtual$get(1L));
   })
 
   it("ignores virtual status if inherited class' member is marked private",
   {
-    oopr("inhr",, { private:virtual:a <- \( ) { }})
-    expect_no_error(
-      oopr("test", public:inhr, { public:a <- \(x) { } })
-    );
-    expect_false(test@meta$virtual$get(1L));
+    # oopr("inhr",, { private:virtual:a <- \( ) { }})
+    # expect_no_error(
+    #   oopr("test", public:inhr, { public:a <- \(x) { } })
+    # );
+    # expect_false(test@meta$virtual$get(1L));
 
     oopr("inhr",, { protected:virtual:a <- \( ) { }})
     expect_error(
@@ -625,11 +625,52 @@ test_that("inheritance_virtual",
 })
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("inheritance virtual",
+{
+  it("over-writes the base class' method",
+  {
+    oopr("base",, {     public:virtual:a <- \( ) { 1L; }; b <- \( ) this$a(); })
+    oopr("test", public:base, { public:a <- \( ) { 2L; }})
+    obj <- test();
+    expect_equal(parent.env(parent.env(obj)$base)$this$a, obj$a);
+    expect_equal(obj$b(), 2L);
+    expect_false(identical(parent.env(obj)$base$a, obj$a));
+  })
+
+  it("allows gaps inbetween",
+  {
+    oopr("bs",, {     public:virtual:a <- \( ) { 1L; }; b <- \( ) this$a(); })
+    oopr("bs2", public:bs, {})
+    oopr("test", public:bs2, { public:a <- \( ) { 2L; }})
+    obj <- test();
+    expect_equal(parent.env(parent.env(obj)$bs2)$this$a, obj$a);
+    expect_equal(parent.env(parent.env(parent.env(obj)$bs2)$bs)$this$a, obj$a);
+    expect_equal(obj$b(), 2L);
+    expect_false(identical(parent.env(obj)$bs2$a, obj$a));
+    expect_false(identical(parent.env(parent.env(obj)$bs2)$bs$a, obj$a));
+  })
+
+  it("allows gaps afterwards",
+  {
+    oopr("bs",, {     public:virtual:a <- \( ) { 1L; }; b <- \( ) this$a(); })
+    oopr("test", public:bs, { public:a <- \( ) { 2L; } })
+    oopr("test2", public:test, { })
+    obj <- test2();
+    expect_equal(parent.env(parent.env(parent.env(obj)$test)$bs)$this$a, obj$a);
+    expect_equal(parent.env(parent.env(obj)$test)$this$a, obj$a);
+    expect_equal(obj$b(), 2L);
+    expect_equal(parent.env(obj)$test$a, obj$a)
+    expect_false(identical(parent.env(parent.env(obj)$test)$bs$a, obj$a));
+  })
+
+})
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 test_that("specifiers_final",
 {
   it("collects specifier",
   {
-    oopr("test",, { virtual:final:a <- \( ) { }; })
+    oopr("test",, { public:final:a <- \( ) { }; })
     expect_true(test@meta$final$get(1L))
   })
 
@@ -637,13 +678,13 @@ test_that("specifiers_final",
   {
     expect_error(
       oopr("test",, { final:a <- 1L; })
-     ,class = "ooprFinalNotVirtual"
+     ,class = "ooprFinalNotMethod"
     );
   })
 
   it("does not allow overridding derived class",
   {
-    oopr("inhr",, { public:virtual:final:a <- \( ) { }; })
+    oopr("inhr",, { public:final:a <- \( ) { }; })
 
     expect_error(
       oopr("test", public:inhr , { public:a <- \( ) { }; })

@@ -11,6 +11,7 @@ definitions <- \(env, err)
     name <- meta$names$get(i);
     definitions_special(i, name, meta, env, err);
     definitions_virtual(i, name, meta, env, err);
+    definitions_final(i, name, meta, env, err);
     definitions_S3(i, name, meta, env, err);
     if(meta$method$get(i) || nzchar(meta$property$get(i)))
     {

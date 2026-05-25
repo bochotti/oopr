@@ -174,5 +174,6 @@ construct_fun <- \(...)
   .     <- base::evalq(class, within, NULL);
   class <- .Call(Cpp_oopr_make, ., base::quote(class), base::sys.frames());
   class;
-  return(.Call(Cpp_oopr_tidy, class));
+  class <- .Call(Cpp_oopr_tidy, class);
+  return(class);
 }

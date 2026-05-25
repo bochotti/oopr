@@ -166,18 +166,15 @@ inheritance_set <- \(env, inhr, err)
     ithis <- ithis@encl$this;
     for(j in seq_len(nrow(imeta)))
     {
-      name <- imeta[["names"]][j];
       spec <- imeta[["access"]][j];
-
       # private members are not inherited
       if(spec == "private") next;
 
-      # defined methods are enforced if derived is virtual
-      k <- which(meta$subs(names = name));
+      name <- imeta[["names"]][j];
+      k    <- which(meta$subs(names = name));
       if(length(k))
       {
-        if(!imeta$virtual[j] || ispec != "public" || vtl[k]) next;
-        vtl[k] <- TRUE;
+        # do not over-write a final method
         if(imeta$final[j])
         {
           err$push(
@@ -190,6 +187,11 @@ inheritance_set <- \(env, inhr, err)
           env$succ$set(k, FALSE);
           next;
         }
+
+        # defined methods are enforced if derived is virtual
+        if(!imeta$virtual[j] || ispec == "private" || vtl[k]) next;
+        vtl[k] <- TRUE;
+
         inheritance_virtual(k, name, iname, meta, imeta, this, ithis, env, err);
         next;
       }
@@ -282,7 +284,7 @@ references_inheritance <- \(refs, meta, env, err)
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @intern
-#' Collect a virtual specifier.
+#' Collect a virtual specifier - cannot be private
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 specifiers_virtual <- \(i, name, spec, meta, env, err)
 {
@@ -290,10 +292,23 @@ specifiers_virtual <- \(i, name, spec, meta, env, err)
   has <- match(set, "virtual", 0L) > 0L;
   if(sum(has) > 0L)
   {
-    meta$virtual$set(i, TRUE);
+    if(meta$access$get(i) == "private")
+    {
+      err$push(
+        cls = "ooprVirtualPrivate"
+       ,src = env$src[[i]]
+       ,msg = "Member `%s` cannot be private and virtual."
+       ,name
+      );
+      env$succ$set(i, FALSE);
+    }
+    else
+    {
+      meta$virtual$set(i, TRUE);
+    }
     spec$set(i, list(set[!has]));
   }
-  return(TRUE);
+  return(env$succ$get(i));
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -308,7 +323,7 @@ definitions_virtual  <- \(i, name, meta, env, err)
     err$push(
       cls = "ooprVirtualNotMethod"
      ,src = env$src[[i]]
-     ,msg = "Virtual member `%s` must be a method."
+     ,msg = "Member `%s` must be a method to be virtual."
      ,name
     );
     env$succ$set(i, FALSE);
@@ -379,18 +394,28 @@ specifiers_final <- \(i, name, spec, meta, env, err)
   has <- match(set, "final", 0L) > 0L;
   if(sum(has) > 0L)
   {
-    if(!meta$virtual$get(i))
-    {
-      err$push(
-        cls = "ooprFinalNotVirtual"
-       ,src = env$src[[i]]
-       ,msg = "Member `%s` must be virtual to be marked as final."
-       ,name
-      );
-      env$succ$set(i, FALSE);
-    }
     meta$final$set(i, TRUE);
     spec$set(i, list(set[!has]));
   }
   return(TRUE);
+}
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @intern
+#' Collect a final specifier.
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+definitions_final <- \(i, name, meta, env, err)
+{
+  if(!meta$final$get(i)) return();
+  if(!meta$method$get(i))
+  {
+    err$push(
+      cls = "ooprFinalNotMethod"
+     ,src = env$src[[i]]
+     ,msg = "Member `%s` must be a method to be marked as final."
+     ,name
+    );
+    env$succ$set(i, FALSE);
+  }
+  return(env$succ$get(i));
 }

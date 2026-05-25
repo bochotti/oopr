@@ -9,6 +9,7 @@ OoprMeta::OoprMeta(SEXP meta)
   }
   const std::vector<std::string> nms = {
     "names", "access", "method", "property", "static", "class", "inherit"
+   ,"virtual"
   };
   SEXP data = Rf_install("data");
   for(const std::string& nm : nms)
@@ -66,6 +67,12 @@ bool OoprMeta::isClass(const int& i)
 bool OoprMeta::isInherit(const int& i)
 {
   return strlen(getStr("inherit", i)) > 0;
+}
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+bool OoprMeta::isVirtual(const int& i)
+{
+  return getLgl("virtual", i);
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //

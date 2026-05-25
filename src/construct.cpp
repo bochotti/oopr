@@ -19,24 +19,23 @@ public:
 
     // find out if this class is being initialized as a base class
     for(R_xlen_t i = 0; i < (len - 3); ++i, frames = CDR(frames)) { }
-    SEXP caller = CAR(frames);
-    isInhr =
-    (
-         Rf_isEnvironment(caller)
-      && is_ooprC(Rf_findVarInFrame(ENCLOS(caller), name), name)
-    );
+    calr = CAR(frames);
+    if(!Rf_isEnvironment(calr)) return;
+    calr   = ENCLOS(calr);
+    isInhr = is_ooprC(Rf_findVarInFrame(calr, name), name);
   }
 
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  SEXP     gen;
-  SEXP     name;
+  SEXP     gen;    // ooprC
+  SEXP     name;   // SYMSXP
   OoprMeta meta;
-  SEXP     inhr;
-  SEXP     encl;
-  bool     isInhr;
+  SEXP     inhr;   // VECSXP
+  SEXP     encl;   // ENVSXP
+  SEXP     calr;   // ENVSXP
+  bool     isInhr = false;
   ppSEXP   inst;
   ppSEXP   thiz;
-  ppSEXP   intf;
+  ppSEXP   intf;   // ENSURE THIS DESTRUCTS LAST!
 
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
    * Creates environment that holds `this` and base classes. Base classes
@@ -75,6 +74,18 @@ public:
     for(R_xlen_t i = 0; i < len; ++i)
     {
       SEXP nm = meta.name(i);
+      // if virtual, look forward to the caller and take its method
+      if(isInhr && meta.isVirtual(i))
+      {
+        SEXP from = Rf_findVarInFrame(calr, syms["this"]);
+        // if not an active binding in the caller then the caller
+        // has defined the method and has not inherited it.
+        if(R_existsVarInFrame(from, nm) && !R_BindingIsActive(nm, from))
+        {
+          Rf_defineVar(nm, Rf_findVarInFrame(from, nm), thiz);
+          continue;
+        }
+      }
       // inherited members use symlink as their instances not yet initialized
       if(meta.isInherit(i))
       {
@@ -114,9 +125,9 @@ public:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
   SEXP moveConstructorWithXPtr()
   {
-    pSEXP xptr = R_MakeExternalPtr(this, syms["OoprInstance"], R_NilValue);
-    R_RegisterCFinalizerEx(xptr, finalizer, TRUE);
-    SEXP out = Rf_findVarInFrame(thiz, name);
+    pSEXP xptr = R_MakeExternalPtr(this, syms["OoprInstance"], inst);
+    R_RegisterCFinalizerEx(xptr, (R_CFinalizer_t)OoprInstance::finalizer, TRUE);
+    pSEXP out = Rf_findVarInFrame(thiz, name);
     R_removeVarFromFrame(name, thiz); // allows xptr to be finalized
     Rf_setAttrib(out, syms["xptr"], xptr);
     return out;
@@ -132,7 +143,7 @@ public:
     const R_xlen_t len = meta.size();
     for(R_xlen_t i = 0; i < len; ++i)
     {
-      if(!meta.isInherit(i)) continue;
+      if(!meta.isInherit(i) || (isInhr && meta.isVirtual(i))) continue;
       SEXP nm   = meta.name(i);
       SEXP inhr = Rf_findVarInFrame(inst, meta.inherit(i));
       if(meta.isMethod(i))
@@ -154,10 +165,6 @@ public:
       }
     }
   }
-
-  /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-   * TODO: over-write virtual methods
-  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
    * If a destructor is defined for this class, register it.
@@ -194,6 +201,33 @@ public:
     SEXP sym = syms[".this"];
     SEXP clazz = Rf_getAttrib(Rf_findVarInFrame(encl, sym), R_ClassSymbol);
     intf = interface(thiz, syms["this"], names, clazz);
+
+    // interface can have the actual implementation if override via virtual
+    if(isInhr)
+    {
+      SEXP thiz = Rf_findVarInFrame(encl, syms["this"]);
+      const R_xlen_t len = meta.size();
+      for(R_xlen_t i = 0; i < len; ++i)
+      {
+        if(!meta.isVirtual(i)) continue;
+        SEXP  nm = meta.name(i);
+        pSEXP fun;
+        if(meta.isInherit(i))
+        {
+          SEXP inhr = Rf_findVarInFrame(inst, meta.inherit(i));
+          fun = Rf_findVarInFrame(inhr, nm);
+        }
+        else
+        {
+          fun = Rf_duplicate(Rf_findVarInFrame(thiz, nm));
+          SET_CLOENV(fun, inst);
+        }
+        R_unLockBinding(nm, intf);
+        Rf_defineVar(nm, fun, intf);
+        R_LockBinding(nm, intf);
+      }
+    }
+
     Rf_defineVar(sym, intf, inst);
   }
 
@@ -218,8 +252,6 @@ public:
     "name", "meta", "inhr", "encl", "this", ".this", "OoprInstance", "xptr"
   };
 
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-private:
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
    * Delete pointer
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -227,11 +259,10 @@ private:
   {
     void* addr = R_ExternalPtrAddr(xptr);
     if(!addr) return;
+    R_ClearExternalPtr(xptr);
     OoprInstance* obj = static_cast<OoprInstance*>(addr);
     delete obj;
-    R_ClearExternalPtr(xptr);
   }
-
 };
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
@@ -264,5 +295,7 @@ SEXP oopr_tidy(SEXP gen)
   obj->registerDestructor();
   obj->makeInterface();
   obj->lock();
-  return obj->intf;
+  SEXP out = obj->intf;
+  OoprInstance::finalizer(xptr);
+  return out;
 }

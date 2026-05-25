@@ -56,7 +56,7 @@ SEXP symlink(SEXP tenv, SEXP tname, SEXP env, SEXP name, bool check)
     }
     tname = Rf_installChar(STRING_ELT(tname, 0));
   }
-  if(!R_existsVarInFrame(ENCLOS(tenv), tname))
+  if(check && !R_existsVarInFrame(ENCLOS(tenv), tname))
   {
     Rf_error("`tname` does not exist in the parent environment of `tenv`");
   }
