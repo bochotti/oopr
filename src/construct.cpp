@@ -15,14 +15,19 @@ public:
     , encl(Rf_getAttrib(gen, syms["encl"]))
   {
     const R_xlen_t len = Rf_xlength(frames);
-    if(len < 2) return;
-
-    // find out if this class is being initialized as a base class
-    for(R_xlen_t i = 0; i < (len - 3); ++i, frames = CDR(frames)) { }
-    calr = CAR(frames);
-    if(!Rf_isEnvironment(calr)) return;
-    calr   = ENCLOS(calr);
-    isInhr = is_ooprC(Rf_findVarInFrame(calr, name), name);
+    if(len > 3)
+    {
+      // find out if this class is being initialized as a base class
+      for(R_xlen_t i = 0; i < (len - 3); ++i, frames = CDR(frames)) { }
+      calr = CAR(frames);
+      if(Rf_isEnvironment(calr))
+      {
+        calr   = R_ParentEnv(calr);
+        isInhr = is_ooprC(Rf_findVarInFrame(calr, name), name);
+      }
+    }
+    while(CDR(frames) != R_NilValue) { frames = CDR(frames); }
+    envr = CAR(frames);
   }
 
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
@@ -32,10 +37,11 @@ public:
   SEXP     inhr;   // VECSXP
   SEXP     encl;   // ENVSXP
   SEXP     calr;   // ENVSXP
+  SEXP     envr;   // ENVSXP
   bool     isInhr = false;
-  ppSEXP   inst;
-  ppSEXP   thiz;
-  ppSEXP   intf;   // ENSURE THIS DESTRUCTS LAST!
+  pSEXP    inst;
+  pSEXP    thiz;
+  pSEXP    intf;
 
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
    * Creates environment that holds `this` and base classes. Base classes
@@ -45,7 +51,7 @@ public:
   void makeEnclosure()
   {
     const R_xlen_t len = Rf_xlength(inhr);
-    inst = R_NewEnv(ENCLOS(encl), 1, 2 + len);
+    inst = R_NewEnv(R_ParentEnv(encl), 1, 2 + len);
     // assign the inherited constructors
     for(int i = 0; i < len; ++i)
     {
@@ -66,10 +72,6 @@ public:
     const R_xlen_t len = meta.size();
     thiz = R_NewEnv(inst, 1, len);
     SEXP from = Rf_findVarInFrame(encl, syms["this"]);
-
-    // protect functions when created
-    std::vector<pSEXP> funs;
-    funs.reserve(len);
 
     for(R_xlen_t i = 0; i < len; ++i)
     {
@@ -93,16 +95,14 @@ public:
       }
       else if(meta.isMethod(i))
       {
-        funs.emplace_back(Rf_duplicate(Rf_findVarInFrame(from, nm)));
-        if(!meta.isStatic(i)) SET_CLOENV(funs.back(), inst);
-        Rf_defineVar(nm, funs.back(), thiz);
+        SEXP fun = Rf_findVarInFrame(from, nm);
+        Rf_defineVar(nm, dupeFun(fun, meta.isStatic(i)), thiz);
         R_LockBinding(nm, thiz);
       }
       else if(meta.isProperty(i))
       {
-        funs.emplace_back(Rf_duplicate(R_ActiveBindingFunction(nm, from)));
-        if(!meta.isStatic(i)) SET_CLOENV(funs.back(), inst);
-        R_MakeActiveBinding(nm, funs.back(), thiz);
+        SEXP fun = R_ActiveBindingFunction(nm, from);
+        R_MakeActiveBinding(nm, dupeFun(fun, meta.isStatic(i)), thiz);
       }
       else if(meta.isStatic(i))
       {
@@ -117,20 +117,21 @@ public:
   }
 
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-   * Moves the constructor function from `this` into the return value.
-   * The constructor method is run from R (see construct.R) for easier
-   * debugging, prevent long-jumps on errors, and allow catching condition
-   * signals. The cpp class instance is attached as an external pointer for
-   * further operations after the constructor method is run.
+   * Moves the constructor function from `this` into a language object
+   * to call for the return value. This should be called with Rf_eval.
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-  SEXP moveConstructorWithXPtr()
+  void callConstructor()
   {
-    pSEXP xptr = R_MakeExternalPtr(this, syms["OoprInstance"], inst);
-    R_RegisterCFinalizerEx(xptr, (R_CFinalizer_t)OoprInstance::finalizer, TRUE);
-    pSEXP out = Rf_findVarInFrame(thiz, name);
-    R_removeVarFromFrame(name, thiz); // allows xptr to be finalized
-    Rf_setAttrib(out, syms["xptr"], xptr);
-    return out;
+    SEXP fun = Rf_findVarInFrame(thiz, name);
+    SEXP args = R_ClosureFormals(fun);
+    pSEXP expr = Rf_allocVector(LANGSXP, Rf_length(args) + 1);
+    SETCAR(expr, fun);
+    for(SEXP e = CDR(expr); e != R_NilValue; e = CDR(e), args = CDR(args))
+    {
+      SETCAR(e, TAG(args));
+    }
+    R_removeVarFromFrame(name, thiz);
+    RUnWind::eval(expr, envr);
   }
 
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
@@ -219,10 +220,10 @@ public:
         }
         else
         {
-          fun = Rf_duplicate(Rf_findVarInFrame(thiz, nm));
-          SET_CLOENV(fun, inst);
+          fun = dupeFun(Rf_findVarInFrame(thiz, nm), false);
         }
         R_unLockBinding(nm, intf);
+        R_removeVarFromFrame(nm, intf);
         Rf_defineVar(nm, fun, intf);
         R_LockBinding(nm, intf);
       }
@@ -247,21 +248,15 @@ public:
     R_LockEnvironment(inst, TRUE);
   }
 
-  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  static inline Symbols syms{
-    "name", "meta", "inhr", "encl", "this", ".this", "OoprInstance", "xptr"
-  };
-
-  /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-   * Delete pointer
-  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-  static void finalizer(SEXP xptr)
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+private:
+  static inline Symbols syms{"name", "meta", "inhr", "encl", "this", ".this"};
+  SEXP dupeFun(SEXP fun, bool keep_env)
   {
-    void* addr = R_ExternalPtrAddr(xptr);
-    if(!addr) return;
-    R_ClearExternalPtr(xptr);
-    OoprInstance* obj = static_cast<OoprInstance*>(addr);
-    delete obj;
+    SEXP env = keep_env ? R_ClosureEnv(fun) : (SEXP)inst;
+    pSEXP out = R_mkClosure(R_ClosureFormals(fun), R_ClosureExpr(fun), env);
+    DUPLICATE_ATTRIB(out, fun);
+    return out;
   }
 };
 
@@ -272,30 +267,20 @@ SEXP oopr_make(SEXP gen, SEXP name, SEXP frames)
   {
     Rf_error("ooprC not called correctly");
   }
-  OoprInstance* obj = new OoprInstance(gen, name, frames);
-  obj->makeEnclosure();
-  obj->makeThis();
-  return obj->moveConstructorWithXPtr();
-}
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-SEXP oopr_tidy(SEXP gen)
-{
-  SEXP xptr = Rf_getAttrib(gen, OoprInstance::syms["xptr"]);
-  if(!(   Rf_isFunction(gen)
-       && TYPEOF(xptr) == EXTPTRSXP
-       && R_ExternalPtrTag(xptr) == OoprInstance::syms["OoprInstance"]
-  ))
+  try
   {
-    Rf_error("ooprC not called correctly");
+    OoprInstance obj = OoprInstance(gen, name, frames);
+    obj.makeEnclosure();
+    obj.makeThis();
+    obj.callConstructor();
+    obj.replaceInheritedMembers();
+    obj.registerDestructor();
+    obj.makeInterface();
+    obj.lock();
+    return obj.intf;
   }
-  void* addr = R_ExternalPtrAddr(xptr);
-  OoprInstance* obj = static_cast<OoprInstance*>(addr);
-  obj->replaceInheritedMembers();
-  obj->registerDestructor();
-  obj->makeInterface();
-  obj->lock();
-  SEXP out = obj->intf;
-  OoprInstance::finalizer(xptr);
-  return out;
+  catch(const RUnWind::exception& e)
+  {
+  }
+  return R_NilValue;
 }

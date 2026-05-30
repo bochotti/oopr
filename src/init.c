@@ -16,7 +16,6 @@ extern SEXP iscall          (SEXP, SEXP, SEXP);
 extern SEXP isname          (SEXP, SEXP);
 extern SEXP on_load         (SEXP, SEXP);
 extern SEXP oopr_make       (SEXP, SEXP, SEXP);
-extern SEXP oopr_tidy       (SEXP);
 extern SEXP symlink         (SEXP, SEXP, SEXP, SEXP);
 extern SEXP oopr_cont_init  (SEXP, SEXP);
 extern SEXP find_instances  (SEXP, SEXP, SEXP);
@@ -31,7 +30,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"isname",           (DL_FUNC) &isname,           2},
     {"on_load",          (DL_FUNC) &on_load,          2},
     {"oopr_make",        (DL_FUNC) &oopr_make,        3},
-    {"oopr_tidy",        (DL_FUNC) &oopr_tidy,        1},
     {"symlink",          (DL_FUNC) &symlink,          4},
     {"oopr_cont_init",   (DL_FUNC) &oopr_cont_init,   3},
     {"find_instances",   (DL_FUNC) &find_instances,   3},

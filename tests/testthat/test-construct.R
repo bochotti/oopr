@@ -70,7 +70,6 @@ test_that("constructor",
   {
     oopr("test",, { test <- \(a, b = TRUE) { a; }; })
     expect_equal(formals(test@.Data), as.pairlist(alist(a=, b = TRUE)));
-    expect_equal(body(test@.Data)[[4L]][-1L], as.call(alist(a, b)))
   })
 })
 

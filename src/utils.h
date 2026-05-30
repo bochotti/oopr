@@ -1,6 +1,7 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #ifndef OOPR_UTILS_H
 #define OOPR_UTILS_H
+#define R_NO_REMAP
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * General utility stuff used throughout the project.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -8,6 +9,7 @@
 #include <Rinternals.h>
 #include <string>
 #include <map>
+#include <stdexcept>
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Checks if R object is a name, and matches anything in `names`.
@@ -29,7 +31,17 @@ public:
   pSEXP()                    { }
   virtual ~pSEXP()           { unload(); }
   operator SEXP()            { return x; }
+  operator SEXP() const      { return x; }
   pSEXP& operator=(SEXP x)   { load(x); return *this; }
+
+  pSEXP(pSEXP&& other) noexcept { *this = std::move(other); }
+  pSEXP& operator=(pSEXP&& other) noexcept
+  {
+    x = other.x;
+    other.x = R_NilValue;
+    return *this;
+  }
+
 protected:
   SEXP x = R_NilValue;
   void load(SEXP x)          { unload(); if(nNull(x)) prtct(x); this->x = x; }
@@ -38,20 +50,6 @@ private:
   inline  bool nNull(SEXP x) { return x != R_NilValue; }
   virtual void prtct(SEXP x) { PROTECT(x);       }
   virtual void unprtct()     { UNPROTECT_PTR(x); }
-};
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
- * Use this one if lifespan outlives multiple .Calls
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-class ppSEXP : public pSEXP
-{
-public:
-  ppSEXP(SEXP x)             { load(x);  }
-  ppSEXP()                   { }
-  ~ppSEXP()                  { unload(); }
-  ppSEXP& operator=(SEXP x)  { load(x); return *this; }
-private:
-  virtual void prtct(SEXP x) { R_PreserveObject(x); }
-  virtual void unprtct()     { R_ReleaseObject(x);  }
 };
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
@@ -118,6 +116,51 @@ bool is_ooprC(SEXP obj, SEXP name);
 bool is_oopr(SEXP obj, const std::string& name = "");
 bool is_oopr(SEXP obj, SEXP name);
 
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+ * Evaluate an R expression, allowing for destruction of cpp objects.
+ * Wrap RUnWind::eval in a try block, and catch(const RUnWind::exception& e).
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+class RUnWind
+{
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+public:
+  /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+   * Evaluate an R expression
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+  static SEXP eval(SEXP expr, SEXP envir);
+  /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+   * Exception to catch.
+   * .what() pulls the last error message when called.
+   * Destructor will call R_ContinueUnwind, unless .cont = R_NilValue.
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+  class exception : public std::runtime_error
+  {
+  public:
+    exception(pSEXP& cont);
+    ~exception();
+    pSEXP cont;
+    const char* what() const noexcept;
+  };
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+private:
+  struct Data;
+  static SEXP fun(void *data);
+  static void clean(void* data, Rboolean jump);
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+}; // RUnwind
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+ * Backports
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+#include <Rversion.h>
+#if R_VERSION < R_Version(4, 5, 0)
+# define R_ClosureFormals(x) FORMALS(x)
+# define R_ClosureBody(x)    BODY(x)
+# define R_ClosureEnv(x)     CLOENV(x)
+# define R_ParentEnv(x)      ENCLOS(x)
+SEXP R_mkClosure(SEXP formals, SEXP body, SEXP env);
+#endif
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #endif
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //

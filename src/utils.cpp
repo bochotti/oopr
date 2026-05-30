@@ -56,7 +56,7 @@ SEXP symlink(SEXP tenv, SEXP tname, SEXP env, SEXP name, bool check)
     }
     tname = Rf_installChar(STRING_ELT(tname, 0));
   }
-  if(check && !R_existsVarInFrame(ENCLOS(tenv), tname))
+  if(check && !R_existsVarInFrame(R_ParentEnv(tenv), tname))
   {
     Rf_error("`tname` does not exist in the parent environment of `tenv`");
   }
@@ -79,22 +79,20 @@ SEXP symlink(SEXP tenv, SEXP tname, SEXP env, SEXP name, bool check)
   }
 
   pSEXP x   = Rf_install("x");
-  pSEXP fun = Rf_allocSExp(CLOSXP);
   pSEXP arg = Rf_allocList(1); SET_TAG(arg, x); SETCAR(arg, R_MissingArg);
   pSEXP bdy = Rf_lang4(
     Rf_install("if"), Rf_lang2(Rf_install("missing"), x)
    ,Rf_lang3(Rf_install("$"), tname, name)
    ,Rf_lang3(Rf_install("<-"), Rf_lang3(Rf_install("$"), tname, name), x)
   );
-  SET_FORMALS(fun, arg);
-  SET_BODY(fun, bdy);
-  SET_CLOENV(fun, ENCLOS(tenv));
+  pSEXP fun = R_mkClosure(arg, bdy, R_ParentEnv(tenv));
   R_MakeActiveBinding(name, fun, env);
   return Rf_ScalarLogical(1);
 }
 
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+ * Symbols
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 Symbols::Symbols(std::initializer_list<std::string> syms)
 {
   for(const std::string& sym : syms)
@@ -130,8 +128,10 @@ SEXP Symbols::get(const std::string& key)
 }
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 std::map<std::string, SEXP> Symbols::syms() { return syms_; };
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+ * Symbols
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Additional checks above checking S4 and class. If for some reason the
@@ -190,7 +190,7 @@ bool is_oopr(SEXP obj, const std::string& name)
   if(!name.empty() && !Rf_inherits(obj, name.c_str()))     return false;
 
   // the enclosure should have both this and .this
-  SEXP encl = ENCLOS(obj);
+  SEXP encl = R_ParentEnv(obj);
   SEXP thiz = Rf_install("this");
   SEXP intf = Rf_install(".this");
   if(!R_existsVarInFrame(encl, thiz))                      return false;
@@ -199,7 +199,7 @@ bool is_oopr(SEXP obj, const std::string& name)
   // this and .this should have encl as their parent
   thiz = Rf_findVarInFrame(encl, thiz);
   intf = Rf_findVarInFrame(encl, intf);
-  if(obj != intf || encl != ENCLOS(thiz))                  return false;
+  if(obj != intf || encl != R_ParentEnv(thiz))             return false;
 
   // all bindings inside .this should also be in this
   SEXP names = R_lsInternal3(intf, TRUE, FALSE);
@@ -230,3 +230,62 @@ bool is_oopr(SEXP obj, SEXP name)
   }
   return is_oopr(obj, name2);
 }
+
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+ * RUnWind
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+struct RUnWind::Data{ SEXP expr; SEXP envir; };
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+SEXP RUnWind::fun(void *data)
+{
+  Data *data_ = static_cast<Data*>(data);
+  return Rf_eval(data_->expr, data_->envir);
+}
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+void RUnWind::clean(void* data, Rboolean jump)
+{
+  if(jump)
+  {
+    pSEXP cont = std::move(*static_cast<pSEXP*>(data));
+    throw exception(cont);
+  }
+}
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+SEXP RUnWind::eval(SEXP expr, SEXP envir)
+{
+  Data data{expr, envir};
+  pSEXP cont = R_MakeUnwindCont();
+  return R_UnwindProtect(fun, &data, clean, &cont, cont);
+}
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+RUnWind::exception::exception(pSEXP& cont)
+  : runtime_error("")
+  , cont(std::move(cont))
+{};
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+RUnWind::exception::~exception()
+{
+  if(cont != R_NilValue) R_ContinueUnwind(cont);
+}
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+const char* RUnWind::exception::what() const noexcept
+{
+  SEXP msg = Rf_eval(Rf_lang1(Rf_install("geterrmessage")), R_BaseEnv);
+  return (Rf_length(msg) == 0) ? "" : Rf_translateChar(STRING_ELT(msg, 0));
+}
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+ * RUnWind
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+#if R_VERSION < R_Version(4, 5, 0)
+SEXP R_mkClosure(SEXP formals, SEXP body, SEXP env)
+{
+    SEXP fun = Rf_allocSExp(CLOSXP);
+    SET_FORMALS(fun, formals);
+    SET_BODY(fun, body);
+    SET_CLOENV(fun, env);
+    return fun;
+}
+#endif
