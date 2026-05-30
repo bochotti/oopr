@@ -297,15 +297,22 @@ specifiers_virtual <- \(i, name, spec, meta, env, err)
       err$push(
         cls = "ooprVirtualPrivate"
        ,src = env$src[[i]]
-       ,msg = "Member `%s` cannot be private and virtual."
+       ,msg = "Member `%s` cannot be both private and virtual."
        ,name
       );
       env$succ$set(i, FALSE);
     }
-    else
+    if(meta$static$get(i))
     {
-      meta$virtual$set(i, TRUE);
+      err$push(
+        cls = "ooprVirtualStatic"
+       ,src = env$src[[i]]
+       ,msg = "Member `%s` cannot be both static and virtual."
+       ,name
+      );
+      env$succ$set(i, FALSE);
     }
+    meta$virtual$set(i, TRUE);
     spec$set(i, list(set[!has]));
   }
   return(env$succ$get(i));

@@ -488,6 +488,24 @@ test_that("specifiers_virtual",
     oopr("test",, { public:virtual:a <- \( ) { } })
     expect_true(test@meta$virtual$get(1L));
   })
+
+  it("cannot be private",
+  {
+    expect_error(
+      oopr("test",, { virtual:a <- \( ) { } })
+     ,class = "ooprVirtualPrivate"
+    );
+  })
+
+  it("cannot be static",
+  {
+    expect_error(
+      oopr("test",, { public:virtual:static:a <- \( ) { } })
+     ,class = "ooprVirtualStatic"
+    );
+  })
+
+
 })
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
