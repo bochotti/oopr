@@ -14,8 +14,8 @@ OoprMeta::OoprMeta(SEXP meta)
   SEXP data = Rf_install("data");
   for(const std::string& nm : nms)
   {
-    SEXP x = Rf_findVar(Rf_install(nm.c_str()), meta);
-    x = Rf_findVar(data, x);
+    SEXP x = R_getVar(Rf_install(nm.c_str()), meta, FALSE);
+    x = R_getVar(data, x, FALSE);
     this->meta.emplace(nm, x);
   }
 }
@@ -86,7 +86,6 @@ int OoprMeta::which(const std::string &name)
 {
   for(R_xlen_t i = 0; i < size(); ++i)
   {
-    // printf("%i: %s\n", (int)i, getStr("names", i));
     if(name == getStr("names", i)) return i;
   }
   return -1;

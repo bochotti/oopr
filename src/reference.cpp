@@ -20,7 +20,7 @@ protected:
     const std::size_t len = paths.size();
     for(std::size_t i = len; i > 0; --i)
     {
-      SEXP src = getAttrib(parents[i - 1], srcref);
+      SEXP src = Rf_getAttrib(parents[i - 1], srcref);
       const R_xlen_t j = (R_xlen_t)paths[i - 1] - 1;
       if(src != R_NilValue && j < Rf_xlength(src)) return VECTOR_ELT(src, j);
     }
@@ -60,7 +60,7 @@ SEXP recurseExpr(SEXP expr, Args... args)
     names = R_lsInternal3(expr, TRUE, FALSE);
     for(R_xlen_t i = 0; i < len; ++i)
     {
-      x = Rf_findVar(Rf_installChar(STRING_ELT(names, i)), expr);
+      x = R_getVar(Rf_installChar(STRING_ELT(names, i)), expr, FALSE);
       SET_VECTOR_ELT(out, i, recurseExpr<T>(x, args...));
     }
     break;
@@ -94,7 +94,7 @@ public:
   {
     if(TYPEOF(expr) == CLOSXP)
     {
-      expr = BODY(expr);
+      expr = R_ClosureExpr(expr);
     }
     walk(expr);
   }
@@ -155,7 +155,7 @@ public:
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 private:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  Symbols sym{"$", "[[", "<-", "<<-", "=", "(", "{", "["};
+  static inline Symbols sym{"$", "[[", "<-", "<<-", "=", "(", "{", "["};
   struct Match
   {
     std::vector<int> at;
@@ -329,8 +329,8 @@ public:
     if(TYPEOF(x) == CLOSXP)
     {
       collectArgs(x);
-      env = CLOENV(x);
-      x   = BODY(x);
+      env = R_ClosureEnv(x);
+      x   = R_ClosureExpr(x);
     }
     if(!Rf_isEnvironment(env)) Rf_error("`env` must be an environment");
     env_ = env;
@@ -362,12 +362,12 @@ public:
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 private:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  Symbols assign{"<-", "=", "<<-"};
-  Symbols subset{"$", "[[", "[", "@"};
-  Symbols loop{"for"};
-  Symbols fun{"function"};
-  Symbols pkg{"::", ":::"};
-  Symbols quo{"quote", "substitute", "bquote", "with", "within"};
+  static inline Symbols assign{"<-", "=", "<<-"};
+  static inline Symbols subset{"$", "[[", "[", "@"};
+  static inline Symbols loop{"for"};
+  static inline Symbols fun{"function"};
+  static inline Symbols pkg{"::", ":::"};
+  static inline Symbols quo{"quote", "substitute", "bquote", "with", "within"};
   SEXP env_;
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   std::vector<SEXP> locals;
@@ -383,7 +383,7 @@ private:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
   void collectArgs(SEXP x)
   {
-    SEXP args = FORMALS(x);
+    SEXP args = R_ClosureFormals(x);
     while(args != R_NilValue)
     {
       locals.push_back(TAG(args));
@@ -399,7 +399,7 @@ private:
   {
     if(!Rf_isSymbol(e)) return false;
     for(const SEXP x : locals) if(e == x) return true;
-    for(SEXP env = env_; env != R_EmptyEnv; env = ENCLOS(env))
+    for(SEXP env = env_; env != R_EmptyEnv; env = R_ParentEnv(env))
     {
       if(R_existsVarInFrame(env, e)) return true;
     }
@@ -517,7 +517,7 @@ SEXP find_src_ref(SEXP at, SEXP expr)
   if(!Rf_isInteger(at)) Rf_error("`at` must be an integer");
   switch(TYPEOF(expr))
   {
-  case CLOSXP:  expr = BODY(expr);
+  case CLOSXP:  expr = R_ClosureExpr(expr);
   case LANGSXP: break;
   default:      Rf_error("`expr` must be a call object");
   }
@@ -545,7 +545,7 @@ SEXP find_src_ref(SEXP at, SEXP expr)
   SEXP srcref = Rf_install("srcref");
   for(std::size_t i = len; i > 0; --i)
   {
-    SEXP src = getAttrib(parents[i - 1], srcref);
+    SEXP src = Rf_getAttrib(parents[i - 1], srcref);
     const R_xlen_t j = (R_xlen_t)path[i - 1] - 1;
     if(src != R_NilValue && j < Rf_xlength(src)) return VECTOR_ELT(src, j);
   }

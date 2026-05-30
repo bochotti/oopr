@@ -63,14 +63,14 @@ private:
   SEXP        clazz_;
   std::string pkg_;
   std::string fun_;
-  Symbols sym{"meta", "encl", "this", ".this", "format.default"};
+  static inline Symbols sym{"meta", "encl", "this", ".this", "format.default"};
   std::vector<SEXP> searched_;
   std::vector<SEXP> instances_;
 
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   std::string getEnvName(SEXP x)
   {
-    pSEXP call = Rf_lang2(sym.get("format.default"), x);
+    pSEXP call = Rf_lang2(sym["format.default"], x);
     return CHAR(STRING_ELT(Rf_eval(call, R_BaseEnv), 0));
   }
 
@@ -94,7 +94,7 @@ private:
     for(R_xlen_t i = 0; i < len; ++i)
     {
       SEXP name = Rf_installChar(STRING_ELT(names, i));
-      if(!R_BindingIsActive(name, x)) walk(Rf_findVarInFrame(x, name));
+      if(!R_BindingIsActive(name, x)) walk(R_getVar(name, x, FALSE));
     }
   }
 
@@ -108,19 +108,19 @@ private:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   void searchOoprC(SEXP x)
   {
-    SEXP encl = Rf_getAttrib(x, sym.get("encl"));
-    SEXP thiz = Rf_findVarInFrame(encl, sym.get("this"));
+    SEXP encl = Rf_getAttrib(x, sym["encl"]);
+    SEXP thiz = R_getVar(sym["this"], encl, FALSE);
 
     if(alreadySearched(thiz)) return;
     searched_.push_back(encl);
-    searched_.push_back(Rf_findVarInFrame(encl, sym.get(".this")));
+    searched_.push_back(R_getVar(sym[".this"], encl, FALSE));
     searched_.push_back(thiz);
 
     // search inside static members
-    OoprMeta meta(Rf_getAttrib(x, sym.get("meta")));
+    OoprMeta meta(Rf_getAttrib(x, sym["meta"]));
     for(R_xlen_t i = 0; i < meta.size(); ++i)
     {
-      if(meta.isStatic(i)) walk(Rf_findVarInFrame(thiz, meta.name(i)));
+      if(meta.isStatic(i)) walk(R_getVar(meta.name(i), thiz, FALSE));
     }
   }
 
@@ -137,19 +137,19 @@ private:
     searched_.push_back(x);
 
     SEXP clazz = Rf_installChar(STRING_ELT(Rf_getAttrib(x, R_ClassSymbol), 0));
-    SEXP encl  = ENCLOS(x);
+    SEXP encl  = R_ParentEnv(x);
 
     // check if the instance came from the ooprC
-    if(clazz_ == clazz && getEnvName(ENCLOS(encl)) == pkg_)
+    if(clazz_ == clazz && getEnvName(R_ParentEnv(encl)) == pkg_)
     {
       instances_.push_back(encl);
     }
     // check if the instance inherits from the ooprC. must check:
     //   1. That the enclosure holds an instance of the ooprC
     //   2. The instances own ooprC to see if member exists and not overridden
-    else if(!fun_.empty() && is_oopr(Rf_findVarInFrame(encl, clazz_)))
+    else if(is_oopr(R_getVarEx(clazz_, encl, FALSE, R_NilValue)))
     {
-      SEXP ooprC = Rf_findVarInFrame(ENCLOS(encl), clazz);
+      SEXP ooprC = R_getVar(clazz, R_ParentEnv(encl), FALSE);
       if(is_ooprC(ooprC, clazz))
       {
         OoprMeta meta(Rf_getAttrib(ooprC, Rf_install("meta")));
@@ -168,9 +168,9 @@ private:
 SEXP find_instances(SEXP ooprC, SEXP frames, SEXP fun)
 {
   if(!is_ooprC(ooprC))                              return R_NilValue;
-  SEXP name = getAttrib(ooprC, Rf_install("name"));
-  SEXP encl = getAttrib(ooprC, Rf_install("encl"));
-  SEXP pkg  = ENCLOS(encl);
+  SEXP name = Rf_getAttrib(ooprC, Rf_install("name"));
+  SEXP encl = Rf_getAttrib(ooprC, Rf_install("encl"));
+  SEXP pkg  = R_ParentEnv(encl);
   InstanceFinder obj(name, pkg, fun);
   if(obj.skip)                                      return R_NilValue;
   obj.walk(pkg);

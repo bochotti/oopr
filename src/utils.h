@@ -160,6 +160,8 @@ private:
 # define R_ClosureEnv(x)     CLOENV(x)
 # define R_ParentEnv(x)      ENCLOS(x)
 SEXP R_mkClosure(SEXP formals, SEXP body, SEXP env);
+SEXP R_getVar(SEXP sym, SEXP rho, Rboolean inherits);
+SEXP R_getVarEx(SEXP sym, SEXP rho, Rboolean inherits, SEXP ifnotfound);
 #endif
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #endif

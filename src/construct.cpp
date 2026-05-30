@@ -10,9 +10,9 @@ public:
   OoprInstance(SEXP gen, SEXP name, SEXP frames)
     : gen(gen)
     , name(name)
-    , meta(Rf_getAttrib(gen, syms["meta"]))
-    , inhr(Rf_getAttrib(gen, syms["inhr"]))
-    , encl(Rf_getAttrib(gen, syms["encl"]))
+    , meta(Rf_getAttrib(gen, sym["meta"]))
+    , inhr(Rf_getAttrib(gen, sym["inhr"]))
+    , encl(Rf_getAttrib(gen, sym["encl"]))
   {
     const R_xlen_t len = Rf_xlength(frames);
     if(len > 3)
@@ -23,7 +23,7 @@ public:
       if(Rf_isEnvironment(calr))
       {
         calr   = R_ParentEnv(calr);
-        isInhr = is_ooprC(Rf_findVarInFrame(calr, name), name);
+        isInhr = is_ooprC(R_getVarEx(name, calr, FALSE, R_NilValue), name);
       }
     }
     while(CDR(frames) != R_NilValue) { frames = CDR(frames); }
@@ -56,9 +56,9 @@ public:
     for(int i = 0; i < len; ++i)
     {
       SEXP nm = Rf_installChar(STRING_ELT(inhr, i));
-      Rf_defineVar(nm, Rf_findVarInFrame(encl, nm), inst);
+      Rf_defineVar(nm, R_getVar(nm, encl, FALSE), inst);
     }
-    Rf_defineVar(syms[".this"], R_NilValue, inst);
+    Rf_defineVar(sym[".this"], R_NilValue, inst);
   }
 
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
@@ -71,7 +71,7 @@ public:
   {
     const R_xlen_t len = meta.size();
     thiz = R_NewEnv(inst, 1, len);
-    SEXP from = Rf_findVarInFrame(encl, syms["this"]);
+    SEXP from = R_getVar(sym["this"], encl, FALSE);
 
     for(R_xlen_t i = 0; i < len; ++i)
     {
@@ -79,12 +79,12 @@ public:
       // if virtual, look forward to the caller and take its method
       if(isInhr && meta.isVirtual(i))
       {
-        SEXP from = Rf_findVarInFrame(calr, syms["this"]);
+        SEXP from = R_getVar(sym["this"], calr, FALSE);
         // if not an active binding in the caller then the caller
         // has defined the method and has not inherited it.
         if(R_existsVarInFrame(from, nm) && !R_BindingIsActive(nm, from))
         {
-          Rf_defineVar(nm, Rf_findVarInFrame(from, nm), thiz);
+          Rf_defineVar(nm, R_getVar(nm, from, FALSE), thiz);
           continue;
         }
       }
@@ -95,7 +95,7 @@ public:
       }
       else if(meta.isMethod(i))
       {
-        SEXP fun = Rf_findVarInFrame(from, nm);
+        SEXP fun = R_getVar(nm, from, FALSE);
         Rf_defineVar(nm, dupeFun(fun, meta.isStatic(i)), thiz);
         R_LockBinding(nm, thiz);
       }
@@ -106,14 +106,14 @@ public:
       }
       else if(meta.isStatic(i))
       {
-        symlink(from, syms["this"], thiz, nm);
+        symlink(from, sym["this"], thiz, nm);
       }
       else
       {
-        Rf_defineVar(nm, Rf_findVarInFrame(from, nm), thiz);
+        Rf_defineVar(nm, R_getVar(nm, from, FALSE), thiz);
       }
     }
-    Rf_defineVar(syms["this"], thiz, inst);
+    Rf_defineVar(sym["this"], thiz, inst);
   }
 
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
@@ -122,7 +122,7 @@ public:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
   void callConstructor()
   {
-    SEXP fun = Rf_findVarInFrame(thiz, name);
+    SEXP fun = R_getVar(name, thiz, FALSE);
     SEXP args = R_ClosureFormals(fun);
     pSEXP expr = Rf_allocVector(LANGSXP, Rf_length(args) + 1);
     SETCAR(expr, fun);
@@ -146,12 +146,12 @@ public:
     {
       if(!meta.isInherit(i) || (isInhr && meta.isVirtual(i))) continue;
       SEXP nm   = meta.name(i);
-      SEXP inhr = Rf_findVarInFrame(inst, meta.inherit(i));
+      SEXP inhr = R_getVar(meta.inherit(i), inst, FALSE);
       if(meta.isMethod(i))
       {
         R_unLockBinding(nm, thiz);
         R_removeVarFromFrame(nm, thiz);
-        Rf_defineVar(nm, Rf_findVarInFrame(inhr, nm), thiz);
+        Rf_defineVar(nm, R_getVar(nm, inhr, FALSE), thiz);
         R_LockBinding(nm, thiz);
       }
       else if(meta.isProperty(i))
@@ -162,7 +162,7 @@ public:
       else
       {
         R_removeVarFromFrame(nm, thiz);
-        symlink(inhr, syms["this"], thiz, nm);
+        symlink(inhr, sym["this"], thiz, nm);
       }
     }
   }
@@ -178,7 +178,7 @@ public:
 
     if(R_existsVarInFrame(thiz, sym))
     {
-      R_RegisterFinalizer(thiz, Rf_findVarInFrame(thiz, sym));
+      R_RegisterFinalizer(thiz, R_getVar(sym, thiz, FALSE));
       R_removeVarFromFrame(sym, thiz);
     }
   }
@@ -199,14 +199,14 @@ public:
       names = meta.subName("public");
     }
 
-    SEXP sym = syms[".this"];
-    SEXP clazz = Rf_getAttrib(Rf_findVarInFrame(encl, sym), R_ClassSymbol);
-    intf = interface(thiz, syms["this"], names, clazz);
+    SEXP dthiz = sym[".this"];
+    SEXP clazz = Rf_getAttrib(R_getVar(dthiz, encl, FALSE), R_ClassSymbol);
+    intf = interface(thiz, sym["this"], names, clazz);
 
     // interface can have the actual implementation if override via virtual
     if(isInhr)
     {
-      SEXP thiz = Rf_findVarInFrame(encl, syms["this"]);
+      SEXP thiz = R_getVar(sym["this"], encl, FALSE);
       const R_xlen_t len = meta.size();
       for(R_xlen_t i = 0; i < len; ++i)
       {
@@ -215,12 +215,12 @@ public:
         pSEXP fun;
         if(meta.isInherit(i))
         {
-          SEXP inhr = Rf_findVarInFrame(inst, meta.inherit(i));
-          fun = Rf_findVarInFrame(inhr, nm);
+          SEXP inhr = R_getVar(meta.inherit(i), inst, FALSE);
+          fun = R_getVar(nm, inhr, FALSE);
         }
         else
         {
-          fun = dupeFun(Rf_findVarInFrame(thiz, nm), false);
+          fun = dupeFun(R_getVar(nm, thiz, FALSE), false);
         }
         R_unLockBinding(nm, intf);
         R_removeVarFromFrame(nm, intf);
@@ -229,7 +229,7 @@ public:
       }
     }
 
-    Rf_defineVar(sym, intf, inst);
+    Rf_defineVar(dthiz, intf, inst);
   }
 
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
@@ -241,7 +241,7 @@ public:
     for(R_xlen_t i = 0; i < len; ++i)
     {
       SEXP sym = Rf_installChar(STRING_ELT(inhr, i));
-      R_LockEnvironment(Rf_findVarInFrame(inst, sym), FALSE);
+      R_LockEnvironment(R_getVar(sym, inst, FALSE), FALSE);
     }
     R_LockEnvironment(intf, FALSE);
     R_LockEnvironment(thiz, FALSE);
@@ -250,7 +250,7 @@ public:
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 private:
-  static inline Symbols syms{"name", "meta", "inhr", "encl", "this", ".this"};
+  static inline Symbols sym{"name", "meta", "inhr", "encl", "this", ".this"};
   SEXP dupeFun(SEXP fun, bool keep_env)
   {
     SEXP env = keep_env ? R_ClosureEnv(fun) : (SEXP)inst;

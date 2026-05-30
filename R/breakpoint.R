@@ -368,7 +368,7 @@ private:
   setInstances <- \(fun)
   {
     name      <- this$name;
-    instances <- .Call(Cpp_find_instances, this$ooprC, sys.frames(), name);
+    instances <- .Call(Cpp_find_instances, this$ooprC, sys.frame(-2L), name);
     if(!length(instances)) return();
     encl     <- this$encl;
     property <- this$property;

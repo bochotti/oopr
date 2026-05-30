@@ -59,6 +59,28 @@ microbenchmark::microbenchmark(
  ,r6i$getx(), opi$getx()
  ,r6i$inc(),  opi$inc()
 )
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+microbenchmark::microbenchmark(
+  R6 = R6II <- R6::R6Class("R6II", inherit = R6I)
+ ,OP = oopr::oopr("OPII", public:OPI, {})
+)
+
+lobstr::obj_sizes(R6II, OPII)
+
+microbenchmark::microbenchmark(r6ii <- R6II$new(), opii <- OPII())
+
+lobstr::obj_sizes(r6ii, opii)
+
+lobstr::obj_sizes(R6II, r6ii, OPII, opii)
+
+microbenchmark::microbenchmark(
+  r6ii$x,      opii$x
+ ,r6ii$getx(), opii$getx()
+ ,r6ii$inc(),  opii$inc()
+)
+
+
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 })
 

@@ -157,7 +157,8 @@ bool is_ooprC(SEXP obj, const std::string& name)
   SEXP encl = Rf_getAttrib(obj, Rf_install("encl"));
   if(!Rf_isEnvironment(encl))                                      return false;
 
-  if(!is_oopr(Rf_findVarInFrame(encl, Rf_install(".this")), name)) return false;
+  if(!is_oopr(R_getVarEx(Rf_install(".this"), encl, FALSE, R_NilValue), name))
+    return false;
 
   return true;
 }
@@ -197,8 +198,8 @@ bool is_oopr(SEXP obj, const std::string& name)
   if(!R_existsVarInFrame(encl, intf))                      return false;
 
   // this and .this should have encl as their parent
-  thiz = Rf_findVarInFrame(encl, thiz);
-  intf = Rf_findVarInFrame(encl, intf);
+  thiz = R_getVar(thiz, encl, FALSE);
+  intf = R_getVar(intf, encl, FALSE);
   if(obj != intf || encl != R_ParentEnv(thiz))             return false;
 
   // all bindings inside .this should also be in this
@@ -287,5 +288,24 @@ SEXP R_mkClosure(SEXP formals, SEXP body, SEXP env)
     SET_BODY(fun, body);
     SET_CLOENV(fun, env);
     return fun;
+}
+SEXP R_getVar(SEXP sym, SEXP rho, Rboolean inherits)
+{
+  SEXP val = R_getVarEx(sym, rho, inherits, R_UnboundValue);
+  if (val == R_UnboundValue)
+    Rf_error("object '%s' not found", Rf_translateChar(PRINTNAME(sym)));
+  return val;
+}
+SEXP R_getVarEx(SEXP sym, SEXP rho, Rboolean inherits, SEXP ifnotfound)
+{
+  SEXP val = inherits ? Rf_findVar(sym, rho) : Rf_findVarInFrame(rho, sym);
+  if(val == R_UnboundValue) return ifnotfound;
+  if(TYPEOF(val) == PROMSXP)
+  {
+    PROTECT(val);
+    val = Rf_eval(val, rho);
+    UNPROTECT(1);
+  }
+  return val;
 }
 #endif

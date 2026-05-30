@@ -22,7 +22,7 @@ SEXP interface(SEXP env, SEXP nme, SEXP nms, SEXP cls)
   }
 
   const R_xlen_t len = Rf_xlength(nms);
-  pSEXP out = R_NewEnv(ENCLOS(env), 1, (int)len);
+  pSEXP out = R_NewEnv(R_ParentEnv(env), 1, (int)len);
   Rf_setAttrib(out, R_ClassSymbol, cls);
 
   for(R_xlen_t i = 0; i < len; ++i)
@@ -35,7 +35,7 @@ SEXP interface(SEXP env, SEXP nme, SEXP nms, SEXP cls)
     }
     else
     {
-      mem = Rf_findVar(sym, env);
+      mem = R_getVarEx(sym, env, FALSE, R_NilValue);
       if(Rf_isFunction(mem))
       {
         Rf_defineVar(sym, mem, out);
