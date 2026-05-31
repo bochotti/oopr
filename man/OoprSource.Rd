@@ -145,6 +145,31 @@ completion.
 \item{\code{call}}{\code{call} \cr
 The evaluation string/call at the position \code{row} & \code{col} in
 the file, e.g. \code{this$a$b}.}
+
+\item{\code{file}}{\code{character(1L)} \cr
+An R source file.}
+
+\item{\code{text}}{\code{character()} \cr
+A vector of lines of an R source file.}
+
+\item{\code{row}}{\code{integer(1L)} \cr
+Line of a text cursor position.}
+
+\item{\code{col}}{\code{integer(1L)} \cr
+Line of a text cursor position.}
+
+\item{\code{expr}}{\code{expression} \cr
+A parsed expressed of \verb{$file} or \verb{$text} from \verb{$parse()}.}
+
+\item{\code{defs}}{\code{list()} \cr
+A named list of \code{oopr} definitions from \verb{$parse()}.}
+
+\item{\code{objs}}{\code{list()} \cr
+A named list of \code{oopr} object from \verb{$eval()}.}
+
+\item{\code{obj}}{\code{ooprC}
+If \verb{$row} and \verb{$col} are set, then the \code{oopr} object that
+is at that location.}
 }
 }
 
@@ -152,6 +177,8 @@ the file, e.g. \code{this$a$b}.}
 \describe{
 
 \item{\code{parse}}{Try to parse the file.}
+
+\item{\code{eval}}{Evaluate the \code{oopr}s in \verb{$defs}.}
 
 }
 }
@@ -187,6 +214,35 @@ class members are not reference checked.
 
 \subsection{Returns}{
 See \code{OoprSource$parse()}.
+}
+}
+
+\subsection{\hr eval}{
+\subsection{Description}{
+Evaluate the \code{oopr}s in \verb{$defs}.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+eval(top = globalenv())
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
+\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
+\tabular{ll}{
+\code{top} \tab \code{environment} \br
+An environment to be the top-level of the \code{oopr} objects. \cr
+}
+}
+
+\subsection{Details}{
+If \verb{$row} & \verb{$col} are set, then evaluation stops at that \code{oopr} call.
+}
+
+\subsection{Returns}{
+Saves the \code{oopr} objects to \verb{$objs}.
 }
 }
 }

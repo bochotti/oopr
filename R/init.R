@@ -19,31 +19,35 @@
 NULL
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @intern
-#' This is called so I have access to foreign functions for use when creating
-#' `oopr` classes within this package. `useDynLib` will load after R code is
-#' evaluated but before `.onLoad`, so I need to unload it before then.
-#'
-#' Installing a package vs using `devtools` has a different call stack.
-#' Ultimately I need the path of the `.so` file to load the foreign
-#' functions, and call unloading at the right moment.
+#' This is called so I have access to foreign functions for creating `oopr`
+#' classes while installing this package. `useDynLib` will load after R code
+#' is evaluated but before `.onLoad`, so I need to unload it before then.
+#' Path is different when using `devtools`, so some logic is applied.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 do.call(list(), what = \( )
 {
-  top  <- topenv();
-  pkg  <- environmentName(top);
+  top <- topenv();
+  pkg <- environmentName(top);
   if(pkg == "R_GlobalEnv") return();
-  if(identical(sys.call(1L)[[1L]], quote(tools:::makeLazyLoading)))
+  if(nzchar(Sys.getenv("DEVTOOLS_LOAD")))
   {
-    pos  <- 6L;
-    path <- file.path(get("pkgpath", envir = sys.frame(1L)), "libs");
+    path <- getwd();
+    while(basename(path) != pkg && !file.exists(file.path(path, "DESCRIPTION")))
+    {
+      path <- dirname(path);
+    }
+    path <- file.path(path, "src");
   }
   else
   {
-    pos  <- -12L
-    path <- file.path(get("path", envir = sys.frame(pos)), "src");
+    path <- file.path(Sys.getenv("R_PACKAGE_DIR"), "libs");
+    if(nzchar(.Platform$r_arch))
+    {
+      path <- file.path(path, .Platform$r_arch);
+    }
   }
   path <- file.path(path, sprintf("%s%s", pkg, .Platform$dynlib.ext));
-  dll  <- dyn.load(path);
+  dll  <- dyn.load(path, now = FALSE);
   funs <- getDLLRegisteredRoutines(dll);
   syms <- character(0L);
   lapply(funs, lapply, \(x)
@@ -52,6 +56,6 @@ do.call(list(), what = \( )
     syms[[length(syms) + 1L]] <<- sym;
     assign(sym, x, envir = top);
   })
-  expr <- substitute({rm(list = syms, envir = top); dyn.unload(path)})
-  do.call(on.exit, list(expr, TRUE, FALSE), envir = sys.frame(pos));
+  expr <- substitute({rm(list = syms, envir = top); dyn.unload(path)});
+  do.call(on.exit, list(expr, TRUE, FALSE), envir = sys.frame(-11L));
 })

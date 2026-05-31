@@ -30,6 +30,7 @@ roclet_preprocess.roclet_oopr <- \(x, blocks, base_path)
       for(tag in roxygen2::block_get_tags(block, "exportS3Method"))
       {
         tags <- list(rdname, tag);
+        # tags <- list(tag);
         call <- sub("^\"(.*?)\"", "\\1", tag$raw);
         call <- as.name(sub(" ", ".", call));
         call <- call("<-", call, get(call, envir = env));
@@ -105,7 +106,7 @@ public:
     return(invisible(this));
   }
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  virtual:final:erase <- \( )
+  final:erase <- \( )
   {
     this$content <- character(0L);
     return(invisible(this));
@@ -189,6 +190,10 @@ private:
   makeUsageFromFun <- \(fun, name)
   {
     args <- formals(fun);
+    if(name != make.names(name))
+    {
+      name <- sprintf("`%s`", name);
+    }
     if(is.null(args)) return(sprintf("%s()", name));
 
     dflt <- vapply(args, deparse1, character(1L));
@@ -284,14 +289,14 @@ OoprRoxyMethod <- \(title, tags, fun, warn = TRUE)
   for(tag in tags)
   {
     if(!match(tag$tag, ord[c(1L, 4:5)], 0L)) next;
-    val <- tag$val; tag <- u(tag$tag);
-    if(this$sections$exists(tag))
+    val <- tag$val; nm <- u(tag$tag);
+    if(this$sections$exists(nm))
     {
-      this$sections[tag]$insert(val);
+      if(is.null(tag$INHR_)) this$sections[nm]$insert(val);
     }
     else
     {
-      this$sections$emplace(tag, tag, val);
+      this$sections$emplace(nm, nm, val);
     }
   }
   keys <- this$sections$keys;
@@ -345,6 +350,7 @@ private:
     tags <- tags[vapply(tags, `[[`, character(1L), "tag") == "param"];
     args <- names(formals(fun));
     docd <- vapply(tags, `[[`, character(1L), c("val", "name"));
+    inhr <- vapply(tags, \(x) !is.null(x$INHR_), logical(1L));
 
     notDoc <- match(args, docd, 0L) == 0L;
     if(any(notDoc))
@@ -357,7 +363,7 @@ private:
       );
     }
 
-    notArg <- match(docd, args, 0L) == 0L;
+    notArg <- match(docd, args, 0L) == 0L & !inhr;
     if(any(notArg))
     {
       this$warns[length(this$warns) + 1L] <- sprintf(
@@ -368,7 +374,7 @@ private:
       );
     }
 
-    tags <- tags[!notDoc];
+    tags <- tags[match(docd, args, 0L) > 0L & !duplicated.default(docd)];
     if(length(tags)) this$sections$insert("Arguments", OoprRoxyArguments(tags));
   }
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -446,7 +452,6 @@ public:
   makeFormat <- \( )
   {
     tags <- vapply(this$tags, `[[`, character(1L), "tag");
-
   }
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   makeFields <- \( )
@@ -458,16 +463,22 @@ public:
       tags <- this$members[[name]];
       if(is.null(tags))
       {
-        if(nzchar(this$ooprC@meta$subs("inherit", names = name)))
+        base <- this$ooprC@meta$subs("inherit", names = name);
+        if(nzchar(base))
         {
-          # TODO: get from elsewhere
-          return(FALSE);
+          tags[[1L]] <- this$roxy$roxy_tag_parse(this$roxy$roxy_tag(
+             tag  = "inherit"
+            ,raw  = sprintf("%s$%s", base, name)
+            ,file = this$block$file
+            ,line = this$block$line
+          ));
         }
         else
         {
           return(TRUE);
         }
       }
+      tags <- this$findInheritsTag(tags, name);
       lapply(tags, \(x) if(inherits(x, "roxy_tag_field")) fields$insert(x));
       return(FALSE)
     })
@@ -492,16 +503,22 @@ public:
       tags   <- this$members[[name]];
       if(is.null(tags))
       {
-        if(nzchar(this$ooprC@meta$subs("inherit", names = name)))
+        base <- this$ooprC@meta$subs("inherit", names = name);
+        if(nzchar(base))
         {
-          # TODO: get from elsewhere
-          return(FALSE);
+          tags[[1L]] <- this$roxy$roxy_tag_parse(this$roxy$roxy_tag(
+             tag  = "inherit"
+            ,raw  = sprintf("%s$%s", base, name)
+            ,file = this$block$file
+            ,line = this$block$line
+          ));
         }
         else
         {
           return(TRUE);
         }
       }
+      tags <- this$findInheritsTag(tags, name);
 
       desc <- tags[vapply(tags, `[[`, character(1L), "tag") == "description"];
       desc <- paste(vapply(desc, `[[`, character(1L), "val"), collapse = "\n");
@@ -592,11 +609,49 @@ private:
     return(blocks);
   }
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  warning <- \(fmt, ...)
+  warning <- \(fmt, ..., file = this$block$file, line = this$block$line)
   {
     if(!this$warn) return();
-    tag <- list(tag = "oopr", file = this$block$file, line = this$block$line);
+    tag <- list(tag = "oopr", file = file, line = line);
     this$roxy$warn_roxy_tag(tag, sprintf(fmt, ...));
+  }
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  findInheritsTag <- \(tags, name)
+  {
+    has <- vapply(tags, inherits, logical(1L), "roxy_tag_inherit");
+    if(!any(has)) return(tags);
+
+    for(i in which(has))
+    {
+      tag <- tags[[i]];
+      src <- strsplit(tag$val$source, "\\$")[[1L]];
+      err <- character(1L);
+      if(length(src) != 2 || !all(nzchar(src)))
+      {
+        err <- "@inherit tag should be in the form x$y";
+      }
+      else if(!OoprRoxy$classes$exists(src[1L]))
+      {
+        # TODO: check other packges...?
+        err <- sprintf("class %s is not documented", src[1L]);
+      }
+      else if(!match(src[2L], names(OoprRoxy$classes[src[1L]]$members), 0L))
+      {
+        err <- sprintf("member %s$%s is not documented", src[1L], src[2L]);
+      }
+      if(nzchar(err))
+      {
+        this$warning(err, file = tag$file, line = tag$line);
+        next;
+      }
+
+      oth <- OoprRoxy$classes[src[1L]]$members[[src[2L]]];
+      oth <- lapply(oth, `[[<-`, "INHR_", TRUE);
+      tags <- c(tags, oth);
+      this$members[[name]] <- c(this$members[[name]], oth);
+    }
+
+    return(tags);
   }
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 }) ## OoprRoxyClass

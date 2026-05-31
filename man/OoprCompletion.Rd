@@ -50,6 +50,35 @@ A virtual class that can be inherited to use as a completion identifier.
 \describe{
 \item{\code{env}}{\code{environment} \cr
 The environment provided to \verb{$load}.}
+
+\item{\code{call}}{\code{call} \cr
+The evaluation string/call at the position \code{row} & \code{col} in
+the file, e.g. \code{this$a$b}.}
+
+\item{\code{file}}{\code{character(1L)} \cr
+An R source file.}
+
+\item{\code{text}}{\code{character()} \cr
+A vector of lines of an R source file.}
+
+\item{\code{row}}{\code{integer(1L)} \cr
+Line of a text cursor position.}
+
+\item{\code{col}}{\code{integer(1L)} \cr
+Line of a text cursor position.}
+
+\item{\code{expr}}{\code{expression} \cr
+A parsed expressed of \verb{$file} or \verb{$text} from \verb{$parse()}.}
+
+\item{\code{defs}}{\code{list()} \cr
+A named list of \code{oopr} definitions from \verb{$parse()}.}
+
+\item{\code{objs}}{\code{list()} \cr
+A named list of \code{oopr} object from \verb{$eval()}.}
+
+\item{\code{obj}}{\code{ooprC}
+If \verb{$row} and \verb{$col} are set, then the \code{oopr} object that
+is at that location.}
 }
 }
 
@@ -61,6 +90,10 @@ The environment provided to \verb{$load}.}
 \item{\code{load}}{Load the completion context into the class.}
 
 \item{\code{source}}{Source the file being completed.}
+
+\item{\code{parse}}{Try to parse the file.}
+
+\item{\code{eval}}{Evaluate the \code{oopr}s in \verb{$defs}.}
 
 }
 }
@@ -151,6 +184,69 @@ Cannot be over-ridden. This is used inside \code{OoprCompletion} class.
 \code{this} invisibly.
 }
 }
+
+\subsection{\hr parse}{
+\subsection{Description}{
+Try to parse the file.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+parse()
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Details}{
+When completing, the contents of a file may fail to parse:
+\enumerate{
+\item \code{$} with no rhs, e.g. \verb{this$}
+\item Incomplete control-flow, e.g. \verb{if(i in this$)}
+}
+
+Additionally, evaluation may fail due to member names or method
+signatures:
+\enumerate{
+\item \code{this$mem} instead of \code{this$member}
+\item \code{this$method()} instead of \code{this$method(x = 1L)}
+}
+
+As such, \code{this} (or an inherited class) is replaced with \code{list} so the
+class members are not reference checked.
+}
+
+\subsection{Returns}{
+See \code{OoprSource$parse()}.
+}
+}
+
+\subsection{\hr eval}{
+\subsection{Description}{
+Evaluate the \code{oopr}s in \verb{$defs}.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+eval(top = globalenv())
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
+\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
+\tabular{ll}{
+\code{top} \tab \code{environment} \br
+An environment to be the top-level of the \code{oopr} objects. \cr
+}
+}
+
+\subsection{Details}{
+If \verb{$row} & \verb{$col} are set, then evaluation stops at that \code{oopr} call.
+}
+
+\subsection{Returns}{
+Saves the \code{oopr} objects to \verb{$objs}.
+}
+}
 }
 
 \section{\hr\hr OoprCompletionRStudio}{
@@ -159,10 +255,54 @@ Cannot be over-ridden. This is used inside \code{OoprCompletion} class.
 Use completion in RStudio.
 }
 
+\subsection{Fields}{
+\describe{
+\item{\code{env}}{\code{environment} \cr
+The environment provided to \verb{$load}.}
+
+\item{\code{call}}{\code{call} \cr
+The evaluation string/call at the position \code{row} & \code{col} in
+the file, e.g. \code{this$a$b}.}
+
+\item{\code{file}}{\code{character(1L)} \cr
+An R source file.}
+
+\item{\code{text}}{\code{character()} \cr
+A vector of lines of an R source file.}
+
+\item{\code{row}}{\code{integer(1L)} \cr
+Line of a text cursor position.}
+
+\item{\code{col}}{\code{integer(1L)} \cr
+Line of a text cursor position.}
+
+\item{\code{expr}}{\code{expression} \cr
+A parsed expressed of \verb{$file} or \verb{$text} from \verb{$parse()}.}
+
+\item{\code{defs}}{\code{list()} \cr
+A named list of \code{oopr} definitions from \verb{$parse()}.}
+
+\item{\code{objs}}{\code{list()} \cr
+A named list of \code{oopr} object from \verb{$eval()}.}
+
+\item{\code{obj}}{\code{ooprC}
+If \verb{$row} and \verb{$col} are set, then the \code{oopr} object that
+is at that location.}
+}
+}
+
 \subsection{Methods}{
 \describe{
 
 \item{\code{isAvailable}}{Pull information from the \code{.rs.rpc_get_completions} call.}
+
+\item{\code{load}}{Load the completion context into the class.}
+
+\item{\code{source}}{Source the file being completed.}
+
+\item{\code{parse}}{Try to parse the file.}
+
+\item{\code{eval}}{Evaluate the \code{oopr}s in \verb{$defs}.}
 
 }
 }
@@ -185,6 +325,134 @@ the file path, row and column.
 
 \subsection{Returns}{
 \code{logical(1L)}.
+}
+}
+
+\subsection{\hr load}{
+\subsection{Description}{
+Load the completion context into the class.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+load(
+  env  = globalenv()
+ ,file
+ ,text = NULL
+ ,row 
+ ,col 
+)
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
+\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
+\tabular{ll}{
+\code{env} \tab \code{environment} \br
+The environment which acts as the parent of oopr classes. \cr
+\code{file} \tab \code{character(1L)} \br
+File path to the source file containing the oopr class. If
+it does not exist, \code{text} will be sufficient. \cr
+\code{text} \tab \code{character()} \br
+The text containing lines of the source file. If \code{NULL} and
+\code{file} exists, then its lines are read. \cr
+\code{row} \tab \code{integer(1L)} \br
+Text cursor position of the line number, indexed by 1. \cr
+\code{col} \tab \code{integer(1L)} \br
+Text cursor position of column on the line, indexed by 1. \cr
+}
+}
+
+\subsection{Details}{
+Cannot be over-ridden. This is used inside \code{OoprCompletion} class.
+}
+
+\subsection{Returns}{
+\code{this} invisibly.
+}
+}
+
+\subsection{\hr source}{
+\subsection{Description}{
+Source the file being completed.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+source()
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Details}{
+Cannot be over-ridden. This is used inside \code{OoprCompletion} class.
+}
+
+\subsection{Returns}{
+\code{this} invisibly.
+}
+}
+
+\subsection{\hr parse}{
+\subsection{Description}{
+Try to parse the file.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+parse()
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Details}{
+When completing, the contents of a file may fail to parse:
+\enumerate{
+\item \code{$} with no rhs, e.g. \verb{this$}
+\item Incomplete control-flow, e.g. \verb{if(i in this$)}
+}
+
+Additionally, evaluation may fail due to member names or method
+signatures:
+\enumerate{
+\item \code{this$mem} instead of \code{this$member}
+\item \code{this$method()} instead of \code{this$method(x = 1L)}
+}
+
+As such, \code{this} (or an inherited class) is replaced with \code{list} so the
+class members are not reference checked.
+}
+
+\subsection{Returns}{
+See \code{OoprSource$parse()}.
+}
+}
+
+\subsection{\hr eval}{
+\subsection{Description}{
+Evaluate the \code{oopr}s in \verb{$defs}.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+eval(top = globalenv())
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
+\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
+\tabular{ll}{
+\code{top} \tab \code{environment} \br
+An environment to be the top-level of the \code{oopr} objects. \cr
+}
+}
+
+\subsection{Details}{
+If \verb{$row} & \verb{$col} are set, then evaluation stops at that \code{oopr} call.
+}
+
+\subsection{Returns}{
+Saves the \code{oopr} objects to \verb{$objs}.
 }
 }
 }
