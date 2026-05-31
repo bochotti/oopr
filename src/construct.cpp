@@ -34,7 +34,7 @@ public:
   SEXP     gen;    // ooprC
   SEXP     name;   // SYMSXP
   OoprMeta meta;
-  SEXP     inhr;   // VECSXP
+  SEXP     inhr;   // STRSXP
   SEXP     encl;   // ENVSXP
   SEXP     calr;   // ENVSXP
   SEXP     envr;   // ENVSXP
@@ -117,19 +117,16 @@ public:
   }
 
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-   * Moves the constructor function from `this` into a language object
-   * to call for the return value. This should be called with Rf_eval.
+   * Evaluates and deletes the constructor method. The call is copied so
+   * debugging / error looks better. Evaluation allows for unwinding.
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
   void callConstructor()
   {
-    SEXP fun = R_getVar(name, thiz, FALSE);
-    SEXP args = R_ClosureFormals(fun);
-    pSEXP expr = Rf_allocVector(LANGSXP, Rf_length(args) + 1);
-    SETCAR(expr, fun);
-    for(SEXP e = CDR(expr); e != R_NilValue; e = CDR(e), args = CDR(args))
-    {
-      SETCAR(e, TAG(args));
-    }
+    pSEXP expr = Rf_lang3(sym["::"], sym["base"], sym["sys.call"]);
+    expr = Rf_eval(Rf_lang1(expr), envr);
+    SETCAR(expr, name);
+
+    Rf_defineVar(name, R_getVar(name, thiz, FALSE), envr);
     R_removeVarFromFrame(name, thiz);
     RUnWind::eval(expr, envr);
   }
@@ -250,7 +247,9 @@ public:
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 private:
-  static inline Symbols sym{"name", "meta", "inhr", "encl", "this", ".this"};
+  static inline Symbols sym{
+    "name", "meta", "inhr", "encl", "this", ".this", "base", "::", "sys.call"
+  };
   SEXP dupeFun(SEXP fun, bool keep_env)
   {
     SEXP env = keep_env ? R_ClosureEnv(fun) : (SEXP)inst;

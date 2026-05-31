@@ -74,7 +74,7 @@ definitions_constructor <- \(i, name, env, err)
 {
   fun  <- env$this[[name]];
   args <- names(formals(fun));
-  bads <- c(".", name, ".Call", "Cpp_oopr_make", "Cpp_oopr_tidy");
+  bads <- c(".", name, ".Call", "Cpp_oopr_make");
   if(!is.null(args) && any(match(args, bads, 0L)))
   {
     err$push(
