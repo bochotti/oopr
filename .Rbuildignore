@@ -3,3 +3,8 @@
 ^LICENSE\.md$
 ^README\.Rmd$
 ^\.Renviron$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^doc$
+^Meta$

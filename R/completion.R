@@ -136,7 +136,7 @@ public:
   #' @returns
   #' `this` invisibly.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  virtual:final:load  <- \(env = globalenv(), file, text = NULL, row, col)
+  final:load  <- \(env = globalenv(), file, text = NULL, row, col)
   {
     stopifnot(
       is.environment(env)
@@ -148,6 +148,10 @@ public:
     {
       this$file <- file;
       text      <- text %||% readLines(file, warn = FALSE);
+      if(grepl("(?i)\\.Rmd$", file))
+      {
+        text <- this$blocksFromRmd(text);
+      }
     }
     this$text   <- text;
     this$row    <- row;
@@ -165,7 +169,7 @@ public:
   #' @returns
   #' `this` invisibly.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  virtual:final:source  <- \( )
+  final:source  <- \( )
   {
     this$parse();
     this$eval(top = this$env_);
@@ -176,6 +180,27 @@ public:
 private:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   env_  <- emptyenv();
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  blocksFromRmd <- \(text)
+  {
+    edges <- which(startsWith(text, "```"));
+    len   <- length(edges);
+    if(len %% 2L != 0L)
+    {
+      stop("`file` is a .Rmd file with uneven ``` blocks");
+    }
+    edges <- split.default(edges, unlist(lapply(seq_len(len / 2), rep, 2L)));
+    lines <- lapply(edges, \(edge)
+    {
+      i <- seq.default(edge[1L], edge[2L]);
+      i[-c(1L, length(i))];
+    });
+    lines <- unlist(lines, use.names = FALSE);
+    keep <- logical(length(text));
+    keep[lines] <- TRUE;
+    text[!keep] <- character(1L);
+    return(text);
+  }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 }) ## OoprCompletionSource

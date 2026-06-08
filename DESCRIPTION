@@ -12,7 +12,9 @@ Suggests:
     withr,
     rstudioapi,
     roxygen2,
-    covr
+    covr,
+    knitr,
+    rmarkdown
 Imports:
     methods
 Depends:
@@ -44,3 +46,4 @@ Collate:
     'install.R'
     'roxy.R'
     'zzz.R'
+VignetteBuilder: knitr

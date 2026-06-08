@@ -1,5 +1,7 @@
 ---
 output: github_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
@@ -18,8 +20,42 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of oopr is to ...
+This package was created to assist with writing classes in R code. 
+`methods::setRefClass()` and `R6::R6Class()` already provide such functionality,
+but this package implements the idea differently.
+
+  1. Class implementations are defined within a single brace `{`.
+
+  2. Members can have different behavior via the use of specifiers.
+
+  3. Upon creating a class, a series of checks are performed to reduce the
+     risk of run-time errors.
+     
+  4. Code-completion and breakpoints are supported in RStudio.
+
+Classes are useful for bundling data and actions together, and to "group" 
+common functions.
 
 ## Installation
 
+```{r, eval=FALSE}
+# install.packages("remotes")
+remotes::install_github("bochotti/oopr")
+```
+
+## Getting started
+
+See `vignette("oopr")`.
+
 ## Example
+
+```{r, include, echo=FALSE, results='asis'}
+library(oopr);
+text <- paste(readLines("./man/oopr.Rd"), collapse = "\n");
+m <- regexpr("(?<=\\\\examples)(?<c>\\{([^}{]|(?&c))*\\})", text, perl = TRUE);
+text <- regmatches(text, m);
+text <- gsub("\\\\%", "%", text);
+text <- sub("^\\{", "```{r}", text);
+text <- sub("\\}$", "```",    text);
+cat(knitr::knit_child(text = text, quiet = TRUE), sep = "\n");
+```

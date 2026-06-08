@@ -67,10 +67,10 @@ A template of what the class looks like.}
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #  human as a class
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-oopr("human",,
+oopr("Human",,
 {
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-human <- \(first, last, age)
+Human <- \(first, last, age)
 {
   stopifnot(
     this$isScalar("character", first)
@@ -94,13 +94,14 @@ public:
   greet <- \( )
   {
     cat(sprintf(
-      "Hello, my name is \%s, aged \%i.\n"
+      "Hello, my name is \%s, aged \%i\n"
      ,this$name, this$age_
     ));
     return(invisible(this));
   }
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 private:
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   first_ <- character(1L);
   last_  <- character(1L);
   age_   <- integer(0L);
@@ -113,10 +114,10 @@ private:
     );
   }
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-}) ## human
+}) ## Human
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 
-john <- human("john", "smith", 50L);
+john <- Human("john", "smith", 50L);
 print(john);
 john$greet();
 }

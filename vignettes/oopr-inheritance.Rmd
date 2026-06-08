@@ -1,0 +1,237 @@
+---
+title: "Inheritance"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Inheritance}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  error = TRUE
+)
+```
+
+Inheritance is a way to re-ruse code across classes and establish a 
+hierarchical relationship between classes. 
+
+A relationship handles at least two classes: a base class and a derived class. 
+The derived class *inherits* features from the base class, such as receiving the members of the derived class. Typically, inheritance justified when establishing
+a *is a* relationship, i.e., the derived class *is a* base class.
+
+```{r setup}
+library(oopr)
+```
+
+## Usage
+
+The second argument of `oopr()` is used for inheritance. It expects another 
+class via its symbol. Multiple inheritance is available by using a brace `{`.
+
+```{r}
+# create some classes
+oopr("Base1",, { public:shout   <- \( ) print("HELLO!"); })
+oopr("Base2",, { public:whisper <- \( ) print("world");  })
+```
+
+```{r}
+# single inheritance
+oopr("InheritanceExample", Base1,
+{
+public:
+  speak <- \( ) { this$shout(); }
+})
+obj <- InheritanceExample();
+obj$speak();
+```
+
+```{r}
+# multiple inheritance
+oopr("InheritanceExample", { Base1; Base2; },
+{
+public:
+  speak <- \( ) 
+  { 
+    this$shout(); 
+    this$whisper(); 
+  }
+})
+obj <- InheritanceExample();
+obj$speak();
+```
+
+## Access
+
+The access of base classes can be amended using `public:`, `protected:`,
+and `private:` specifiers, this influences the access of all the base
+classes members. By default, base classes are inherited privately.
+
+If `public:`, then the base S3 class is included in the derived instance S3
+class list.
+
+```{r}
+# Inherits private by default
+print(obj)
+
+# Inherit as public
+oopr("InheritanceExample", public:Base1,
+{
+public:
+  speak <- \( ) { this$shout(); }
+})
+obj <- InheritanceExample();
+
+# Base public members are visible
+print(obj);
+
+# it also carries the S3 class
+print(class(obj));
+```
+
+The interaction between member access and class inheritance access is:
+
+| Member \\ Class | public    | protected | private   |
+|:----------------|:----------|:----------|:----------|
+| public          | public    | protected | private   |
+| protected       | protected | protected | private   |
+| private         | no access | no access | no access |
+
+: Inheritance Access Interactions
+
+This has some implications:
+
+  1.  Public inheritance allows members of a derived class to match the 
+      base class.
+  2.  Protected members can be accessed by a derived class, but private
+      members cannot.
+  3.  Inheriting a class privately will allow use of its members to the 
+      derived class, but hide them from further derived classes.
+
+
+## Redefining Base Members
+
+A derived class may create its own implementation of the base class method. 
+The base class implementation can still be used inside a derived class 
+methods via `base$` instead of `this$`:
+
+```{r}
+# base class with a method
+oopr("Base",,
+{
+public:
+  method <- \( ) { print("Base"); }
+})
+```
+
+```{r}
+# derived class, which redefines the method
+oopr("Derived", public:Base,
+{
+public:
+  method <- \( ) 
+  { 
+    Base$method();
+    print("Method"); 
+  }
+})
+```
+
+```{r}
+# only one method
+obj <- Derived();
+print(obj);
+
+# which calls the base class
+obj$method();
+```
+
+### Final
+
+The `final:` specifier is available to stop derived classes redefining methods:
+
+```{r}
+oopr("Base",,
+{
+public:
+  final:method <- \( ) { print("Base"); } #<- note final:
+})
+```
+
+```{r}
+oopr("Derived", public:Base,
+{
+public:
+  method <- \( ) { print("Method"); }
+})
+```
+
+## Virtual Methods
+
+The base class may allow derived classes to implement their own versions of
+a method, but require them to have the same function signature[^virtsig], 
+which is useful for looping over multiple instances of different classes that 
+all share a base class. 
+
+[^virtsig]: As R is not type safe, just the arguments apply here, not the 
+return type.
+
+```{r}
+# base class with virtual method
+oopr("Base",,
+{
+public:
+  virtual:method <- \(x, y = 1L) { }
+})
+```
+
+```{r}
+# doesnt match arguments
+oopr("Derived", public:Base, 
+{
+public:
+  method <- \( ) { }
+})
+```
+
+```{r}
+# doesnt have a default argument
+oopr("Derived", public:Base, 
+{
+public:
+  method <- \(x = 1L, y) { }
+})
+```
+
+Virtual methods are *overridden* should a derived class choose to, I consider
+this a form of "reverse inheritance". 
+
+Although popular in C++, virtual methods in `oopr` cannot be specified as 
+`private`.
+
+```{r}
+# method that relies on a virtual method
+oopr("Base",,
+{
+public:
+  speak  <- \( ) { this$method(); }
+protected:
+  virtual:method <- \( ) { print("Base"); }
+})
+```
+
+```{r}
+# now overridden
+oopr("Derived", public:Base,
+{
+protected:
+  method <- \( ) { print("Derived"); }
+})
+```
+
+```{r}
+obj <- Derived();
+obj$speak()
+```
