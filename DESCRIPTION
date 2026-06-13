@@ -49,3 +49,4 @@ Collate:
     'roxy.R'
     'zzz.R'
 VignetteBuilder: knitr
+URL: https://bochotti.github.io/oopr/
