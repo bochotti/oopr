@@ -10,13 +10,101 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment  = "#>",
+  error    = TRUE
 )
 ```
 
 Fields of a class can be defined as another class. When this happens the member 
-is automatically instanced 
+becomes a class instance.
 
 ```{r setup}
 library(oopr)
+```
+
+## Usage
+
+Simply assign a class object to a member.
+
+```{r}
+oopr("MemberClass",, { public:x <- 1L; })
+oopr("ClassMemExample",,
+{
+public:
+  mem <- MemberClass;
+})
+```
+
+```{r}
+obj <- ClassMemExample();
+print(obj);
+```
+
+## Containers
+
+Members can become containers of classes using syntactic sugar. Suffixing `[]` 
+uses `OoprVec()` and `[[]]` uses `OoprMap()`.
+
+```{r}
+oopr("ClassMemExample",,
+{
+ClassMemExample <- \( )
+{
+  for(i in 1:3)
+  {
+    this$mem$emplace();
+    this$mem[i]$x <- i;
+  }
+}
+public:
+  mem <- MemberClass[]; # <- use of []
+})
+```
+
+```{r}
+obj <- ClassMemExample();
+print(obj);
+```
+
+## Construction
+
+If the class member has a constructor method, then the member will need to:
+
+  1.  Be initialized within the constructor method, or
+  2.  Have its arguments provided where the member is being defined.
+
+If the member is specified as `static:`, then 2. is the only option.
+
+```{r}
+oopr("MemberClass",, 
+{ 
+MemberClass <- \(x) { this$x <- x; }
+public:x    <- 1L; 
+})
+
+# not allowed, needs constructing
+oopr("ClassMemExample",,
+{
+public:
+  mem <- MemberClass;
+})
+```
+
+```{r}
+# both approaches
+oopr("ClassMemExample",,
+{
+ClassMemExample <- \( )
+{
+  this$mem1(1L);           # <- args given in constructor
+}
+public:
+  mem1 <- MemberClass;
+  mem2 <- MemberClass(2L); # <- args given in-line
+})
+```
+
+```{r}
+obj <- ClassMemExample();
+print(obj);
 ```
