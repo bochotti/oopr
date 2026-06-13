@@ -1,3 +1,3 @@
 # oopr (development version)
 
-* Initial CRAN submission.
+* Initial public repo

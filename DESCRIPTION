@@ -1,9 +1,11 @@
 Package: oopr
-Title: What the Package Does (One Line, Title Case)
+Title: Classes for Object Oriented Programming
 Version: 0.0.0.9000
 Authors@R: 
     person("Nathan", "Bachetti", , "nathanbachetti@gmail.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
+Description: Create classes to implement object oriented programming principles
+    in R. Use specifiers to change the behaviour of class members. Classes are
+    check when defined to reduce run-time errors.
 License: GPL (>= 3)
 Encoding: UTF-8
 Suggests: 

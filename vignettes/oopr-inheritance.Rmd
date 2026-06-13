@@ -15,12 +15,13 @@ knitr::opts_chunk$set(
 )
 ```
 
-Inheritance is a way to re-ruse code across classes and establish a 
-hierarchical relationship between classes. 
+Inheritance is a way to re-ruse code and establish a hierarchical relationship
+between classes. 
 
 A relationship handles at least two classes: a base class and a derived class. 
-The derived class *inherits* features from the base class, such as receiving the members of the derived class. Typically, inheritance justified when establishing
-a *is a* relationship, i.e., the derived class *is a* base class.
+The derived class *inherits* features from the base class, such as receiving 
+the members of the derived class. Typically, inheritance is justified when
+establishing an *is a* relationship, i.e., the derived class *is a* base class.
 
 ```{r setup}
 library(oopr)
@@ -103,7 +104,7 @@ The interaction between member access and class inheritance access is:
 
 This has some implications:
 
-  1.  Public inheritance allows members of a derived class to match the 
+  1.  Public inheritance allows members of a derived class to copy the 
       base class.
   2.  Protected members can be accessed by a derived class, but private
       members cannot.
@@ -175,7 +176,7 @@ a method, but require them to have the same function signature[^virtsig],
 which is useful for looping over multiple instances of different classes that 
 all share a base class. 
 
-[^virtsig]: As R is not type safe, just the arguments apply here, not the 
+[^virtsig]: As R is not type safe, just the argument names apply, not the 
 return type.
 
 ```{r}
@@ -188,7 +189,7 @@ public:
 ```
 
 ```{r}
-# doesnt match arguments
+# does not match arguments
 oopr("Derived", public:Base, 
 {
 public:
@@ -197,7 +198,7 @@ public:
 ```
 
 ```{r}
-# doesnt have a default argument
+# does not have a default argument
 oopr("Derived", public:Base, 
 {
 public:
@@ -208,8 +209,8 @@ public:
 Virtual methods are *overridden* should a derived class choose to, I consider
 this a form of "reverse inheritance". 
 
-Although popular in C++, virtual methods in `oopr` cannot be specified as 
-`private`.
+Although popular in other languages, virtual methods with `oopr` cannot be
+specified as `private`.
 
 ```{r}
 # method that relies on a virtual method
@@ -223,7 +224,7 @@ protected:
 ```
 
 ```{r}
-# now overridden
+# overridden for the derived class
 oopr("Derived", public:Base,
 {
 protected:
@@ -234,4 +235,61 @@ protected:
 ```{r}
 obj <- Derived();
 obj$speak()
+```
+
+## Constructing
+
+When the base class has a constructor method, then it must be explicitly 
+initialized in the derived class[^constr].
+
+[^constr]: Unless the base class' constructor method has no arguments, 
+or all arguments have a default value.
+
+```{r}
+# base class with constructor method
+oopr("Base",,
+{
+Base <- \(x)
+{
+  this$x <- x;
+}
+public:
+  x <- integer(1L);
+})
+
+# unable to create the derived class
+oopr("Derived", Base, {})
+```
+
+To initialize, simply call the base class constructor within the derived
+customer method:
+
+```{r}
+# call Base(...)
+oopr("Derived", public:Base, 
+{
+Derived <- \(x)
+{
+  Base(x);
+}
+})
+
+# success
+obj <- Derived(1L);
+print(obj);
+```
+
+Note that base class members cannot be accessed until they are constructed:
+
+```{r}
+# cannot access `x` before Base(...)
+oopr("Derived", public:Base, 
+{
+Derived <- \(x)
+{
+  print(Base$x); # <- neither Base$
+  print(this$x); # <- nor this$
+  Base(x);
+}
+})
 ```

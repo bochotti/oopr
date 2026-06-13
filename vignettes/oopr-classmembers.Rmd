@@ -1,0 +1,22 @@
+---
+title: "Class Members"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Class Members}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+Fields of a class can be defined as another class. When this happens the member 
+is automatically instanced 
+
+```{r setup}
+library(oopr)
+```

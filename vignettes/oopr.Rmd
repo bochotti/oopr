@@ -1,5 +1,5 @@
 ---
-title: "oopr"
+title: "Get Started with oopr"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{oopr}
@@ -10,7 +10,8 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment  = "#>",
+  error    = TRUE
 )
 ```
 
@@ -110,7 +111,7 @@ The user could accidentally break this assumption:
 obj$x <- "a";
 
 # now the instance is broken
-try(obj$incr(), outFile = stdout());
+obj$incr();
 ```
 
 To prevent the user amending `$x` outside of using `$incr()`, the `private:`
@@ -140,7 +141,7 @@ obj <- Counter();
 print(obj$x());
 
 # but cannot overwrite it
-try(obj$x <- "a", outFile = stdout());
+obj$x <- "a";
 ```
 
 This relies on the restriction that class methods cannot be re-defined.
@@ -171,13 +172,13 @@ obj <- Counter();
 print(obj$x);
 
 # but it has no setter, making it more robust
-try(obj$x <- "a", outFile = stdout());
+obj$x <- "a";
 ```
 
-### Specifiers in General
+## Specifiers
 
-There are multiple specifiers available to change the behaviour of a class
-and its instances, which will be explained in further vignettes.
+There are multiple specifiers available to change members of a class, which are
+explained in further vignettes.
 
 The `:` operator is used to specify different behaviour of class members. Both 
 sides of `:` must be symbols, and the right-most symbol will become the name
