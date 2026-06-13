@@ -34,7 +34,8 @@ public:
     }
     pSEXP env = R_NewEnv(R_EmptyEnv, 1, 1);
     Rf_defineVar(sym["args"], sub, env);
-    return Rf_substitute(R_ClosureExpr(fun_), env);
+    pSEXP expr = Rf_lang3(sym["substitute"], R_ClosureExpr(fun_), env);
+    return Rf_eval(expr, R_BaseEnv);
   }
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   SEXP replace()
@@ -48,7 +49,9 @@ public:
   }
 
 private:
-  static inline Symbols sym{"emplace", "$", "this", "size", ".", "args"};
+  static inline Symbols sym{
+    "emplace", "$", "this", "size", ".", "args", "substitute"
+  };
   SEXP args_;
   SEXP thiz_;
   SEXP fun_;
