@@ -79,7 +79,7 @@ private:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   void loadClass(R_xlen_t& i, SEXP name, SEXP ooprM, SEXP thiz, OoprMeta meta)
   {
-    SEXP memb;
+    SEXP memb = R_NilValue;
     if(meta.isStatic(i))
     {
       memb = ooprM;

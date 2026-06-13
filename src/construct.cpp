@@ -91,7 +91,7 @@ public:
       // inherited members use symlink as their instances not yet initialized
       if(meta.isInherit(i))
       {
-        symlink(thiz, meta.inherit(i), thiz, nm, false);
+        symlinkR(thiz, meta.inherit(i), thiz, nm, false);
       }
       else if(meta.isMethod(i))
       {
@@ -106,7 +106,7 @@ public:
       }
       else if(meta.isStatic(i))
       {
-        symlink(from, sym["this"], thiz, nm);
+        symlinkR(from, sym["this"], thiz, nm);
       }
       else
       {
@@ -165,7 +165,7 @@ public:
       else
       {
         R_removeVarFromFrame(nm, thiz);
-        symlink(inhr, sym["this"], thiz, nm);
+        symlinkR(inhr, sym["this"], thiz, nm);
       }
     }
   }

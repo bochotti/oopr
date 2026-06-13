@@ -42,7 +42,7 @@ SEXP interface(SEXP env, SEXP nme, SEXP nms, SEXP cls)
       }
       else
       {
-        symlink(env, nme, out, sym);
+        symlinkR(env, nme, out, sym);
       }
     }
     if(R_BindingIsLocked(sym, env)) R_LockBinding(sym, out);

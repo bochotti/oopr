@@ -43,7 +43,7 @@ SEXP iscall(SEXP x, SEXP names, SEXP package)
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-SEXP symlink(SEXP tenv, SEXP tname, SEXP env, SEXP name, bool check)
+SEXP symlinkR(SEXP tenv, SEXP tname, SEXP env, SEXP name, bool check)
 {
   if(!Rf_isEnvironment(tenv)) Rf_error("`tenv` must be an environment");
   if(!Rf_isEnvironment(env))  Rf_error("`env` must be an environment");
