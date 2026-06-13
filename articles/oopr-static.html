@@ -5,12 +5,12 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Static • oopr</title>
+<title>Static Members • oopr</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Static">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Static Members">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -38,7 +38,7 @@
     <li><a class="dropdown-item" href="../articles/oopr-inheritance.html">Inheritance</a></li>
     <li><a class="dropdown-item" href="../articles/oopr-methods.html">Methods</a></li>
     <li><a class="dropdown-item" href="../articles/oopr-property.html">Properties</a></li>
-    <li><a class="dropdown-item" href="../articles/oopr-static.html">Static</a></li>
+    <li><a class="dropdown-item" href="../articles/oopr-static.html">Static Members</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -60,7 +60,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
-      <h1>Static</h1>
+      <h1>Static Members</h1>
             
       
 
@@ -90,7 +90,7 @@ specifier.</p>
 <span></span>
 <span><span class="co"># can be used from the class</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">StaticExample</span><span class="op">)</span>;</span>
-<span><span class="co">#&gt; &lt;StaticExample ooprC: 0x559bf0af4f68&gt;</span></span>
+<span><span class="co">#&gt; &lt;StaticExample ooprC: 0x561054b75230&gt;</span></span>
 <span><span class="co">#&gt; Usage:</span></span>
 <span><span class="co">#&gt;   StaticExample() </span></span>
 <span><span class="co">#&gt; Static Members:</span></span>
@@ -99,7 +99,7 @@ specifier.</p>
 <span></span>
 <span><span class="co"># instances share the same state with the class</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span>;</span>
-<span><span class="co">#&gt; &lt;StaticExample: 0x559bf1b32918&gt;</span></span>
+<span><span class="co">#&gt; &lt;StaticExample: 0x561055bb7980&gt;</span></span>
 <span><span class="co">#&gt;  └─$field: int 2</span></span></code></pre></div>
 </div>
 <div class="section level2">

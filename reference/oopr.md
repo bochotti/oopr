@@ -134,7 +134,7 @@ private:
 
 john <- Human("john", "smith", 50L);
 print(john);
-#> <Human: 0x55a5df6f9d90>
+#> <Human: 0x56059b3e6148>
 #>  ├─$name : chr "john smith"
 #>  └─$greet:\()  
 john$greet();

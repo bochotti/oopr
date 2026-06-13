@@ -590,14 +590,14 @@ vec$emplace(, 1L);
 vec$insert(0L, test(2L));
 
 print(vec);
-#> <OoprVec: 0x55a5e1d067b8>
+#> <OoprVec: 0x56059dc0b198>
 #>  ├─$class  : chr "test"
 #>  ├─$empty  : logi FALSE
 #>  ├─$size   : int 2
 #>  ├─$data   :List of 2
-#>  │           $:<test: 0x55a5e1bdfb28>
+#>  │           $:<test: 0x56059dacfaf8>
 #>  │            ..└─$x: int 2
-#>  │           $:<test: 0x55a5e1c9c568>
+#>  │           $:<test: 0x56059dba06c0>
 #>  │            ..└─$x: int 1
 #>  ├─$insert :\(pos = this$size, x)  
 #>  ├─$emplace:\(. = this$size, x)  
@@ -611,14 +611,14 @@ print(vec);
 # $swap will swap elements
 vec$swap(2L, 1L);
 print(vec);
-#> <OoprVec: 0x55a5e1d067b8>
+#> <OoprVec: 0x56059dc0b198>
 #>  ├─$class  : chr "test"
 #>  ├─$empty  : logi FALSE
 #>  ├─$size   : int 2
 #>  ├─$data   :List of 2
-#>  │           $:<test: 0x55a5e1c9c568>
+#>  │           $:<test: 0x56059dba06c0>
 #>  │            ..└─$x: int 1
-#>  │           $:<test: 0x55a5e1bdfb28>
+#>  │           $:<test: 0x56059dacfaf8>
 #>  │            ..└─$x: int 2
 #>  ├─$insert :\(pos = this$size, x)  
 #>  ├─$emplace:\(. = this$size, x)  
@@ -649,15 +649,15 @@ vec$apply(\(x) { x$x; })
 map <- OoprMap(test);
 map$emplace("a", "a")$emplace("b", "b");
 print(map);
-#> <OoprMap: 0x55a5df707b28>
+#> <OoprMap: 0x56059b5caca0>
 #>  ├─$class  : chr "test"
 #>  ├─$empty  : logi FALSE
 #>  ├─$size   : int 2
 #>  ├─$keys   : chr [1:2] "a" "b"
 #>  ├─$data   :List of 2
-#>  │           $a:<test: 0x55a5df4cc380>
+#>  │           $a:<test: 0x56059b373070>
 #>  │            ..└─$x: chr "a"
-#>  │           $b:<test: 0x55a5df4bf160>
+#>  │           $b:<test: 0x56059b36c0f8>
 #>  │            ..└─$x: chr "b"
 #>  ├─$exists :\(key)  
 #>  ├─$insert :\(key, x)  

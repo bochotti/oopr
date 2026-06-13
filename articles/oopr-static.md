@@ -1,4 +1,4 @@
-# Static
+# Static Members
 
 Static members belong to a class itself, not the instances of a class.
 Static members across multiple instances share the same state.
@@ -27,7 +27,7 @@ obj <- StaticExample();
 
 # can be used from the class
 print(StaticExample);
-#> <StaticExample ooprC: 0x559bf0af4f68>
+#> <StaticExample ooprC: 0x561054b75230>
 #> Usage:
 #>   StaticExample() 
 #> Static Members:
@@ -36,7 +36,7 @@ StaticExample$field <- 2L;
 
 # instances share the same state with the class
 print(obj);
-#> <StaticExample: 0x559bf1b32918>
+#> <StaticExample: 0x561055bb7980>
 #>  └─$field: int 2
 ```
 

@@ -23,7 +23,7 @@
     <li><a class="dropdown-item" href="../articles/oopr-inheritance.html">Inheritance</a></li>
     <li><a class="dropdown-item" href="../articles/oopr-methods.html">Methods</a></li>
     <li><a class="dropdown-item" href="../articles/oopr-property.html">Properties</a></li>
-    <li><a class="dropdown-item" href="../articles/oopr-static.html">Static</a></li>
+    <li><a class="dropdown-item" href="../articles/oopr-static.html">Static Members</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -677,14 +677,14 @@ An <code>oopr</code> object of class <code>$class</code>.</td></tr></table></div
 <span class="r-in"><span><span class="va">vec</span><span class="op">$</span><span class="fu">insert</span><span class="op">(</span><span class="fl">0L</span>, <span class="fu">test</span><span class="op">(</span><span class="fl">2L</span><span class="op">)</span><span class="op">)</span>;</span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">vec</span><span class="op">)</span>;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;OoprVec: 0x55a5e1d067b8&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;OoprVec: 0x56059dc0b198&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  ├─$class  : chr "test"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  ├─$empty  : logi FALSE</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  ├─$size   : int 2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  ├─$data   :List of 2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  │           $:&lt;test: 0x55a5e1bdfb28&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  │           $:&lt;test: 0x56059dacfaf8&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  │            ..└─$x: int 2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  │           $:&lt;test: 0x55a5e1c9c568&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  │           $:&lt;test: 0x56059dba06c0&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  │            ..└─$x: int 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  ├─$insert :\(pos = this$size, x)  </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  ├─$emplace:\(. = this$size, x)  </span>
@@ -698,14 +698,14 @@ An <code>oopr</code> object of class <code>$class</code>.</td></tr></table></div
 <span class="r-in"><span><span class="co"># $swap will swap elements</span></span></span>
 <span class="r-in"><span><span class="va">vec</span><span class="op">$</span><span class="fu">swap</span><span class="op">(</span><span class="fl">2L</span>, <span class="fl">1L</span><span class="op">)</span>;</span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">vec</span><span class="op">)</span>;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;OoprVec: 0x55a5e1d067b8&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;OoprVec: 0x56059dc0b198&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  ├─$class  : chr "test"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  ├─$empty  : logi FALSE</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  ├─$size   : int 2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  ├─$data   :List of 2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  │           $:&lt;test: 0x55a5e1c9c568&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  │           $:&lt;test: 0x56059dba06c0&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  │            ..└─$x: int 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  │           $:&lt;test: 0x55a5e1bdfb28&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  │           $:&lt;test: 0x56059dacfaf8&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  │            ..└─$x: int 2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  ├─$insert :\(pos = this$size, x)  </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  ├─$emplace:\(. = this$size, x)  </span>
@@ -736,15 +736,15 @@ An <code>oopr</code> object of class <code>$class</code>.</td></tr></table></div
 <span class="r-in"><span><span class="va">map</span> <span class="op">&lt;-</span> <span class="fu">OoprMap</span><span class="op">(</span><span class="va">test</span><span class="op">)</span>;</span></span>
 <span class="r-in"><span><span class="va">map</span><span class="op">$</span><span class="fu">emplace</span><span class="op">(</span><span class="st">"a"</span>, <span class="st">"a"</span><span class="op">)</span><span class="op">$</span><span class="fu">emplace</span><span class="op">(</span><span class="st">"b"</span>, <span class="st">"b"</span><span class="op">)</span>;</span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">map</span><span class="op">)</span>;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;OoprMap: 0x55a5df707b28&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;OoprMap: 0x56059b5caca0&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  ├─$class  : chr "test"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  ├─$empty  : logi FALSE</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  ├─$size   : int 2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  ├─$keys   : chr [1:2] "a" "b"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  ├─$data   :List of 2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  │           $a:&lt;test: 0x55a5df4cc380&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  │           $a:&lt;test: 0x56059b373070&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  │            ..└─$x: chr "a"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  │           $b:&lt;test: 0x55a5df4bf160&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  │           $b:&lt;test: 0x56059b36c0f8&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  │            ..└─$x: chr "b"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  ├─$exists :\(key)  </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  ├─$insert :\(key, x)  </span>

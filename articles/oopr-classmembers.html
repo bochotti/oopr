@@ -38,7 +38,7 @@
     <li><a class="dropdown-item" href="../articles/oopr-inheritance.html">Inheritance</a></li>
     <li><a class="dropdown-item" href="../articles/oopr-methods.html">Methods</a></li>
     <li><a class="dropdown-item" href="../articles/oopr-property.html">Properties</a></li>
-    <li><a class="dropdown-item" href="../articles/oopr-static.html">Static</a></li>
+    <li><a class="dropdown-item" href="../articles/oopr-static.html">Static Members</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -70,10 +70,122 @@
     
     
 <p>Fields of a class can be defined as another class. When this happens
-the member is automatically instanced</p>
+the member becomes a class instance.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://bochotti.github.io/oopr/">oopr</a></span><span class="op">)</span></span></code></pre></div>
-  </main>
+<div class="section level2">
+<h2 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
+</h2>
+<p>Simply assign a class object to a member.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/oopr.html">oopr</a></span><span class="op">(</span><span class="st">"MemberClass"</span>,, <span class="op">{</span> <span class="va">public</span><span class="op">:</span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fl">1L</span>; <span class="op">}</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/oopr.html">oopr</a></span><span class="op">(</span><span class="st">"ClassMemExample"</span>,,</span>
+<span><span class="op">{</span></span>
+<span><span class="va">public</span><span class="op">:</span></span>
+<span>  <span class="va">mem</span> <span class="op">&lt;-</span> <span class="va">MemberClass</span>;</span>
+<span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">obj</span> <span class="op">&lt;-</span> <span class="fu">ClassMemExample</span><span class="op">(</span><span class="op">)</span>;</span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span>;</span>
+<span><span class="co">#&gt; &lt;ClassMemExample: 0x55ea84223de8&gt;</span></span>
+<span><span class="co">#&gt;  └─$mem:&lt;MemberClass: 0x55ea84224360&gt;</span></span>
+<span><span class="co">#&gt;          └─$x: int 1</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="containers">Containers<a class="anchor" aria-label="anchor" href="#containers"></a>
+</h2>
+<p>Members can become containers of classes using syntactic sugar.
+Suffixing <code>[]</code> uses <code><a href="../reference/oopr_containers.html">OoprVec()</a></code> and
+<code>[[]]</code> uses <code><a href="../reference/oopr_containers.html">OoprMap()</a></code>.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/oopr.html">oopr</a></span><span class="op">(</span><span class="st">"ClassMemExample"</span>,,</span>
+<span><span class="op">{</span></span>
+<span><span class="va">ClassMemExample</span> <span class="op">&lt;-</span> \<span class="op">(</span> <span class="op">)</span></span>
+<span><span class="op">{</span></span>
+<span>  <span class="kw">for</span><span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span></span>
+<span>  <span class="op">{</span></span>
+<span>    <span class="va">this</span><span class="op">$</span><span class="va">mem</span><span class="op">$</span><span class="fu">emplace</span><span class="op">(</span><span class="op">)</span>;</span>
+<span>    <span class="va">this</span><span class="op">$</span><span class="va">mem</span><span class="op">[</span><span class="va">i</span><span class="op">]</span><span class="op">$</span><span class="va">x</span> <span class="op">&lt;-</span> <span class="va">i</span>;</span>
+<span>  <span class="op">}</span></span>
+<span><span class="op">}</span></span>
+<span><span class="va">public</span><span class="op">:</span></span>
+<span>  <span class="va">mem</span> <span class="op">&lt;-</span> <span class="va">MemberClass</span><span class="op">[</span><span class="op">]</span>; <span class="co"># &lt;- use of []</span></span>
+<span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">obj</span> <span class="op">&lt;-</span> <span class="fu">ClassMemExample</span><span class="op">(</span><span class="op">)</span>;</span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span>;</span>
+<span><span class="co">#&gt; &lt;ClassMemExample: 0x55ea84f53190&gt;</span></span>
+<span><span class="co">#&gt;  └─$mem:&lt;OoprVec: 0x55ea84f20c30&gt;</span></span>
+<span><span class="co">#&gt;          ├─$class  : chr "MemberClass"</span></span>
+<span><span class="co">#&gt;          ├─$empty  : logi FALSE</span></span>
+<span><span class="co">#&gt;          ├─$size   : int 3</span></span>
+<span><span class="co">#&gt;          ├─$data   :List of 3</span></span>
+<span><span class="co">#&gt;          │           $:&lt;MemberClass: 0x55ea84f24920&gt;</span></span>
+<span><span class="co">#&gt;          │            ..└─$x: int 1</span></span>
+<span><span class="co">#&gt;          │           $:&lt;MemberClass: 0x55ea84f38038&gt;</span></span>
+<span><span class="co">#&gt;          │            ..└─$x: int 2</span></span>
+<span><span class="co">#&gt;          │           $:&lt;MemberClass: 0x55ea84f45da8&gt;</span></span>
+<span><span class="co">#&gt;          │            ..└─$x: int 3</span></span>
+<span><span class="co">#&gt;          ├─$insert :\(pos = this$size, x)  </span></span>
+<span><span class="co">#&gt;          ├─$emplace:\(. = this$size)  </span></span>
+<span><span class="co">#&gt;          ├─$resize :\(n)  </span></span>
+<span><span class="co">#&gt;          ├─$erase  :\(pos = this$size)  </span></span>
+<span><span class="co">#&gt;          ├─$swap   :\(pos1, pos2)  </span></span>
+<span><span class="co">#&gt;          ├─$apply  :\(fun, ...)  </span></span>
+<span><span class="co">#&gt;          ├─$[      :\(i, j, ..., drop)  </span></span>
+<span><span class="co">#&gt;          └─$[&lt;-    :\(i, j, ..., value)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="construction">Construction<a class="anchor" aria-label="anchor" href="#construction"></a>
+</h2>
+<p>If the class member has a constructor method, then the member will
+need to:</p>
+<ol style="list-style-type: decimal">
+<li>Be initialized within the constructor method, or</li>
+<li>Have its arguments provided where the member is being defined.</li>
+</ol>
+<p>If the member is specified as <code>static:</code>, then 2. is the
+only option.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/oopr.html">oopr</a></span><span class="op">(</span><span class="st">"MemberClass"</span>,, </span>
+<span><span class="op">{</span> </span>
+<span><span class="va">MemberClass</span> <span class="op">&lt;-</span> \<span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span> <span class="va">this</span><span class="op">$</span><span class="va">x</span> <span class="op">&lt;-</span> <span class="va">x</span>; <span class="op">}</span></span>
+<span><span class="va">public</span><span class="op">:</span><span class="va">x</span>    <span class="op">&lt;-</span> <span class="fl">1L</span>; </span>
+<span><span class="op">}</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># not allowed, needs constructing</span></span>
+<span><span class="fu"><a href="../reference/oopr.html">oopr</a></span><span class="op">(</span><span class="st">"ClassMemExample"</span>,,</span>
+<span><span class="op">{</span></span>
+<span><span class="va">public</span><span class="op">:</span></span>
+<span>  <span class="va">mem</span> <span class="op">&lt;-</span> <span class="va">MemberClass</span>;</span>
+<span><span class="op">}</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   Class `mem` must be initialized in the constructor method via</span></span>
+<span><span class="co">#&gt;   `this$mem(...)`.</span></span>
+<span><span class="co">#&gt; <span style="color: #BBBB00; font-weight: bold;">Error</span><span style="font-weight: bold;"> in `oopr()`:</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> Compilation errors</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># both approaches</span></span>
+<span><span class="fu"><a href="../reference/oopr.html">oopr</a></span><span class="op">(</span><span class="st">"ClassMemExample"</span>,,</span>
+<span><span class="op">{</span></span>
+<span><span class="va">ClassMemExample</span> <span class="op">&lt;-</span> \<span class="op">(</span> <span class="op">)</span></span>
+<span><span class="op">{</span></span>
+<span>  <span class="va">this</span><span class="op">$</span><span class="fu">mem1</span><span class="op">(</span><span class="fl">1L</span><span class="op">)</span>;           <span class="co"># &lt;- args given in constructor</span></span>
+<span><span class="op">}</span></span>
+<span><span class="va">public</span><span class="op">:</span></span>
+<span>  <span class="va">mem1</span> <span class="op">&lt;-</span> <span class="va">MemberClass</span>;</span>
+<span>  <span class="va">mem2</span> <span class="op">&lt;-</span> <span class="fu">MemberClass</span><span class="op">(</span><span class="fl">2L</span><span class="op">)</span>; <span class="co"># &lt;- args given in-line</span></span>
+<span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">obj</span> <span class="op">&lt;-</span> <span class="fu">ClassMemExample</span><span class="op">(</span><span class="op">)</span>;</span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span>;</span>
+<span><span class="co">#&gt; &lt;ClassMemExample: 0x55ea832d9fe8&gt;</span></span>
+<span><span class="co">#&gt;  ├─$mem1:&lt;MemberClass: 0x55ea832da4f0&gt;</span></span>
+<span><span class="co">#&gt;  │        └─$x: int 1</span></span>
+<span><span class="co">#&gt;  └─$mem2:&lt;MemberClass: 0x55ea832d87c8&gt;</span></span>
+<span><span class="co">#&gt;           └─$x: int 2</span></span></code></pre></div>
+</div>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside>
 </div>
 
 
