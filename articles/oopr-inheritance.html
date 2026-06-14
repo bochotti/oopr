@@ -126,7 +126,7 @@ derived instance S3 class list.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Inherits private by default</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span></span>
-<span><span class="co">#&gt; &lt;InheritanceExample: 0x5559b2c6b568&gt;</span></span>
+<span><span class="co">#&gt; &lt;InheritanceExample: 0x55bf647c0760&gt;</span></span>
 <span><span class="co">#&gt;  └─$speak:\()</span></span>
 <span></span>
 <span><span class="co"># Inherit as public</span></span>
@@ -139,7 +139,7 @@ derived instance S3 class list.</p>
 <span></span>
 <span><span class="co"># Base public members are visible</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span>;</span>
-<span><span class="co">#&gt; &lt;InheritanceExample: 0x5559ae6bf8f0&gt;</span></span>
+<span><span class="co">#&gt; &lt;InheritanceExample: 0x55bf60215270&gt;</span></span>
 <span><span class="co">#&gt;  ├─$speak:\()  </span></span>
 <span><span class="co">#&gt;  └─$shout:\()</span></span>
 <span></span>
@@ -215,7 +215,7 @@ class methods via <code>base$</code> instead of <code>this$</code>:</p>
 <code class="sourceCode R"><span><span class="co"># only one method</span></span>
 <span><span class="va">obj</span> <span class="op">&lt;-</span> <span class="fu">Derived</span><span class="op">(</span><span class="op">)</span>;</span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span>;</span>
-<span><span class="co">#&gt; &lt;Derived: 0x5559b062dd08&gt;</span></span>
+<span><span class="co">#&gt; &lt;Derived: 0x55bf62183558&gt;</span></span>
 <span><span class="co">#&gt;  └─$method:\()</span></span>
 <span></span>
 <span><span class="co"># which calls the base class</span></span>
@@ -347,7 +347,7 @@ derived customer method:</p>
 <span><span class="co"># success</span></span>
 <span><span class="va">obj</span> <span class="op">&lt;-</span> <span class="fu">Derived</span><span class="op">(</span><span class="fl">1L</span><span class="op">)</span>;</span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span>;</span>
-<span><span class="co">#&gt; &lt;Derived: 0x5559adec3450&gt;</span></span>
+<span><span class="co">#&gt; &lt;Derived: 0x55bf5fa15f28&gt;</span></span>
 <span><span class="co">#&gt;  └─$x: int 1</span></span></code></pre></div>
 <p>Note that base class members cannot be accessed until they are
 constructed:</p>

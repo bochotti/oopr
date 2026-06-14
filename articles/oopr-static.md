@@ -27,7 +27,7 @@ obj <- StaticExample();
 
 # can be used from the class
 print(StaticExample);
-#> <StaticExample ooprC: 0x55f474f496b0>
+#> <StaticExample ooprC: 0x55829438f120>
 #> Usage:
 #>   StaticExample() 
 #> Static Members:
@@ -36,7 +36,7 @@ StaticExample$field <- 2L;
 
 # instances share the same state with the class
 print(obj);
-#> <StaticExample: 0x55f475f8d950>
+#> <StaticExample: 0x5582953d3660>
 #>  └─$field: int 2
 ```
 

@@ -72,7 +72,7 @@ S3 class list.
 
 # Inherits private by default
 print(obj)
-#> <InheritanceExample: 0x5559b2c6b568>
+#> <InheritanceExample: 0x55bf647c0760>
 #>  └─$speak:\()
 
 # Inherit as public
@@ -85,7 +85,7 @@ obj <- InheritanceExample();
 
 # Base public members are visible
 print(obj);
-#> <InheritanceExample: 0x5559ae6bf8f0>
+#> <InheritanceExample: 0x55bf60215270>
 #>  ├─$speak:\()  
 #>  └─$shout:\()
 
@@ -148,7 +148,7 @@ public:
 # only one method
 obj <- Derived();
 print(obj);
-#> <Derived: 0x5559b062dd08>
+#> <Derived: 0x55bf62183558>
 #>  └─$method:\()
 
 # which calls the base class
@@ -308,7 +308,7 @@ Derived <- \(x)
 # success
 obj <- Derived(1L);
 print(obj);
-#> <Derived: 0x5559adec3450>
+#> <Derived: 0x55bf5fa15f28>
 #>  └─$x: int 1
 ```
 
