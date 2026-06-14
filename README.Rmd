@@ -18,6 +18,7 @@ knitr::opts_chunk$set(
 # oopr
 
 <!-- badges: start -->
+[![R-CMD-check](https://github.com/bochotti/oopr/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/bochotti/oopr/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 This package was created to assist with writing classes in R code. 
