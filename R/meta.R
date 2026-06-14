@@ -45,6 +45,7 @@ meta <- \(size = 0L)
   property <- vector("character", size);
   static   <- vector("logical",   size);
   class    <- vector("logical",   size);
+  container<- vector("logical",   size);
   inherit  <- vector("character", size);
   virtual  <- vector("logical",   size);
   final    <- vector("logical",   size);

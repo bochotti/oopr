@@ -7,7 +7,9 @@ evaluate_classmem <- \(i, name, rhs, env, err)
   isvec <- iscall(rhs, "[");
   ismap <- iscall(rhs, "[[");
   if(!(isvec || ismap) || !isname(rhs[[3L]], "")) return(rhs);
-  rhs[[1L]] <- if(isvec) quote(oopr:::OoprVec) else quote(oopr:::OoprMap);
+  env$meta$container$set(i, TRUE);
+  obj <- if(isvec) quote(OoprVec) else quote(OoprMap);
+  rhs[[1L]] <- call(":::", quote(oopr), obj);
   rhs[[3L]] <- NULL;
   return(rhs);
 }
@@ -123,31 +125,12 @@ references_classmem <- \(i, name, refs, meta, access, encl, this, env, err)
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @intern
-#' Collect class containers.
+#' Collect class containers. Returns named logical
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 classmem_get_containers <- \(meta, this)
 {
-  contain <- logical(meta$size)
-  names(contain) <- meta$names$data
-  is.containercall <- \(obj) is.call(obj) &&
-    (
-        identical(obj[[1L]], quote(oopr:::OoprVec))
-     || identical(obj[[1L]], quote(oopr:::OoprMap))
-    )
-  for(nm in names(contain))
-  {
-    if(any(!meta$subs("class", names = nm))) next;
-    obj <- this[[nm]];
-    contain[[nm]] <- if(meta$subs("static", names = nm))
-    {
-      is.oopr(obj, c("OoprVec", "OoprMap"));
-    }
-    else
-    {
-      is.ooprC(obj, c("OoprVec", "OoprMap"));
-    }
-    contain[[nm]] <- contain[[nm]] || is.containercall(obj);
-  }
+  contain <- meta$container$data;
+  names(contain) <- meta$names$data;
   return(contain);
 }
 
