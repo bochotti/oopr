@@ -26,8 +26,8 @@ public:
 
 obj <- ClassMemExample();
 print(obj);
-#> <ClassMemExample: 0x55ea84223de8>
-#>  └─$mem:<MemberClass: 0x55ea84224360>
+#> <ClassMemExample: 0x556caf476ee8>
+#>  └─$mem:<MemberClass: 0x556caf473630>
 #>          └─$x: int 1
 ```
 
@@ -60,17 +60,17 @@ public:
 
 obj <- ClassMemExample();
 print(obj);
-#> <ClassMemExample: 0x55ea84f53190>
-#>  └─$mem:<OoprVec: 0x55ea84f20c30>
+#> <ClassMemExample: 0x556cb01a3dd0>
+#>  └─$mem:<OoprVec: 0x556cb0171870>
 #>          ├─$class  : chr "MemberClass"
 #>          ├─$empty  : logi FALSE
 #>          ├─$size   : int 3
 #>          ├─$data   :List of 3
-#>          │           $:<MemberClass: 0x55ea84f24920>
+#>          │           $:<MemberClass: 0x556cb0177480>
 #>          │            ..└─$x: int 1
-#>          │           $:<MemberClass: 0x55ea84f38038>
+#>          │           $:<MemberClass: 0x556cb018ab98>
 #>          │            ..└─$x: int 2
-#>          │           $:<MemberClass: 0x55ea84f45da8>
+#>          │           $:<MemberClass: 0x556cb019a818>
 #>          │            ..└─$x: int 3
 #>          ├─$insert :\(pos = this$size, x)  
 #>          ├─$emplace:\(. = this$size)  
@@ -131,9 +131,9 @@ public:
 
 obj <- ClassMemExample();
 print(obj);
-#> <ClassMemExample: 0x55ea832d9fe8>
-#>  ├─$mem1:<MemberClass: 0x55ea832da4f0>
+#> <ClassMemExample: 0x556cae532700>
+#>  ├─$mem1:<MemberClass: 0x556cae532c08>
 #>  │        └─$x: int 1
-#>  └─$mem2:<MemberClass: 0x55ea832d87c8>
+#>  └─$mem2:<MemberClass: 0x556cae530ea8>
 #>           └─$x: int 2
 ```
