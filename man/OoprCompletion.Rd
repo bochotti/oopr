@@ -13,9 +13,6 @@ OoprCompletionRStudio()
 OoprCompletion()
 }
 \description{
-Completion for oopr internals
-}
-\section{}{
 \newcommand{\br}{\if{html}{\out{<br>}}\if{latex}{\out{\newline}}}
 \newcommand{\hr}{\if{html}{\out{<hr>}}\if{latex}{\out{\hrule}}}
 \if{latex}{\out{
@@ -38,8 +35,8 @@ Completion for oopr internals
 }
 \ExplSyntaxOff
 }}
+Completion for oopr internals
 }
-
 \section{\hr\hr OoprCompletionSource}{
 
 \subsection{Description}{

@@ -45,7 +45,9 @@ test_that("iscall",
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 test_that("symlink",
 {
-  target <- new.env();
+  parent <- new.env();
+  target <- new.env(parent = parent);
+  parent$target <- target;
   target$a <- 1L;
   link <- new.env();
 

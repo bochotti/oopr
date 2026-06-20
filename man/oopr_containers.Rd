@@ -4,32 +4,17 @@
 \alias{oopr_containers}
 \alias{OoprVec}
 \alias{OoprMap}
-\alias{[.OoprVec}
-\alias{[<-.OoprVec}
-\alias{[.OoprMap}
-\alias{[<-.OoprMap}
 \title{Containers for oopr Instances}
 \usage{
 OoprVec(ooprC)
 
 OoprMap(ooprC)
-
-\method{[}{OoprVec}(x, i, j, ..., drop)
-
-\method{[}{OoprVec}(x, i, j, ...) <- value
-
-\method{[}{OoprMap}(x, i, j, ..., drop)
-
-\method{[}{OoprMap}(x, i, j, ...) <- value
 }
 \arguments{
 \item{ooprC}{\code{ooprC} \cr
 An \code{oopr} class.}
 }
 \description{
-Create a vector or key-value pair of \code{oopr} instances.
-}
-\section{}{
 \newcommand{\br}{\if{html}{\out{<br>}}\if{latex}{\out{\newline}}}
 \newcommand{\hr}{\if{html}{\out{<hr>}}\if{latex}{\out{\hrule}}}
 \if{latex}{\out{
@@ -52,8 +37,8 @@ Create a vector or key-value pair of \code{oopr} instances.
 }
 \ExplSyntaxOff
 }}
+Create a vector or key-value pair of \code{oopr} instances.
 }
-
 \section{\hr\hr OoprVec}{
 
 \subsection{Fields}{

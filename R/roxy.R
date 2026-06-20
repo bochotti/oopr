@@ -29,8 +29,8 @@ roclet_preprocess.roclet_oopr <- \(x, blocks, base_path)
       rdname <- roxygen2::block_get_tag(block, c("name", "rdname"));
       for(tag in roxygen2::block_get_tags(block, "exportS3Method"))
       {
-        tags <- list(rdname, tag);
-        # tags <- list(tag);
+        # tags <- list(rdname, tag);
+        tags <- list(tag);
         call <- sub("^\"(.*?)\"", "\\1", tag$raw);
         call <- as.name(sub(" ", ".", call));
         call <- call("<-", call, get(call, envir = env));
@@ -773,9 +773,9 @@ private:
       \ExplSyntaxOff
       }"))
     );
-    value$title   <- c("", value$title);
-    value$content <- c(paste(header, collapse = "\n"), value$content);
-    topic$sections$section$value <- value;
+    topic$sections$description$value <- sprintf(
+      "%s\n%s", paste(header, collapse = "\n"), topic$sections$description$value
+    );
   }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##

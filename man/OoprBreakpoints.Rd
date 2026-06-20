@@ -30,9 +30,6 @@ The environment that holds the class definitions. Either a
 package namespace or the global environment.}
 }
 \description{
-Breakpoint Internals
-}
-\section{}{
 \newcommand{\br}{\if{html}{\out{<br>}}\if{latex}{\out{\newline}}}
 \newcommand{\hr}{\if{html}{\out{<hr>}}\if{latex}{\out{\hrule}}}
 \if{latex}{\out{
@@ -55,8 +52,8 @@ Breakpoint Internals
 }
 \ExplSyntaxOff
 }}
+Breakpoint Internals
 }
-
 \section{\hr\hr OoprBreakpointsFunction}{
 
 \subsection{Description}{

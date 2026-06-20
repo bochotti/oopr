@@ -8,14 +8,6 @@
 OoprCovr()
 }
 \description{
-Include \code{oopr} classes in package coverage, or test the coverage of a
-single class.
-}
-\details{
-For package coverage, write code to initialize this class inside
-\code{./tests/testthat/setup.R}
-}
-\section{}{
 \newcommand{\br}{\if{html}{\out{<br>}}\if{latex}{\out{\newline}}}
 \newcommand{\hr}{\if{html}{\out{<hr>}}\if{latex}{\out{\hrule}}}
 \if{latex}{\out{
@@ -38,8 +30,13 @@ For package coverage, write code to initialize this class inside
 }
 \ExplSyntaxOff
 }}
+Include \code{oopr} classes in package coverage, or test the coverage of a
+single class.
 }
-
+\details{
+For package coverage, write code to initialize this class inside
+\code{./tests/testthat/setup.R}
+}
 \section{\hr\hr OoprCovr}{
 
 \subsection{Methods}{

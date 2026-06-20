@@ -10,9 +10,6 @@ OoprSource()
 OoprSourceTry(file = NULL, text = NULL, row = NULL, col = NULL)
 }
 \description{
-Source files for oopr
-}
-\section{}{
 \newcommand{\br}{\if{html}{\out{<br>}}\if{latex}{\out{\newline}}}
 \newcommand{\hr}{\if{html}{\out{<hr>}}\if{latex}{\out{\hrule}}}
 \if{latex}{\out{
@@ -35,8 +32,8 @@ Source files for oopr
 }
 \ExplSyntaxOff
 }}
+Source files for oopr
 }
-
 \section{\hr\hr OoprSource}{
 
 \subsection{Description}{
