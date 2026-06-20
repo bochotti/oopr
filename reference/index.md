@@ -12,10 +12,6 @@
   : Completion for oopr
 - [`OoprVec()`](https://bochotti.github.io/oopr/reference/oopr_containers.md)
   [`OoprMap()`](https://bochotti.github.io/oopr/reference/oopr_containers.md)
-  [`` `[`( ``*`<OoprVec>`*`)`](https://bochotti.github.io/oopr/reference/oopr_containers.md)
-  [`` `[<-`( ``*`<OoprVec>`*`)`](https://bochotti.github.io/oopr/reference/oopr_containers.md)
-  [`` `[`( ``*`<OoprMap>`*`)`](https://bochotti.github.io/oopr/reference/oopr_containers.md)
-  [`` `[<-`( ``*`<OoprMap>`*`)`](https://bochotti.github.io/oopr/reference/oopr_containers.md)
   : Containers for oopr Instances
 - [`OoprCovr()`](https://bochotti.github.io/oopr/reference/oopr_covr.md)
   : covr for oopr

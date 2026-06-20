@@ -113,7 +113,7 @@ ConstructorExample <- \(x)
 
 ConstructorExample(2L);
 #> Constructing with x = 2L
-#> <ConstructorExample: 0x557aab3a80f0>
+#> <ConstructorExample: 0x5624f4bdb470>
 ```
 
 ## Destructor

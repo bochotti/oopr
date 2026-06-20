@@ -37,8 +37,6 @@ OoprBreakpoints()
   The environment that holds the class definitions. Either a package
   namespace or the global environment.
 
-## 
-
 ------------------------------------------------------------------------
 
 ------------------------------------------------------------------------

@@ -47,7 +47,7 @@ public:
   incr <- \( ) { this$x <- this$x + 1L; }
 })
 print(Counter)
-#> <Counter ooprC: 0x557ed1513798>
+#> <Counter ooprC: 0x55588f0b8758>
 #> Usage:
 #>   Counter()
 ```
@@ -80,7 +80,7 @@ function:
 # initialize the class for a new instance
 obj <- Counter();
 print(obj);
-#> <Counter: 0x557ed11e3458>
+#> <Counter: 0x55588ed83d08>
 #>  ├─$x   : int 0
 #>  └─$incr:\()
 ```

@@ -14,8 +14,6 @@ OoprCovr()
 For package coverage, write code to initialize this class inside
 `./tests/testthat/setup.R`
 
-## 
-
 ------------------------------------------------------------------------
 
 ------------------------------------------------------------------------
