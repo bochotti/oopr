@@ -4,6 +4,7 @@
 \alias{OoprCompletionSource}
 \alias{OoprCompletionRStudio}
 \alias{OoprCompletion}
+\alias{OoprRd}
 \title{Completion for oopr internals}
 \usage{
 OoprCompletionSource()
@@ -11,6 +12,15 @@ OoprCompletionSource()
 OoprCompletionRStudio()
 
 OoprCompletion()
+
+OoprRd(topic, package)
+}
+\arguments{
+\item{topic}{\code{character(1L)} \cr
+The class name.}
+
+\item{package}{\code{character(1L)} \cr
+The package that the class lives in.}
 }
 \description{
 \newcommand{\br}{\if{html}{\out{<br>}}\if{latex}{\out{\newline}}}
@@ -555,6 +565,59 @@ Used within \code{.rs.rpc.get_custom_parameter_help}.
 
 \subsection{Returns}{
 \code{varies}.
+}
+}
+}
+
+\section{\hr\hr OoprRd}{
+
+\subsection{Description}{
+Read the Rd (documentation) of an \code{oopr} class.
+}
+
+\subsection{Details}{
+Will read the \code{.Rd} file that holds the \code{oopr} class, then provides
+methods to access specific information.
+
+Used to help with documentation auto-completion in RStudio.
+}
+
+\subsection{Methods}{
+\describe{
+
+\item{\code{getDescription}}{Get the description of a field or method.}
+
+}
+}
+
+\subsection{\hr getDescription}{
+\subsection{Description}{
+Get the description of a field or method.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+getDescription(name, html = TRUE)
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
+\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
+\tabular{ll}{
+\code{name} \tab \code{character(1L)} \br
+The name of the field or method. \cr
+\code{html} \tab \code{logical(1L)} \br
+Whether to to output as HTML, otherwise \code{Rd}. \cr
+}
+}
+
+\subsection{Details}{
+If \code{name} is not valid, then a zero-character is returned.
+}
+
+\subsection{Returns}{
+\code{character(1L)}
 }
 }
 }

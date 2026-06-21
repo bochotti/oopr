@@ -521,6 +521,138 @@ private:
 }) ## OoprCompletion
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @rdname OoprCompletion
+#' @description
+#' Read the Rd (documentation) of an `oopr` class.
+#'
+#' @details
+#' Will read the `.Rd` file that holds the `oopr` class, then provides
+#' methods to access specific information.
+#'
+#' Used to help with documentation auto-completion in RStudio.
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+oopr("OoprRd",,
+{
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @param topic   `character(1L)` \cr
+#'                The class name.
+#'
+#' @param package `character(1L)` \cr
+#'                The package that the class lives in.
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+OoprRd <- \(topic, package)
+{
+  call <- substitute(
+    help(topic = .T, package = .P)
+   ,list(.T = topic, .P = package)
+  );
+  tryCatch(
+    help <- eval(call, globalenv())
+   ,error = \(e) this$fail <- TRUE
+  )
+  if(this$fail) return();
+
+  if(inherits(help, "dev_topic"))
+  {
+    rd <- tools::parse_Rd(help$path);
+  }
+  else
+  {
+    rd <- tools::Rd_db(package, lib.loc = dirname(dirname(dirname(help))));
+    rd <- rd[[match(sprintf("%s.Rd", basename(help)), names(rd), 0L)]];
+  }
+
+  this$topic   <- topic;
+  this$package <- package;
+  this$rd      <- this$pullSection(topic, rd);
+}
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+public:
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  topic   <- character(1L);
+  package <- character(1L);
+  rd      <- list();
+  fail    <- FALSE;
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @description
+  #' Get the description of a field or method.
+  #'
+  #' @param name `character(1L)` \cr
+  #'             The name of the field or method.
+  #'
+  #' @param html `logical(1L)` \cr
+  #'             Whether to to output as HTML, otherwise `Rd`.
+  #'
+  #' @details
+  #' If `name` is not valid, then a zero-character is returned.
+  #'
+  #' @returns
+  #' `character(1L)`
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  getDescription <- \(name, html = TRUE)
+  {
+    if(this$fail) return("");
+    for(type in c("Fields", "Methods"))
+    {
+      rd    <- this$pullSection(type);
+      rd    <- rd[[this$whichTag("\\describe", rd)]];
+      rd    <- rd[this$whichTag("\\item", rd)];
+      names <- vapply(rd, `[[`, character(1L), c(1L, 1L, 1L));
+      m     <- match(name, names, 0L);
+      if(m) break;
+    }
+    if(!m) return("");
+    rd <- rd[[c(m, 2L)]];
+    if(html)
+    {
+      attr(rd, "Rd_tag") <- "\\description";
+      rd <- this$toHTML(rd);
+      rd <- rd[rd != "<h3>Description</h3>"];
+    }
+    else
+    {
+      class(rd) <- "Rd";
+    }
+    return(rd);
+  }
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+private:
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  whichTag <- \(tag, rd = this$rd)
+  {
+    tags <- vapply(rd, attr, character(1L), "Rd_tag");
+    return(which(match(tags, tag, 0L) > 0L));
+  }
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  pullSection <- \(name, rd = this$rd)
+  {
+    class <- class(rd);
+    rd    <- rd[this$whichTag(c("\\section", "\\subsection"), rd)];
+    names <- vapply(rd, \(x) { trimws(tail(x[[1L]], 1L)) }, character(1L));
+    rd    <- rd[[match(name, names, 0L)]][[2L]];
+    class(rd) <- class;
+    return(rd);
+  }
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  toHTML <- \(rd)
+  {
+    verb <- list(`attr<-`("A", "Rd_tag", "VERB"));
+    verb <- lapply(c("\\name", "\\title"), \(x) `attr<-`(verb, "Rd_tag", x));
+    rd   <- c(verb, list(rd));
+    tmp  <- tempfile();
+    on.exit(unlink(tmp));
+    tools::Rd2HTML(rd, tmp, standalone = FALSE);
+    out  <- readLines(tmp);
+    out  <- out[nzchar(out)];
+    return(out[-1L]);
+  }
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+}) ## OoprRd
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -549,12 +681,14 @@ OoprCompletionHelp <- \(topic, source, class, package)
     if(!is.ooprC(oopr, class)) return(NULL);
     oopr <- oopr@encl$this;
   }
+  package <- environmentName(topenv(oopr));
 
   this$tpc_  <- topic;
   this$src_  <- source;
   this$cls_  <- class;
   this$pkg_  <- package;
   this$oopr_ <- oopr;
+  this$rd(class, package);
   this$fail_ <- FALSE;
 }
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -605,6 +739,9 @@ public:
     );
   }
 
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  rd <- OoprRd;
+
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 private:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -628,9 +765,9 @@ private:
   );
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  makeCompletion <- \(topic = this$tpc_, class = this$cls_, oopr = this$oopr_)
+  makeCompletion <- \(topic = this$tpc_, oopr = this$oopr_)
   {
-    description <- sprintf("A description of `%s$%s`", class, topic);
+    description <- paste(this$rd$getDescription(topic), collapse = "");
     OoprCompletion$isGettingNames <- TRUE;
     on.exit(OoprCompletion$isGettingNames <- FALSE);
     obj         <- tryCatch(.subset2(oopr, topic), error = identity);
