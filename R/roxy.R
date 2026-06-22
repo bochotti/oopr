@@ -630,6 +630,10 @@ private:
       {
         err <- "@inherit tag should be in the form x$y";
       }
+      else if(src[1L] == this$title && match(src[2L], names(this$members), 0L))
+      {
+        oth <- this$members[[src[2L]]];
+      }
       else if(!OoprRoxy$classes$exists(src[1L]))
       {
         # TODO: check other packges...?
@@ -639,14 +643,23 @@ private:
       {
         err <- sprintf("member %s$%s is not documented", src[1L], src[2L]);
       }
+      else
+      {
+        oth <- OoprRoxy$classes[src[1L]]$members[[src[2L]]];
+      }
       if(nzchar(err))
       {
         this$warning(err, file = tag$file, line = tag$line);
         next;
       }
 
-      oth <- OoprRoxy$classes[src[1L]]$members[[src[2L]]];
       oth <- lapply(oth, `[[<-`, "INHR_", TRUE);
+      if(match("description", vapply(tags, `[[`, character(1L), "tag"), 0L))
+      {
+        oth <- oth[
+          match(vapply(oth, `[[`, character(1L), "tag"), "description", 0L) == 0
+        ];
+      }
       tags <- c(tags, oth);
       this$members[[name]] <- c(this$members[[name]], oth);
     }

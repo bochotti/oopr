@@ -572,13 +572,34 @@ OoprRd <- \(topic, package)
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @field topic `character(1L)` \cr
+  #'              The class name.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   topic   <- character(1L);
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @field package `character(1L)` \cr
+  #'                The package that the class lives in.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   package <- character(1L);
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @field rd `list()` \cr
+  #'           The parsed `Rd`.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   rd      <- list();
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @field fail `logical(1L)` \cr
+  #'             Whether the Rd was found and parsed at construction.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   fail    <- FALSE;
+
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   #' @description
   #' Get the description of a field or method.
+  #'
+  #' aaaa
   #'
   #' @param name `character(1L)` \cr
   #'             The name of the field or method.
@@ -590,7 +611,7 @@ public:
   #' If `name` is not valid, then a zero-character is returned.
   #'
   #' @returns
-  #' `character(1L)`
+  #' If `html` is `TRUE`, then `character(1L)`, otherwise an `Rd`.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   getDescription <- \(name, html = TRUE)
   {
@@ -598,6 +619,7 @@ public:
     for(type in c("Fields", "Methods"))
     {
       rd    <- this$pullSection(type);
+      if(is.null(rd)) next;
       rd    <- rd[[this$whichTag("\\describe", rd)]];
       rd    <- rd[this$whichTag("\\item", rd)];
       names <- vapply(rd, `[[`, character(1L), c(1L, 1L, 1L));
@@ -608,9 +630,7 @@ public:
     rd <- rd[[c(m, 2L)]];
     if(html)
     {
-      attr(rd, "Rd_tag") <- "\\description";
       rd <- this$toHTML(rd);
-      rd <- rd[rd != "<h3>Description</h3>"];
     }
     else
     {
@@ -618,27 +638,102 @@ public:
     }
     return(rd);
   }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @inherit OoprRd$getDescription
+  #' @description
+  #' Get the subsection of a method.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  getMethod <- \(name, html = FALSE)
+  {
+    if(this$fail) return("");
+    rd <- this$pullSection(name);
+    if(is.null(rd)) return("");
+    if(html)
+    {
+      rd <- this$toHTML(rd);
+    }
+    return(rd);
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @inherit OoprRd$getDescription
+  #' @description
+  #' Get the arguments of a method.
+  #'
+  #' @returns
+  #' If `html` is `TRUE`, then a named character vector.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  getArguments <- \(name, html = TRUE)
+  {
+    if(this$fail) return("");
+    rd <- this$getMethod(name, html = FALSE);
+    if(is.null(rd)) return("");
+    rd <- this$pullSection("Arguments", rd);
+    if(!html) return(rd);
+    rd <- rd[this$whichTag("\\tabular", rd)];
+    rd <- this$toHTML(rd);
+    rd <- paste(rd, collapse = "\n");
+
+    p <- "(?xs)
+    <tr>(.*?)
+    <td(.*?)>\\s*(?'key'.*?)\\s*</td>
+    <td(.*?)>\\s*(?'val'.*?)\\s*</td>
+    (.*?)</tr>
+    "
+    m  <- gregexec(p, rd, perl = TRUE)[[1L]];
+    l  <- attr(m, "match.length");
+    rd <- rep.int(rd, ncol(m));
+
+    desc <- substr(rd, m["val", ], m["val", ] + l["val", ] - 1L);
+    args <- substr(rd, m["key", ], m["key", ] + l["key", ] - 1L);
+    args <- sub("(<code>)(.*?)(</code>)", "\\2", args);
+    names(desc) <- args;
+    return(desc);
+  }
+
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 private:
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @param `tag` `character(1L)` \cr
+  #'              An `Rd` tag, e.g. `"\\section"`.
+  #'
+  #' @returns
+  #' `integer` of the position containing `tag`.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   whichTag <- \(tag, rd = this$rd)
   {
     tags <- vapply(rd, attr, character(1L), "Rd_tag");
     return(which(match(tags, tag, 0L) > 0L));
   }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @returns
+  #' `list()` of the `Rd` section or subsection `name`.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   pullSection <- \(name, rd = this$rd)
   {
     class <- class(rd);
     rd    <- rd[this$whichTag(c("\\section", "\\subsection"), rd)];
     names <- vapply(rd, \(x) { trimws(tail(x[[1L]], 1L)) }, character(1L));
-    rd    <- rd[[match(name, names, 0L)]][[2L]];
+    m     <- match(name, names, 0L);
+    rd    <- if(m) rd[[c(m, 2L)]] else return(NULL);
     class(rd) <- class;
     return(rd);
   }
+
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  toHTML <- \(rd)
+  #' @param desc `logical(1L)` \cr
+  #'             Force `rd` to be a `description`.
+  #' @returns
+  #' `character()` containing the converted HTML.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  toHTML <- \(rd = this$rd, desc = TRUE)
   {
+    if(desc)
+    {
+      attr(rd, "Rd_tag") <- "\\description";
+    }
     verb <- list(`attr<-`("A", "Rd_tag", "VERB"));
     verb <- lapply(c("\\name", "\\title"), \(x) `attr<-`(verb, "Rd_tag", x));
     rd   <- c(verb, list(rd));
@@ -647,6 +742,10 @@ private:
     tools::Rd2HTML(rd, tmp, standalone = FALSE);
     out  <- readLines(tmp);
     out  <- out[nzchar(out)];
+    if(desc)
+    {
+      out <- out[out != "<h3>Description</h3>"];
+    }
     return(out[-1L]);
   }
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -778,6 +877,10 @@ private:
     }
     else if(is.function(obj))
     {
+      if(topic != make.names(topic))
+      {
+        topic <- sprintf("`%s`", topic);
+      }
       signature <- deparse(args(obj), width.cutoff = 500L, nlines = 1);
       signature <- sub("function ", topic, signature);
     }
@@ -793,18 +896,20 @@ private:
         signature <- sprintf("%s(%iL)", signature, length(obj));
       }
     }
-    this$out_$description <- description;
-    this$out_$signature   <- signature;
+    if(!is.function(obj))
+    {
+      this$out_$title      <- topic;
+    }
+    this$out_$description  <- description;
+    this$out_$signature    <- signature;
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   makeParameter  <- \(topic = this$tpc_, class = this$cls_, oopr = this$oopr_)
   {
-    args  <- names(formals(.subset2(oopr, topic)));
-    arg_descriptions <- sprintf(
-      "a description of `%s$%s(%s)`", class, topic, args
-    );
-    this$out_$args <- args;
+    topic <- deparse1(str2lang(topic));
+    arg_descriptions <- this$rd$getArguments(topic);
+    this$out_$args <- names(arg_descriptions);
     this$out_$arg_descriptions <- arg_descriptions;
   }
 
@@ -826,6 +931,7 @@ help_formals_handler.oopr <- \(topic, source)
     comp   <- OoprCompletion();
     source <- if(comp$isCompletion()) comp$obj() %||% stop() else stop();
   }
+  topic   <- deparse1(str2lang(topic));
   formals <- sprintf("%s = ", names(formals(.subset2(source, topic))));
   help    <- OoprCompletionHelp@encl$.this$makeHelpHandler(source);
   return(list(formals = formals, helpHandler = help))

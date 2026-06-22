@@ -585,7 +585,13 @@ Used to help with documentation auto-completion in RStudio.
 \subsection{Methods}{
 \describe{
 
-\item{\code{getDescription}}{Get the description of a field or method.}
+\item{\code{getDescription}}{Get the description of a field or method.
+
+aaaa}
+
+\item{\code{getMethod}}{Get the subsection of a method.}
+
+\item{\code{getArguments}}{Get the arguments of a method.}
 
 }
 }
@@ -593,6 +599,8 @@ Used to help with documentation auto-completion in RStudio.
 \subsection{\hr getDescription}{
 \subsection{Description}{
 Get the description of a field or method.
+
+aaaa
 }
 
 \subsection{Usage}{
@@ -617,7 +625,69 @@ If \code{name} is not valid, then a zero-character is returned.
 }
 
 \subsection{Returns}{
-\code{character(1L)}
+If \code{html} is \code{TRUE}, then \code{character(1L)}, otherwise an \code{Rd}.
+}
+}
+
+\subsection{\hr getMethod}{
+\subsection{Description}{
+Get the subsection of a method.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+getMethod(name, html = FALSE)
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
+\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
+\tabular{ll}{
+\code{name} \tab \code{character(1L)} \br
+The name of the field or method. \cr
+\code{html} \tab \code{logical(1L)} \br
+Whether to to output as HTML, otherwise \code{Rd}. \cr
+}
+}
+
+\subsection{Details}{
+If \code{name} is not valid, then a zero-character is returned.
+}
+
+\subsection{Returns}{
+If \code{html} is \code{TRUE}, then \code{character(1L)}, otherwise an \code{Rd}.
+}
+}
+
+\subsection{\hr getArguments}{
+\subsection{Description}{
+Get the arguments of a method.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+getArguments(name, html = TRUE)
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
+\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
+\tabular{ll}{
+\code{name} \tab \code{character(1L)} \br
+The name of the field or method. \cr
+\code{html} \tab \code{logical(1L)} \br
+Whether to to output as HTML, otherwise \code{Rd}. \cr
+}
+}
+
+\subsection{Details}{
+If \code{name} is not valid, then a zero-character is returned.
+}
+
+\subsection{Returns}{
+If \code{html} is \code{TRUE}, then a named character vector.
 }
 }
 }
