@@ -582,12 +582,26 @@ methods to access specific information.
 Used to help with documentation auto-completion in RStudio.
 }
 
+\subsection{Fields}{
+\describe{
+\item{\code{topic}}{\code{character(1L)} \cr
+The class name.}
+
+\item{\code{package}}{\code{character(1L)} \cr
+The package that the class lives in.}
+
+\item{\code{rd}}{\code{list()} \cr
+The parsed \code{Rd}.}
+
+\item{\code{fail}}{\code{logical(1L)} \cr
+Whether the Rd was found and parsed at construction.}
+}
+}
+
 \subsection{Methods}{
 \describe{
 
-\item{\code{getDescription}}{Get the description of a field or method.
-
-aaaa}
+\item{\code{getDescription}}{Get the description of a field or method.}
 
 \item{\code{getMethod}}{Get the subsection of a method.}
 
@@ -599,8 +613,6 @@ aaaa}
 \subsection{\hr getDescription}{
 \subsection{Description}{
 Get the description of a field or method.
-
-aaaa
 }
 
 \subsection{Usage}{

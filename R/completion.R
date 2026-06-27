@@ -599,8 +599,6 @@ public:
   #' @description
   #' Get the description of a field or method.
   #'
-  #' aaaa
-  #'
   #' @param name `character(1L)` \cr
   #'             The name of the field or method.
   #'
