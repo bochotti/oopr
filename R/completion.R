@@ -903,7 +903,7 @@ private:
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  makeParameter  <- \(topic = this$tpc_, class = this$cls_, oopr = this$oopr_)
+  makeParameter  <- \(topic = this$tpc_)
   {
     topic <- deparse1(str2lang(topic));
     arg_descriptions <- this$rd$getArguments(topic);
@@ -912,9 +912,14 @@ private:
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  makeUrl <- \( )
+  makeUrl <- \(topic = this$cls_, package = this$pkg_)
   {
-
+    call <- substitute(
+      help(topic = topic, package = package)
+     ,list(topic = topic, package = package)
+    );
+    print(eval(call, globalenv()));
+    return(NULL);
   }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
