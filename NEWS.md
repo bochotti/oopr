@@ -15,6 +15,9 @@
 * Using roxygen2 `@inherits class$member` can now pull documentation from
   within the same class. Inherited `@description` is no longer appended.
 
+* When inheriting fields that are also inherited, the active binding is used
+  instead of creating a new one. This speeds up access.
+
 ## Fixed
 
 * `OoprCovr$class` identifies filename of correct class.
