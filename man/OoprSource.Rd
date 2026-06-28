@@ -54,16 +54,20 @@ Line of a text cursor position.}
 \item{\code{col}}{\code{integer(1L)} \cr
 Line of a text cursor position.}
 
-\item{\code{expr}}{\code{expression} \cr
+\item{\code{expr}}{\emph{\verb{[read-only]}} \cr
+\code{expression} \cr
 A parsed expressed of \verb{$file} or \verb{$text} from \verb{$parse()}.}
 
-\item{\code{defs}}{\code{list()} \cr
+\item{\code{defs}}{\emph{\verb{[read-only]}} \cr
+\code{list()} \cr
 A named list of \code{oopr} definitions from \verb{$parse()}.}
 
-\item{\code{objs}}{\code{list()} \cr
+\item{\code{objs}}{\emph{\verb{[read-only]}} \cr
+\code{list()} \cr
 A named list of \code{oopr} object from \verb{$eval()}.}
 
-\item{\code{obj}}{\code{ooprC}
+\item{\code{obj}}{\emph{\verb{[read-only]}} \cr
+\code{ooprC}
 If \verb{$row} and \verb{$col} are set, then the \code{oopr} object that
 is at that location.}
 }
@@ -153,16 +157,20 @@ Line of a text cursor position.}
 \item{\code{col}}{\code{integer(1L)} \cr
 Line of a text cursor position.}
 
-\item{\code{expr}}{\code{expression} \cr
+\item{\code{expr}}{\emph{\verb{[read-only]}} \cr
+\code{expression} \cr
 A parsed expressed of \verb{$file} or \verb{$text} from \verb{$parse()}.}
 
-\item{\code{defs}}{\code{list()} \cr
+\item{\code{defs}}{\emph{\verb{[read-only]}} \cr
+\code{list()} \cr
 A named list of \code{oopr} definitions from \verb{$parse()}.}
 
-\item{\code{objs}}{\code{list()} \cr
+\item{\code{objs}}{\emph{\verb{[read-only]}} \cr
+\code{list()} \cr
 A named list of \code{oopr} object from \verb{$eval()}.}
 
-\item{\code{obj}}{\code{ooprC}
+\item{\code{obj}}{\emph{\verb{[read-only]}} \cr
+\code{ooprC}
 If \verb{$row} and \verb{$col} are set, then the \code{oopr} object that
 is at that location.}
 }

@@ -43,13 +43,16 @@ Create a vector or key-value pair of \code{oopr} instances.
 
 \subsection{Fields}{
 \describe{
-\item{\code{class}}{\code{character(1L)} \cr
+\item{\code{class}}{\emph{\verb{[read-only]}} \cr
+\code{character(1L)} \cr
 The name of the underlying \code{oopr} class.}
 
-\item{\code{empty}}{\code{logical(1L)} \cr
+\item{\code{empty}}{\emph{\verb{[read-only]}} \cr
+\code{logical(1L)} \cr
 Whether there are no instanced classes in the container.}
 
-\item{\code{size}}{\code{integer(1L)} \cr
+\item{\code{size}}{\emph{\verb{[read-only]}} \cr
+\code{integer(1L)} \cr
 The amount of instanced classes in the container.}
 
 \item{\code{data}}{\code{list()} \cr
@@ -305,16 +308,20 @@ Can be used to set members of classes within the container, e.g.
 
 \subsection{Fields}{
 \describe{
-\item{\code{class}}{\code{character(1L)} \cr
+\item{\code{class}}{\emph{\verb{[read-only]}} \cr
+\code{character(1L)} \cr
 The name of the underlying \code{oopr} class.}
 
-\item{\code{empty}}{\code{logical(1L)} \cr
+\item{\code{empty}}{\emph{\verb{[read-only]}} \cr
+\code{logical(1L)} \cr
 Whether there are no instanced classes in the container.}
 
-\item{\code{size}}{\code{integer(1L)} \cr
+\item{\code{size}}{\emph{\verb{[read-only]}} \cr
+\code{integer(1L)} \cr
 The amount of instanced classes in the container.}
 
-\item{\code{keys}}{\code{character()} \cr
+\item{\code{keys}}{\emph{\verb{[read-only]}} \cr
+\code{character()} \cr
 The keys within the container}
 
 \item{\code{data}}{\code{list()} \cr

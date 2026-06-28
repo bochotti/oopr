@@ -58,7 +58,8 @@ A virtual class that can be inherited to use as a completion identifier.
 
 \subsection{Fields}{
 \describe{
-\item{\code{env}}{\code{environment} \cr
+\item{\code{env}}{\emph{\verb{[read-only]}} \cr
+\code{environment} \cr
 The environment provided to \verb{$load}.}
 
 \item{\code{call}}{\code{call} \cr
@@ -77,16 +78,20 @@ Line of a text cursor position.}
 \item{\code{col}}{\code{integer(1L)} \cr
 Line of a text cursor position.}
 
-\item{\code{expr}}{\code{expression} \cr
+\item{\code{expr}}{\emph{\verb{[read-only]}} \cr
+\code{expression} \cr
 A parsed expressed of \verb{$file} or \verb{$text} from \verb{$parse()}.}
 
-\item{\code{defs}}{\code{list()} \cr
+\item{\code{defs}}{\emph{\verb{[read-only]}} \cr
+\code{list()} \cr
 A named list of \code{oopr} definitions from \verb{$parse()}.}
 
-\item{\code{objs}}{\code{list()} \cr
+\item{\code{objs}}{\emph{\verb{[read-only]}} \cr
+\code{list()} \cr
 A named list of \code{oopr} object from \verb{$eval()}.}
 
-\item{\code{obj}}{\code{ooprC}
+\item{\code{obj}}{\emph{\verb{[read-only]}} \cr
+\code{ooprC}
 If \verb{$row} and \verb{$col} are set, then the \code{oopr} object that
 is at that location.}
 }
@@ -268,7 +273,8 @@ Use completion in RStudio.
 
 \subsection{Fields}{
 \describe{
-\item{\code{env}}{\code{environment} \cr
+\item{\code{env}}{\emph{\verb{[read-only]}} \cr
+\code{environment} \cr
 The environment provided to \verb{$load}.}
 
 \item{\code{call}}{\code{call} \cr
@@ -287,16 +293,20 @@ Line of a text cursor position.}
 \item{\code{col}}{\code{integer(1L)} \cr
 Line of a text cursor position.}
 
-\item{\code{expr}}{\code{expression} \cr
+\item{\code{expr}}{\emph{\verb{[read-only]}} \cr
+\code{expression} \cr
 A parsed expressed of \verb{$file} or \verb{$text} from \verb{$parse()}.}
 
-\item{\code{defs}}{\code{list()} \cr
+\item{\code{defs}}{\emph{\verb{[read-only]}} \cr
+\code{list()} \cr
 A named list of \code{oopr} definitions from \verb{$parse()}.}
 
-\item{\code{objs}}{\code{list()} \cr
+\item{\code{objs}}{\emph{\verb{[read-only]}} \cr
+\code{list()} \cr
 A named list of \code{oopr} object from \verb{$eval()}.}
 
-\item{\code{obj}}{\code{ooprC}
+\item{\code{obj}}{\emph{\verb{[read-only]}} \cr
+\code{ooprC}
 If \verb{$row} and \verb{$col} are set, then the \code{oopr} object that
 is at that location.}
 }
@@ -488,7 +498,7 @@ object, which then fires the \code{names} method below. The evaluation context
 
 \subsection{Fields}{
 \describe{
-\item{\code{isCompleting}}{\emph{\verb{[static]}} \cr
+\item{\code{isCompleting}}{\emph{\verb{[read-only]}} \emph{\verb{[static]}} \cr
 \code{logical(1L)} \cr
 Whether completion is currently in place. This will
 skip over each \code{$} call in the evaluation context.}

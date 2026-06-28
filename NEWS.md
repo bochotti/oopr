@@ -9,6 +9,8 @@
 
 * Non-documented fields are now be copied from constructor `@param`.
 
+* Ability to document protected members.
+
 ## Changed
 
 * `OoprMap$keys` now returns `character(0L)` instead of `NULL` if container is 

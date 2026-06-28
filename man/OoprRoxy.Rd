@@ -3,18 +3,49 @@
 \name{OoprRoxy}
 \alias{OoprRoxy}
 \alias{OoprRoxySection}
+\alias{OoprRoxyDescribe}
+\alias{OoprRoxyUsage}
+\alias{OoprRoxyArguments}
+\alias{OoprRoxyMethod}
+\alias{OoprRoxyClass}
 \title{OoprRoxy Internals}
 \usage{
 OoprRoxy()
 
 OoprRoxySection(title = "", content = character(0L))
+
+OoprRoxyDescribe(title = "Fields")
+
+OoprRoxyUsage(content = character(0L), name = "")
+
+OoprRoxyArguments(args = list())
+
+OoprRoxyMethod(title, tags, fun, warn = TRUE)
+
+OoprRoxyClass(block)
 }
 \arguments{
 \item{title}{\code{character(1L)} \cr
 The title of the section.}
 
 \item{content}{\code{character()} \cr
-Lines for the contents of the section.}
+Lines of the content for the section.}
+
+\item{args}{\code{list()} \cr
+A list of \code{roxy_tag_param}s.}
+
+\item{tags}{\code{list()} \cr
+A list of (potentially optional) tags:
+\verb{@description}, \verb{@usage}, \verb{@param}, \verb{@details} & \verb{@returns}.}
+
+\item{fun}{\code{function} \cr
+The function object of the method.}
+
+\item{warn}{\code{logical(1L)} \cr
+Whether warnings should display when missing tags.}
+
+\item{block}{\code{roxy_block} \cr
+A roxy block containing an \code{oopr} class.}
 }
 \description{
 \newcommand{\br}{\if{html}{\out{<br>}}\if{latex}{\out{\newline}}}
@@ -49,14 +80,621 @@ Create a subsection.
 
 \subsection{Fields}{
 \describe{
-\item{\code{title}}{\code{character(1L)} \cr
+\item{\code{title}}{\emph{\verb{[read-only]}} \cr
+\code{character(1L)} \cr
 The title of the section.}
 
-\item{\code{content}}{\code{character()} \cr
-Lines for the contents of the section.}
+\item{\code{content}}{\emph{\verb{[read-only]}} \cr
+\code{character()} \cr
+Lines of the content for the section.}
 
-\item{\code{size}}{\code{integer(1L)} \cr
+\item{\code{size}}{\emph{\verb{[read-only]}} \cr
+\code{integer(1L)} \cr
 The number of lines.}
+}
+}
+
+\subsection{Methods}{
+\describe{
+\item{\code{insert}}{\emph{\verb{[virtual]}} \cr
+Insert a line into the section.}
+
+\item{\code{erase}}{\emph{\verb{[final]}} \cr
+Remove all lines from the section.}
+
+\item{\code{toRd}}{\emph{\verb{[final]}} \cr
+Convert the section into Rd formatted text.}
+
+\item{\code{format}}{\emph{\verb{[protected]}} \emph{\verb{[virtual]}} \cr
+Convert \verb{$content} into a format for use in \verb{$toRd()}.}
+}
+}
+
+\subsection{\hr insert}{
+\subsection{Description}{
+Insert a line into the section.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+insert(x, i = this$size + 1L)
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
+\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
+\tabular{ll}{
+\code{x} \tab \code{character()} \br
+The line to insert. \cr
+\code{i} \tab \code{integer() | character()} \br
+The position to insert, must be the same length as \code{x}. \cr
+}
+}
+
+\subsection{Returns}{
+\code{this} invisibly.
+}
+}
+
+\subsection{\hr erase}{
+\subsection{Description}{
+Remove all lines from the section.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+erase()
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Returns}{
+\code{this} invisibly.
+}
+}
+
+\subsection{\hr toRd}{
+\subsection{Description}{
+Convert the section into Rd formatted text.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+toRd()
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Details}{
+Uses the output from virtual method \verb{$format()}.
+}
+
+\subsection{Returns}{
+\code{character(1L)}, wrapped in \verb{\\subsection}.
+}
+}
+
+\subsection{\hr format}{
+\subsection{Description}{
+Convert \verb{$content} into a format for use in \verb{$toRd()}.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+format()
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Returns}{
+Must return \code{character()}.
+}
+}
+}
+
+\section{\hr\hr OoprRoxyDescribe}{
+
+\subsection{Description}{
+Represents a describe subsection.
+}
+
+\subsection{Fields}{
+\describe{
+\item{\code{title}}{\emph{\verb{[read-only]}} \cr
+\code{character(1L)} \cr
+The title of the section.}
+
+\item{\code{content}}{\emph{\verb{[read-only]}} \cr
+\code{character()} \cr
+Lines of the content for the section.}
+
+\item{\code{size}}{\emph{\verb{[read-only]}} \cr
+\code{integer(1L)} \cr
+The number of lines.}
+}
+}
+
+\subsection{Methods}{
+\describe{
+\item{\code{insert}}{\emph{\verb{[virtual]}} \cr
+Insert a line into the section.}
+
+\item{\code{erase}}{\emph{\verb{[final]}} \cr
+Remove all lines from the section.}
+
+\item{\code{toRd}}{\emph{\verb{[final]}} \cr
+Convert the section into Rd formatted text.}
+}
+}
+
+\subsection{\hr insert}{
+\subsection{Description}{
+Insert a line into the section.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+insert(x, i = character(1L))
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
+\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
+\tabular{ll}{
+\code{x} \tab \code{character() | roxy_tag_field} \br
+Item to insert. If a field roxy tag, then takes the \verb{$val}
+contents to set \code{x} and \code{i}. \cr
+\code{i} \tab \code{character()} \br
+The name of the item. \cr
+}
+}
+
+\subsection{Returns}{
+\code{this} invisibly.
+}
+}
+
+\subsection{\hr erase}{
+\subsection{Description}{
+Remove all lines from the section.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+erase()
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Returns}{
+\code{this} invisibly.
+}
+}
+
+\subsection{\hr toRd}{
+\subsection{Description}{
+Convert the section into Rd formatted text.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+toRd()
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Details}{
+Uses the output from virtual method \verb{$format()}.
+}
+
+\subsection{Returns}{
+\code{character(1L)}, wrapped in \verb{\\subsection}.
+}
+}
+}
+
+\section{\hr\hr OoprRoxyUsage}{
+
+\subsection{Description}{
+Represents a usage subsection.
+}
+
+\subsection{Fields}{
+\describe{
+\item{\code{title}}{\emph{\verb{[read-only]}} \cr
+\code{character(1L)} \cr
+The title of the section.}
+
+\item{\code{content}}{\emph{\verb{[read-only]}} \cr
+\code{character()} \cr
+Lines of the content for the section.}
+
+\item{\code{size}}{\emph{\verb{[read-only]}} \cr
+\code{integer(1L)} \cr
+The number of lines.}
+}
+}
+
+\subsection{Methods}{
+\describe{
+\item{\code{insert}}{\emph{\verb{[virtual]}} \cr
+Insert a line into the section.}
+
+\item{\code{erase}}{\emph{\verb{[final]}} \cr
+Remove all lines from the section.}
+
+\item{\code{toRd}}{\emph{\verb{[final]}} \cr
+Convert the section into Rd formatted text.}
+}
+}
+
+\subsection{\hr insert}{
+\subsection{Description}{
+Insert a line into the section.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+insert(x, i = this$size + 1L)
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
+\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
+\tabular{ll}{
+\code{x} \tab \code{character()} \br
+The line to insert. \cr
+\code{i} \tab \code{integer() | character()} \br
+The position to insert, must be the same length as \code{x}. \cr
+}
+}
+
+\subsection{Returns}{
+\code{this} invisibly.
+}
+}
+
+\subsection{\hr erase}{
+\subsection{Description}{
+Remove all lines from the section.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+erase()
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Returns}{
+\code{this} invisibly.
+}
+}
+
+\subsection{\hr toRd}{
+\subsection{Description}{
+Convert the section into Rd formatted text.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+toRd()
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Details}{
+Uses the output from virtual method \verb{$format()}.
+}
+
+\subsection{Returns}{
+\code{character(1L)}, wrapped in \verb{\\subsection}.
+}
+}
+}
+
+\section{\hr\hr OoprRoxyArguments}{
+
+\subsection{Description}{
+Create an arguments subsection.
+}
+
+\subsection{Fields}{
+\describe{
+\item{\code{title}}{\emph{\verb{[read-only]}} \cr
+\code{character(1L)} \cr
+The title of the section.}
+
+\item{\code{content}}{\emph{\verb{[read-only]}} \cr
+\code{character()} \cr
+Lines of the content for the section.}
+
+\item{\code{size}}{\emph{\verb{[read-only]}} \cr
+\code{integer(1L)} \cr
+The number of lines.}
+}
+}
+
+\subsection{Methods}{
+\describe{
+\item{\code{insert}}{\emph{\verb{[virtual]}} \cr
+Insert a line into the section.}
+
+\item{\code{erase}}{\emph{\verb{[final]}} \cr
+Remove all lines from the section.}
+
+\item{\code{toRd}}{\emph{\verb{[final]}} \cr
+Convert the section into Rd formatted text.}
+}
+}
+
+\subsection{\hr insert}{
+\subsection{Description}{
+Insert a line into the section.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+insert(x, i = character(1L))
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
+\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
+\tabular{ll}{
+\code{x} \tab \code{character() | roxy_tag_param} \br
+Item to insert. If a param roxy tag, then takes the \verb{$val}
+contents to set \code{x} and \code{i}. \cr
+\code{i} \tab \code{character()} \br
+The name of the argument. \cr
+}
+}
+
+\subsection{Returns}{
+\code{this} invisibly.
+}
+}
+
+\subsection{\hr erase}{
+\subsection{Description}{
+Remove all lines from the section.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+erase()
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Returns}{
+\code{this} invisibly.
+}
+}
+
+\subsection{\hr toRd}{
+\subsection{Description}{
+Convert the section into Rd formatted text.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+toRd()
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Details}{
+Uses the output from virtual method \verb{$format()}.
+}
+
+\subsection{Returns}{
+\code{character(1L)}, wrapped in \verb{\\subsection}.
+}
+}
+}
+
+\section{\hr\hr OoprRoxyMethod}{
+
+\subsection{Description}{
+Represents a method subsection.
+}
+
+\subsection{Details}{
+Combines many sections into a single subsection. If the tags
+\verb{@description}, \verb{@returns} and \verb{@param} are not provided, a warning will
+display.
+}
+
+\subsection{Fields}{
+\describe{
+\item{\code{title}}{\emph{\verb{[read-only]}} \cr
+\code{character(1L)} \cr
+The title of the section.}
+
+\item{\code{fun}}{\emph{\verb{[read-only]}} \cr
+\code{function} \cr
+The function object of the method.}
+
+\item{\code{warn}}{\emph{\verb{[read-only]}} \cr
+\code{logical(1L)} \cr
+Whether warnings should display when missing tags.}
+
+\item{\code{sections}}{\emph{\verb{[container]}} \cr
+\code{OoprRoxySection} \cr
+A container of the subsections.}
+
+\item{\code{content}}{\emph{\verb{[read-only]}} \cr
+\code{character()} \cr
+Lines of the content for the section.}
+
+\item{\code{size}}{\emph{\verb{[read-only]}} \cr
+\code{integer(1L)} \cr
+The number of lines.}
+}
+}
+
+\subsection{Methods}{
+\describe{
+\item{\code{insert}}{\emph{\verb{[virtual]}} \cr
+Insert a line into the section.}
+
+\item{\code{erase}}{\emph{\verb{[final]}} \cr
+Remove all lines from the section.}
+
+\item{\code{toRd}}{\emph{\verb{[final]}} \cr
+Convert the section into Rd formatted text.}
+}
+}
+
+\subsection{\hr insert}{
+\subsection{Description}{
+Insert a line into the section.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+insert(x, i = this$size + 1L)
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
+\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
+\tabular{ll}{
+\code{x} \tab \code{character()} \br
+The line to insert. \cr
+\code{i} \tab \code{integer() | character()} \br
+The position to insert, must be the same length as \code{x}. \cr
+}
+}
+
+\subsection{Returns}{
+\code{this} invisibly.
+}
+}
+
+\subsection{\hr erase}{
+\subsection{Description}{
+Remove all lines from the section.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+erase()
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Returns}{
+\code{this} invisibly.
+}
+}
+
+\subsection{\hr toRd}{
+\subsection{Description}{
+Convert the section into Rd formatted text.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+toRd()
+}\if{html}{\out{</code></pre>}}
+}
+
+\subsection{Details}{
+Uses the output from virtual method \verb{$format()}.
+}
+
+\subsection{Returns}{
+\code{character(1L)}, wrapped in \verb{\\subsection}.
+}
+}
+}
+
+\section{\hr\hr OoprRoxyClass}{
+
+\subsection{Description}{
+Represents a class section.
+}
+
+\subsection{Details}{
+Combines many sections into a single top-level section for a class.
+
+Methods need to be called in order.
+}
+
+\subsection{Fields}{
+\describe{
+\item{\code{title}}{\emph{\verb{[read-only]}} \cr
+\code{character(1L)} \cr
+The title of the section.}
+
+\item{\code{block}}{\emph{\verb{[read-only]}} \cr
+\code{roxy_block} \cr
+A roxy block containing an \code{oopr} class.}
+
+\item{\code{members}}{\emph{\verb{[read-only]}} \cr
+\code{list()} \cr
+A (nested) list of tags for each member.}
+
+\item{\code{sections}}{\emph{\verb{[container]}} \cr
+\code{OoprRoxySection} \cr
+The subsections inside the class section.}
+}
+}
+
+\subsection{Methods}{
+\describe{
+\item{\code{makeSections}}{Creates subsections for \verb{@description} and \verb{@details} tags.}
+
+\item{\code{makeFields}}{Creates a subsection for a list of fields/properties.}
+
+\item{\code{makeMethods}}{Creates a subsection for a list of methods.}
+
+\item{\code{makeTag}}{Places the class section under the blocks tags list}
+}
+}
+
+\subsection{\hr makeSections}{
+\subsection{Description}{
+Creates subsections for \verb{@description} and \verb{@details} tags.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+makeSections()
+}\if{html}{\out{</code></pre>}}
+}
+}
+
+\subsection{\hr makeFields}{
+\subsection{Description}{
+Creates a subsection for a list of fields/properties.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+makeFields()
+}\if{html}{\out{</code></pre>}}
+}
+}
+
+\subsection{\hr makeMethods}{
+\subsection{Description}{
+Creates a subsection for a list of methods.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+makeMethods()
+}\if{html}{\out{</code></pre>}}
+}
+}
+
+\subsection{\hr makeTag}{
+\subsection{Description}{
+Places the class section under the blocks tags list
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+makeTag()
+}\if{html}{\out{</code></pre>}}
 }
 }
 }

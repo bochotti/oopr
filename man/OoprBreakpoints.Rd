@@ -82,10 +82,12 @@ Returns the un-traced version of the function from
 \verb{$encl$this}. If set, it assigns into \verb{$encl$this} and
 \verb{$encl$.this} if applicable.}
 
-\item{\code{srcref}}{\code{srcref} \cr
+\item{\code{srcref}}{\emph{\verb{[read-only]}} \cr
+\code{srcref} \cr
 The srcref for \code{this$fun}.}
 
-\item{\code{breaks}}{\code{integer()} \cr
+\item{\code{breaks}}{\emph{\verb{[read-only]}} \cr
+\code{integer()} \cr
 Line numbers of each call to \verb{$getSteps}.}
 }
 }
@@ -222,7 +224,8 @@ Represents a class inside a file.
 \item{\code{ooprC}}{\code{ooprC} \cr
 The \code{ooprC} object.}
 
-\item{\code{name}}{\code{character(1L)} \cr
+\item{\code{name}}{\emph{\verb{[read-only]}} \cr
+\code{character(1L)} \cr
 The name of the class.}
 
 \item{\code{functions}}{\emph{\verb{[container]}} \cr
@@ -380,7 +383,8 @@ Represents a source file that contains \code{oopr} classes.
 
 \subsection{Fields}{
 \describe{
-\item{\code{file}}{\code{character(1L)} \cr
+\item{\code{file}}{\emph{\verb{[read-only]}} \cr
+\code{character(1L)} \cr
 The name of the source file.}
 
 \item{\code{timestamp}}{\code{POSIXct(1L)} \cr

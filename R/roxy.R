@@ -97,40 +97,118 @@ oopr("OoprRoxySection",,
 #' @param title   `character(1L)` \cr
 #'                The title of the section.
 #' @param content `character()` \cr
-#'                Lines for the contents of the section.
+#'                Lines of the content for the section.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 OoprRoxySection <- \(title = "", content = character(0L))
 {
-  this$title   <- title;
-  this$content <- content;
+  stopifnot(
+    is.character(title)   && length(title) == 1L
+   ,is.character(content)
+  );
+  this$title_   <- title;
+  this$content_ <- content;
 }
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 public:
-  title    <- character(1L);
-  content  <- character(0L);
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  get:title <- \( )
+  {
+    return(this$title_);
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  get:content  <- \( )
+  {
+    return(this$content_);
+  }
+
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   #' @field size `integer(1L)` \cr
   #'             The number of lines.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  get:size <- \( ) { return(length(this$content)); }
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  virtual:insert <- \(x, i = length(this$content) + 1L)
+  get:size <- \( )
   {
-    this$content[i] <- x;
+    return(length(this$content));
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @description
+  #' Insert a line into the section.
+  #'
+  #' @param x `character()` \cr
+  #'          The line to insert.
+  #'
+  #' @param i `integer() | character()` \cr
+  #'          The position to insert, must be the same length as `x`.
+  #'
+  #' @returns
+  #' `this` invisibly.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  virtual:insert <- \(x, i = this$size + 1L)
+  {
+    stopifnot(
+      is.character(x)
+     ,is.character(i) || (is.numeric(i) && all(i %% 1L == 0L))
+     ,length(x) == length(i)
+    );
+    this$content_[i] <- x;
     return(invisible(this));
   }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @description
+  #' Remove all lines from the section.
+  #'
+  #' @returns
+  #' `this` invisibly.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   final:erase <- \( )
   {
-    this$content <- character(0L);
+    this$content_ <- character(0L);
     return(invisible(this));
   }
+
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  virtual:toRd <- \( )
+  #' @description
+  #' Convert the section into Rd formatted text.
+  #'
+  #' @details
+  #' Uses the output from virtual method `$format()`.
+  #'
+  #' @returns
+  #' `character(1L)`, wrapped in `\subsection`.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  final:toRd <- \( )
   {
-    content <- paste(this$content, collapse = "\n\n");
-    return(sprintf("\\subsection{%s}{\n%s\n}", this$title, trimws(content)));
+    content <- this$format();
+    if(!(is.character(content) && all(!is.na(content))))
+    {
+      stop("$format must return a non-NA character vector");
+    }
+    content <- trimws(paste(content, collapse = "\n\n"));
+    return(sprintf("\\subsection{%s}{\n%s\n}", this$title_, content));
   }
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+protected:
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @description
+  #' Convert `$content` into a format for use in `$toRd()`.
+  #'
+  #' @returns
+  #' Must return `character()`.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  virtual:format <- \( )
+  {
+    return(this$content_);
+  }
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+private:
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  title_   <- character(1L);
+  content_ <- character(0L);
+
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 }) ## OoprRoxySection
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -138,7 +216,10 @@ public:
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @rdname OoprRoxy
 #' @keywords internal
+#' @description
+#' Represents a describe subsection.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 oopr("OoprRoxyDescribe", public:OoprRoxySection,
 {
@@ -147,27 +228,39 @@ OoprRoxyDescribe <- \(title = "Fields") { OoprRoxySection(title); }
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  insert <- \(x, i = length(this$content) + 1L)
+  #' @inherit OoprRoxySection$insert
+  #'
+  #' @param x `character() | roxy_tag_field` \cr
+  #'          Item to insert. If a field roxy tag, then takes the `$val`
+  #'          contents to set `x` and `i`.
+  #'
+  #' @param i `character()` \cr
+  #'          The name of the item.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  insert <- \(x, i = character(1L))
   {
     if(inherits(x, "roxy_tag_field"))
     {
       i <- x$val$name;
       x <- x$val$description;
     }
+    stopifnot(is.character(i));
     OoprRoxySection$insert(x, i);
-    return(this);
+    return(invisible(this));
   }
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+protected:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  toRd <- \( )
+  format <- \( )
   {
     content <- this$content;
-    on.exit(this$content <- content);
-
-    new <- sprintf("\\item{\\code{%s}}{%s}", names(content), content);
-    new <- paste0(new, collapse = "\n\n");
-    this$content <- sprintf("\\describe{\n%s\n}", new);
-    return(OoprRoxySection$toRd());
+    content <- sprintf("\\item{\\code{%s}}{%s}", names(content), content);
+    content <- paste0(content, collapse = "\n\n");
+    content <- sprintf("\\describe{\n%s\n}", content);
+    return(content);
   }
+
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 }) ## OoprRoxyDescribe
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -175,7 +268,10 @@ public:
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-#' @intern
+#' @rdname OoprRoxy
+#' @keywords internal
+#' @description
+#' Represents a usage subsection.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 oopr("OoprRoxyUsage", public:OoprRoxySection,
 {
@@ -189,19 +285,19 @@ OoprRoxyUsage <- \(content = character(0L), name = "")
   OoprRoxySection("Usage", content);
 }
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-public:
+protected:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  toRd <- \( )
+  format <- \( )
   {
     content <- this$content;
-    on.exit(this$content <- content);
-    this$content <- paste0(
+    content <- paste0(
       r"{\if{html}{\out{<pre><code class="language-R">}}}"
      ,sprintf("\\preformatted{\n%s\n}", paste(content, collapse = '\n'))
      ,r"{\if{html}{\out{</code></pre>}}}"
     );
-    return(OoprRoxySection$toRd());
+    return(content);
   }
+
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 private:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -230,6 +326,7 @@ private:
     out <- sprintf("%s(\n%s\n)", name, paste(out, collapse = "\n"));
     return(out);
   }
+
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 }) ## OoprRoxyUsage
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -237,47 +334,64 @@ private:
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @rdname OoprRoxy
 #' @keywords internal
+#' @description
+#' Create an arguments subsection.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 oopr("OoprRoxyArguments", public:OoprRoxySection,
 {
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-OoprRoxyArguments <- \(x = list())
+#' @param args `list()` \cr
+#'             A list of `roxy_tag_param`s.
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+OoprRoxyArguments <- \(args = list())
 {
   OoprRoxySection("Arguments");
-  for(x in x) this$insert(x);
+  for(arg in args) this$insert(arg);
 }
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  insert <- \(x, i = x$val$name)
+  #' @inherit OoprRoxySection$insert
+  #'
+  #' @param x `character() | roxy_tag_param` \cr
+  #'          Item to insert. If a param roxy tag, then takes the `$val`
+  #'          contents to set `x` and `i`.
+  #'
+  #' @param i `character()` \cr
+  #'          The name of the argument.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  insert <- \(x, i = character(1L))
   {
     if(inherits(x, "roxy_tag_param"))
     {
-      OoprRoxySection$insert(gsub("\\\\cr", "\\\\br", x$val$description), i);
+      i <- x$val$name;
+      x <- gsub("\\\\cr", "\\\\br", x$val$description);
     }
-    else if(is.character(x))
-    {
-      OoprRoxySection$insert(x, i);
-    }
+    stopifnot(is.character(i));
+    OoprRoxySection$insert(x, i);
     return(invisible(this));
   }
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+protected:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  toRd <- \( )
+  format <- \( )
   {
     content <- this$content;
-    on.exit(this$content <- content);
-
-    new <- sprintf("\\code{%s} \\tab %s \\cr", names(content), content);
-    new <- sprintf("\\tabular{ll}{\n%s\n}", paste(new, collapse = "\n"));
+    content <- sprintf("\\code{%s} \\tab %s \\cr", names(content), content);
+    content <- paste(content, collapse = "\n");
+    content <- sprintf("\\tabular{ll}{\n%s\n}", content);
     hdr <- OoprRoxy$switch(
       html  = r"{<h3 class="r-arguments-title" style="display:none;"></h3>}"
      ,latex = r"{\def\Tabular#1#2{\Tabularr{#1}{#2}}}"
      ,sep   = "\n"
     )
-    this$content <- sprintf("%s\n%s", hdr, new);
-    return(OoprRoxySection$toRd());
+    content <- sprintf("%s\n%s", hdr, content);
+    return(content);
   }
+
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 }) ## OoprRoxyArguments
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -285,19 +399,43 @@ public:
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @rdname OoprRoxy
 #' @keywords internal
+#' @description
+#' Represents a method subsection.
+#'
+#' @details
+#' Combines many sections into a single subsection. If the tags
+#' `@description`, `@returns` and `@param` are not provided, a warning will
+#' display.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 oopr("OoprRoxyMethod", public:OoprRoxySection,
 {
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @param tags `list()` \cr
+#'             A list of (potentially optional) tags:
+#'             `@description`, `@usage`, `@param`, `@details` & `@returns`.
+#'
+#' @param fun  `function` \cr
+#'             The function object of the method.
+#'
+#' @param warn `logical(1L)` \cr
+#'             Whether warnings should display when missing tags.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 OoprRoxyMethod <- \(title, tags, fun, warn = TRUE)
 {
   this$sections(OoprRoxySection);
   OoprRoxySection(sprintf("\\hr %s", title));
-  this$fun  <- fun;
-  this$name <- title;
-  this$warn <- warn;
-  this$clss <- class(environment(fun)[[".this"]])[1L];
+
+  stopifnot(
+    is.list(tags) && all(vapply(tags, inherits, logical(1L), "roxy_tag"))
+   ,is.function(fun)
+   ,is.logical(warn) && length(warn) == 1L && !is.na(warn)
+  );
+
+  this$fun_   <- fun;
+  this$title_ <- title;
+  this$warn_  <- warn;
 
   this$checkMissing(tags);
   this$insertArgsSection(tags);
@@ -324,25 +462,58 @@ OoprRoxyMethod <- \(title, tags, fun, warn = TRUE)
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  fun  <- NULL;
-  name <- character(1L);
-  warn <- logical(1L);
-  clss <- character(1L);
+  #' @inherit OoprRoxySection$title
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  get:title <- \( )
+  {
+    return(this$title_);
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  get:fun <- \( )
+  {
+    return(this$fun_);
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  get:warn <- \( )
+  {
+    return(this$warn_);
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @field sections `OoprRoxySection` \cr
+  #'                 A container of the subsections.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   sections <- OoprRoxySection[[]];
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+protected:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  toRd <- \( )
+  format <- \( )
   {
-    this$content <- unlist(this$sections$apply(\(k, v) v$toRd()));
-    return(OoprRoxySection$toRd());
+    content <- unlist(this$sections$apply(\(k, v) v$toRd()));
+    return(content);
   }
+
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 private:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  get:roxy <- \( ) { getNamespace("roxygen2"); }
-  warns    <- character(0L);
+  title_    <- character(1L);
+  fun_      <- NULL;
+  warn_     <- logical(1L);
+  warns     <- character(0L);
+
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  checkMissing <- \(tags, fun = this$fun, name = this$name)
+  get:roxy <- \( )
+  {
+    getNamespace("roxygen2");
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' checks for missing sections, will save warning. `@usage` has a default.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  checkMissing <- \(tags, fun = this$fun, title = this$title)
   {
     names <- vapply(tags, `[[`, character(1L), "tag");
 
@@ -359,9 +530,12 @@ private:
 
     if(!match("usage", names, 0L))
     {
-      this$sections$insert("Usage", OoprRoxyUsage(fun, name));
+      this$sections$insert("Usage", OoprRoxyUsage(fun, title));
     }
   }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' saves warning if `@param` mis-matched with actual arguments
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   insertArgsSection <- \(tags, fun = this$fun)
   {
@@ -397,16 +571,18 @@ private:
     tags <- tags[match(args, docd, 0L)];
     if(length(tags)) this$sections$insert("Arguments", OoprRoxyArguments(tags));
   }
+
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   warning <- \(fun = this$fun)
   {
     if(!(this$warn && length(this$warns))) return();
+    clss <- class(environment(fun)[[".this"]])[1L];
     src  <- attr(fun, "srcref");
     line <- src[1L];
     file <- attr(src, "srcfile")$filename;
     tag  <- list(tag = "oopr", file = file, line = line);
     msg  <- c(
-      sprintf("Issue/s with method \"%s$%s\":", this$clss, this$name)
+      sprintf("Issue/s with method \"%s$%s\":", clss, this$title)
      ,unlist(lapply(
         this$warns
        ,strwrap
@@ -416,6 +592,7 @@ private:
     );
     this$roxy$warn_roxy_tag(tag, msg);
   }
+
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 }) ## OoprRoxyMethod
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -423,32 +600,67 @@ private:
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @rdname OoprRoxy
 #' @keywords internal
+#' @description
+#' Represents a class section.
+#'
+#' @details
+#' Combines many sections into a single top-level section for a class.
+#'
+#' Methods need to be called in order.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 oopr("OoprRoxyClass",,
 {
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @param block `roxy_block` \cr
+#'              A roxy block containing an `oopr` class.
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 OoprRoxyClass <- \(block)
 {
-  this$block   <- block;
-  this$title   <- block$object$value@name;
-  this$members <- this$pullMemberTags();
-  this$warn    <- this$roxy$block_has_tags(block, "export");
+  stopifnot(
+    inherits(block, "roxy_block")
+   ,is.ooprC(block$object$value)
+  );
+  this$block_   <- block;
+  this$title_   <- block$object$value@name;
+  this$members_ <- this$pullMemberTags();
+  this$warn_    <- this$roxy$block_has_tags(block, "export");
 }
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  title    <- character(1L);
-  block    <- list(tags=list(), file="", line=0L, call=NULL, object=NULL);
-  members  <- list();
-  warn     <- FALSE;
+  #' @inherit OoprRoxySection$title
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  get:tags <- \( ) { return(this$block$tags); }
-  set:tags <- \(x) { this$block$tags <- x; }
+  get:title <- \( )
+  {
+    return(this$title_);
+  }
+
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  get:ooprC <- \( ) { return(this$block$object$value); }
+  get:block <- \( )
+  {
+    return(this$block_);
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @field members `list()` \cr
+  #'                A (nested) list of tags for each member.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  get:members <- \( )
+  {
+    return(this$members_);
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @field sections `OoprRoxySection` \cr
+  #'                 The subsections inside the class section.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   sections <- OoprRoxySection[[]];
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @description
+  #' Creates subsections for `@description` and `@details` tags.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   makeSections <- \( )
   {
@@ -468,22 +680,34 @@ public:
     }
     this$tags <- this$tags[!match(tags, want, 0L)];
   }
+
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   makeFormat <- \( )
   {
     tags <- vapply(this$tags, `[[`, character(1L), "tag");
   }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @description
+  #' Creates a subsection for a list of fields/properties.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   makeFields <- \( )
   {
     fields <- OoprRoxyDescribe("Fields");
-    names  <- this$ooprC@meta$subs("names", method = FALSE, access = "public");
-    cargs  <- names(formals(this$ooprC@encl$this[[this$title]]));
+    names  <- this$ooprC@meta$subs(
+      "names", method = FALSE, access = c("public", "protected")
+    );
+    cargs  <- names(formals(this$ooprC@encl$this[[this$title_]]));
     miss   <- vapply(names, logical(1L), FUN = \(name)
     {
       tags <- this$members[[name]];
       if(is.null(tags))
       {
+        # protected members are optional
+        if(this$ooprC@meta$subs("access", names = name) == "protected")
+        {
+          return(FALSE);
+        }
         # if inherited member, automatically inherit
         base <- this$ooprC@meta$subs("inherit", names = name);
         if(nzchar(base))
@@ -491,8 +715,8 @@ public:
           tags[[1L]] <- this$roxy$roxy_tag_parse(this$roxy$roxy_tag(
              tag  = "inherit"
             ,raw  = sprintf("%s$%s", base, name)
-            ,file = this$block$file
-            ,line = this$block$line
+            ,file = this$block_$file
+            ,line = this$block_$line
           ));
         }
         # carry forward the param from constructor
@@ -507,6 +731,7 @@ public:
           ctags$tag <- "field";
           class(ctags) <- c("roxy_tag_field", "roxy_tag");
           tags[[1L]] <- ctags;
+          this$members_[[name]] <- tags;
         }
         else
         {
@@ -521,19 +746,25 @@ public:
       "Field%s %s in class %s %s not documented"
      ,if(sum(miss) > 1L) "s"   else ""
      ,deparse1(names[miss])
-     ,deparse1(this$title)
+     ,deparse1(this$title_)
      ,if(sum(miss) > 1L) "are" else "is"
     );
     if(fields$size)
     {
-      fields$content <- this$addSpecifiers(fields$content);
+      this$addSpecifiers(fields);
       this$sections$insert("Fields", fields);
     }
   }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @description
+  #' Creates a subsection for a list of methods.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   makeMethods <- \( )
   {
-    names <- this$ooprC@meta$subs("names", method = TRUE, access = "public");
+    names <- this$ooprC@meta$subs(
+      "names", method = TRUE, access = c("public", "protected")
+    );
     methods <- OoprRoxyDescribe("Methods");
     this$sections$insert("Methods", methods);
     miss  <- vapply(names, logical(1L), FUN = \(name)
@@ -541,14 +772,18 @@ public:
       tags   <- this$members[[name]];
       if(is.null(tags))
       {
+        if(this$ooprC@meta$subs("access", names = name) == "protected")
+        {
+          return(FALSE);
+        }
         base <- this$ooprC@meta$subs("inherit", names = name);
         if(nzchar(base))
         {
           tags[[1L]] <- this$roxy$roxy_tag_parse(this$roxy$roxy_tag(
              tag  = "inherit"
             ,raw  = sprintf("%s$%s", base, name)
-            ,file = this$block$file
-            ,line = this$block$line
+            ,file = this$block_$file
+            ,line = this$block_$line
           ));
         }
         else
@@ -562,7 +797,7 @@ public:
       methods$insert(desc, name);
 
       fun    <- this$ooprC@encl$this[[name]];
-      method <- OoprRoxyMethod(name, tags, fun, this$warn);
+      method <- OoprRoxyMethod(name, tags, fun, this$warn_);
       this$sections$insert(name, method);
       return(FALSE);
     })
@@ -571,34 +806,48 @@ public:
       "Method%s %s in class %s %s not documented"
      ,if(sum(miss) > 1L) "s"   else ""
      ,deparse1(names[miss])
-     ,deparse1(this$title)
+     ,deparse1(this$title_)
      ,if(sum(miss) > 1L) "are" else "is"
     );
 
     if(methods$size)
     {
-      methods$content <- this$addSpecifiers(methods$content);
+      this$addSpecifiers(methods);
     }
     else
     {
       this$sections$erase("Methods");
     }
   }
+
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  toRd <- \( )
+  #' @description
+  #' Places the class section under the blocks tags list
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  makeTag <- \( )
   {
     content <- this$sections$apply(\(k, v) v$toRd());
     content <- paste(content, collapse = "\n\n");
     this$tags[[length(this$tags) + 1]] <- this$roxy$roxy_tag_parse(
       this$roxy$roxy_tag("section", paste0(
-        "\\hr\\hr ", this$title, ":\n", content
+        "\\hr\\hr ", this$title_, ":\n", content
       ))
     );
   }
+
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 private:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  get:roxy <- \( ) { return(getNamespace("roxygen2")); }
+  title_   <- character(1L);
+  block_   <- list(tags=list(), file="", line=0L, call=NULL, object=NULL);
+  members_ <- list();
+  warn_    <- FALSE;
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  get:roxy  <- \( ) { return(getNamespace("roxygen2")); }
+  get:tags  <- \( ) { return(this$block_$tags); }
+  set:tags  <- \(x) { this$block_$tags <- x; }
+  get:ooprC <- \( ) { return(this$block_$object$value); }
+
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   #' @description
   #' Tokenises the contents of definition `{ ... }` in the `oopr` call.
@@ -651,13 +900,15 @@ private:
 
     return(blocks);
   }
+
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  warning <- \(fmt, ..., file = this$block$file, line = this$block$line)
+  warning <- \(fmt, ..., file = this$block_$file, line = this$block_$line)
   {
-    if(!this$warn) return();
+    if(!this$warn_) return();
     tag <- list(tag = "oopr", file = file, line = line);
     this$roxy$warn_roxy_tag(tag, sprintf(fmt, ...));
   }
+
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   findInheritsTag <- \(tags, name)
   {
@@ -673,9 +924,9 @@ private:
       {
         err <- "@inherit tag should be in the form x$y";
       }
-      else if(src[1L] == this$title && match(src[2L], names(this$members), 0L))
+      else if(src[1L] == this$title && match(src[2L], names(this$members_), 0L))
       {
-        oth <- this$members[[src[2L]]];
+        oth <- this$members_[[src[2L]]];
       }
       else if(!OoprRoxy$classes$exists(src[1L]))
       {
@@ -704,26 +955,44 @@ private:
         ];
       }
       tags <- c(tags, oth);
-      this$members[[name]] <- c(this$members[[name]], oth);
+      this$members_[[name]] <- c(this$members_[[name]], oth);
     }
 
     return(tags);
   }
+
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  addSpecifiers <- \(content)
+  addSpecifiers <- \(section)
   {
+    content <- section$content
     specs <- character(length(content));
     names <- names(content);
-    for(which in c("S3", "static", "container", "virtual", "final"))
+    for(which in c(
+      "access", "property", "S3", "static", "container", "virtual", "final"
+    ))
     {
       i <- this$ooprC@meta$subs(which, names = names);
+      if(which == "access")
+      {
+        i <- i == "protected";
+        which <- "protected";
+      }
+      else if(which == "property")
+      {
+        which <- character(length(i));
+        which[i == "get"] <- "read-only";
+        which[i == "set"] <- "write-only";
+        i <- nzchar(which);
+        which <- which[i];
+      }
       specs[i] <- sprintf("%s *`[%s]`*", specs[i], which);
     }
     specs[nzchar(specs)] <- sprintf("%s \\cr\n", specs[nzchar(specs)]);
     content <- trimws(sprintf("%s %s", specs, content));
-    names(content) <- names;
-    return(content);
+    section$erase();
+    section$insert(content, names);
   }
+
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 }) ## OoprRoxyClass
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -753,7 +1022,7 @@ public:
     obj$makeSections();
     obj$makeFields();
     obj$makeMethods();
-    obj$toRd();
+    obj$makeTag();
     this$classes$insert(obj$title, obj)
     return(obj$block);
   }
@@ -766,7 +1035,8 @@ public:
   {
     if(this$classes$empty) return(character(0L));
     topics <- this$classes$apply(\(k, v) {
-      for(t in v$tags) if(match(t$tag, c("name", "rdname"), 0L)) return(t$val);
+      tags <- v$block$tags;
+      for(t in tags) if(match(t$tag, c("name", "rdname"), 0L)) return(t$val);
       return(character(0L))
     });
     out <- unique(unlist(topics));
