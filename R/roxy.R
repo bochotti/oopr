@@ -78,16 +78,26 @@ roclet_output.roclet_oopr <- \(x, results, base_path, ...)
   OoprRoxy$classes$resize();
 }
 
-
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @name OoprRoxy
+#' @title OoprRoxy Internals
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 OoprRoxy <- NULL;
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @rdname OoprRoxy
 #' @keywords internal
+#' @description
+#' Create a subsection.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 oopr("OoprRoxySection",,
 {
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @param title   `character(1L)` \cr
+#'                The title of the section.
+#' @param content `character()` \cr
+#'                Lines for the contents of the section.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 OoprRoxySection <- \(title = "", content = character(0L))
 {
@@ -96,9 +106,12 @@ OoprRoxySection <- \(title = "", content = character(0L))
 }
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 public:
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   title    <- character(1L);
   content  <- character(0L);
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @field size `integer(1L)` \cr
+  #'             The number of lines.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   get:size <- \( ) { return(length(this$content)); }
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   virtual:insert <- \(x, i = length(this$content) + 1L)
@@ -287,7 +300,7 @@ OoprRoxyMethod <- \(title, tags, fun, warn = TRUE)
   this$clss <- class(environment(fun)[[".this"]])[1L];
 
   this$checkMissing(tags);
-  this$makeArgs(tags);
+  this$insertArgsSection(tags);
 
   ord <- c("description", "usage", "arguments", "details", "returns");
   u   <- \(x) { `substr<-`(x, 1L, 1L, toupper(substr(x, 1L, 1L))); }
@@ -350,7 +363,7 @@ private:
     }
   }
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  makeArgs <- \(tags, fun = this$fun)
+  insertArgsSection <- \(tags, fun = this$fun)
   {
     tags <- tags[vapply(tags, `[[`, character(1L), "tag") == "param"];
     args <- names(formals(fun));
@@ -380,6 +393,8 @@ private:
     }
 
     tags <- tags[match(docd, args, 0L) > 0L & !duplicated.default(docd)];
+    docd <- vapply(tags, `[[`, character(1L), c("val", "name"));
+    tags <- tags[match(args, docd, 0L)];
     if(length(tags)) this$sections$insert("Arguments", OoprRoxyArguments(tags));
   }
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -463,11 +478,13 @@ public:
   {
     fields <- OoprRoxyDescribe("Fields");
     names  <- this$ooprC@meta$subs("names", method = FALSE, access = "public");
+    cargs  <- names(formals(this$ooprC@encl$this[[this$title]]));
     miss   <- vapply(names, logical(1L), FUN = \(name)
     {
       tags <- this$members[[name]];
       if(is.null(tags))
       {
+        # if inherited member, automatically inherit
         base <- this$ooprC@meta$subs("inherit", names = name);
         if(nzchar(base))
         {
@@ -477,6 +494,19 @@ public:
             ,file = this$block$file
             ,line = this$block$line
           ));
+        }
+        # carry forward the param from constructor
+        else if(match(name, cargs, 0L))
+        {
+          i <- vapply(this$tags, `[[`, character(1L), "tag") == "param";
+          ctags <- this$tags[i];
+          i <- vapply(ctags, `[[`, character(1L), c("val", "name")) == name;
+          ctags <- ctags[i];
+          if(!length(ctags)) return(TRUE);
+          ctags <- ctags[[1L]];
+          ctags$tag <- "field";
+          class(ctags) <- c("roxy_tag_field", "roxy_tag");
+          tags[[1L]] <- ctags;
         }
         else
         {

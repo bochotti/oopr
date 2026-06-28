@@ -7,6 +7,8 @@
   
 * Lists of members in roxygen documentation include some specifiers.
 
+* Non-documented fields are now be copied from constructor `@param`.
+
 ## Changed
 
 * `OoprMap$keys` now returns `character(0L)` instead of `NULL` if container is 
@@ -21,6 +23,9 @@
 ## Fixed
 
 * `OoprCovr$class` identifies filename of correct class.
+
+* Multiple `@param` for methods now ordered by the methods signature.
+
 
 # oopr 0.0.0.9000 (2026-06-20)
 

@@ -114,15 +114,7 @@ OoprBreakpointsFunction <- \(name, ooprC)
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  #' @field name `character(1L)` \cr
-  #'             The name of the function.
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   name     <- character();
-
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  #' @field ooprC `ooprC` \cr
-  #'              The class object that the function resides
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   ooprC    <- NULL;
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -200,7 +192,7 @@ public:
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   #' @field breaks `integer()` \cr
-  #'               Line numbers of actively set breakpoints.
+  #'               Line numbers of each call to `$getSteps`.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   get:breaks <- \( ) { return(sort.default(this$lines_[this$steps_])); }
 
@@ -248,11 +240,10 @@ public:
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @inherit OoprBreakpointsFunction$hasLine
+  #'
   #' @description
   #' Get the steps of the function required to reach a line number.
-  #'
-  #' @param line `integer(1L)` \cr
-  #'             The line number.
   #'
   #' @details
   #' The srcrefs inside the body of `$fun` is searched to find where the line
@@ -260,8 +251,7 @@ public:
   #' function, e.g. `body(fun)[[steps]]`.
   #'
   #' @returns
-  #' `character(1L)` of the steps separated by `,`. `line` is also saved
-  #' inside a private member for `$breaks` to return line numbers set.
+  #' `character(1L)` of the steps separated by `,`.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   getSteps <- \(line)
   {
@@ -281,19 +271,12 @@ public:
   #' Set breakpoints inside the class, and any class instances.
   #'
   #' @param steps `character()` \cr
-  #'              Integer positions separated by `,`.
+  #'              Integer positions separated by `,`. If `length(steps) == 0L`,
+  #'              then all breakpoints are removed.
   #'
   #' @details
-  #' If `length(steps) == 0L`, then all breakpoints are removed.
   #' Uses [`base::trace`] to create a traced function, steps are ordered by
   #' their depth of nesting so `trace` doesn't overwrite its own breakpoints.
-  #'
-  #' The srcref at the requested lines are added to the newly added breakpoints
-  #' to ensure that the line number is available when being hit.
-  #'
-  #' Instances are found (refer `./src/breakpoint.cpp`) and they also have
-  #' their functions amended. If the instance becomes out of sync of the
-  #' source file, then its untraced version is set instead.
   #'
   #' @returns
   #' `this` invisibly. `steps` is also saved inside a private member for
@@ -342,6 +325,9 @@ private:
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' The srcref at the requested lines are added to the newly added breakpoints
+  #' to ensure that the line number is available when being hit.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   addSrcrefsToBreaks <- \(expr, oexpr)
   {
     if(!(is.call(expr) && is.call(oexpr) && length(expr) == length(oexpr)))
@@ -365,6 +351,10 @@ private:
     return(expr);
   }
 
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' Instances are found (refer `./src/breakpoint.cpp`) and they also have
+  #' their functions amended. If the instance becomes out of sync of the
+  #' source file, then its untraced version is set instead.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   setInstances <- \(fun)
   {
@@ -424,6 +414,9 @@ OoprBreakpointsClass <- \(ooprC)
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  ooprC <- NULL;
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   #' @field name `character(1L)` \cr
   #'        The name of the class.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -431,12 +424,6 @@ public:
   {
     if(is.null(this$ooprC)) return(character(0L)) else return(this$ooprC@name);
   }
-
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  #' @field ooprC `ooprC` \cr
-  #'        The `ooprC` object.
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  ooprC <- NULL;
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   #' @field functions `OoprBreakpointsFunction` \cr
@@ -449,7 +436,7 @@ public:
   #' Check if the class contains a function and/or a line.
   #'
   #' @param name `character(1L)` \cr
-  #'             Name of a function to search for.
+  #'             The name of the function.
   #'
   #' @param line `integer(1L)` \cr
   #'             Optionally, a line that the function should contain.
@@ -464,17 +451,13 @@ public:
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @inherit OoprBreakpointsClass$has
+  #'
   #' @description
   #' Check if a function is in sync.
   #'
-  #' @param name `character(1L)` \cr
-  #'             The name of the function.
-  #'
   #' @details
   #' If the function is not in the class `TRUE` is returned.
-  #'
-  #' @returns
-  #' `logical(1L)`.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   isInSync <- \(name)
   {
@@ -482,14 +465,13 @@ public:
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @inherit OoprBreakpointsFunction$getSteps
+  #'
   #' @description
   #' Get the steps required to get to a line in a function.
   #'
   #' @param name `character(1L)` \cr
   #'             Then name of the function.
-  #'
-  #' @param line `integer(1L)` \cr
-  #'             The line number.
   #'
   #' @details
   #' The trick here is to append the steps with the name of the class. This
@@ -518,17 +500,10 @@ public:
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  #' @description
-  #' Set breakpoints for a function in the class.
+  #' @inherit OoprBreakpointsFunction$setBreakpoints
   #'
   #' @param name  `character(1L)` \cr
   #'              Then name of the function.
-  #'
-  #' @param steps `character()` \cr
-  #'              Integer positions separated by `,`.
-  #'
-  #' @details
-  #' If `length(steps) == 0L`, then all breakpoints are removed.
   #'
   #' @returns
   #' `this` invisibly.
@@ -583,9 +558,6 @@ OoprBreakpointsFile <- \(file, env)
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  #' @field file `character(1L)` \cr
-  #'             The name of the source file.
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   get:file <- \( )
   {
     return(OoprSource$file);
@@ -625,14 +597,10 @@ public:
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @inherit OoprBreakpointsClass$has
+  #'
   #' @description
   #' Check if any class inside the file contains a function and/or a line.
-  #'
-  #' @param name `character(1L)` \cr
-  #'             Name of a function to search for.
-  #'
-  #' @param line `integer(1L)` \cr
-  #'             Optionally, a line that the function should contain.
   #'
   #' @returns
   #' Named `logical()` the same length as `$classes`, indicating which class
@@ -645,14 +613,7 @@ public:
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  #' @description
-  #' Check if a function within the classes is in sync with the source file.
-  #'
-  #' @param name `character(1L)` \cr
-  #'             Name of a function to search for.
-  #'
-  #' @returns
-  #' `logical(1L)`.
+  #' @inherit OoprBreakpointsClass$isInSync
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   isInSync <- \(name)
   {
@@ -661,11 +622,10 @@ public:
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @inherit OoprBreakpointsClass$getSteps
+  #'
   #' @description
   #' Get the steps of multiple lines across the file.
-  #'
-  #' @param name  `character(1L)` \cr
-  #'              Name of a function to search for.
   #'
   #' @param lines `list(integer(1L))` \cr
   #'              A list of line numbers.
@@ -690,20 +650,14 @@ public:
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @inherit OoprBreakpointsClass$setBreakpoints
+  #'
   #' @description
   #' Set breakpoints for a function across classes.
-  #'
-  #' @param name    `character(1L)` \cr
-  #'                Name of a function to search for.
   #'
   #' @param classes `character()` \cr
   #'                The classes to set breakpoints for. If
   #'                `length(classes) == 0L`, then all classes.
-  #'
-  #' @param steps   `character()` \cr
-  #'                The steps to set the breakpoints at. If
-  #'                `length(classes) == 0L`, then all breakpoints are
-  #'                removed.
   #'
   #' @returns
   #' `this` invisibly.
@@ -864,17 +818,10 @@ public:
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @inherit OoprBreakpoints$isFunctionInSync
+  #'
   #' @description
   #' Gets the steps required for a line.
-  #'
-  #' @param name  `character(1L)` \cr
-  #'              Name of the function.
-  #'
-  #' @param file  `character(1L)` \cr
-  #'              Path of the file.
-  #'
-  #' @param pkg   `character(1L)` \cr
-  #'              The name of the package, or `"R_GlobalEnv"`.
   #'
   #' @param lines `list()` \cr
   #'              A list of `integer(1L)` of the line numbers.
@@ -908,20 +855,14 @@ public:
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @inherit OoprBreakpoints$isFunctionInSync
+  #'
   #' @description
   #' Gets the environment of a function.
   #'
-  #' @param name `character(1L)` \cr
-  #'             Name of the function.
-  #'
-  #' @param file `character(1L)` \cr
-  #'             Path of the file.
-  #'
-  #' @param pkg  `character(1L)` \cr
-  #'             The name of the package, or `"R_GlobalEnv"`.
-  #'
   #' @details
   #' This is called first when unsetting a breakpoint.
+  #'
   #' Returning `emptenv()` ensures that the next step is called. This can
   #' be called multiple times, so I only want to do this once.
   #'
@@ -946,11 +887,10 @@ public:
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @inherit OoprBreakpoints$isFunctionInSync
+  #'
   #' @description
   #' Sets the breakpoints for a function.
-  #'
-  #' @param name  `character(1L)`
-  #'              Name of the function.
   #'
   #' @param env   `character(1L)` \cr
   #'              The environment that holds function `name`.
@@ -965,7 +905,7 @@ public:
   #' being removed.
   #'
   #' @returns
-  #' `functionName`
+  #' `name`
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   static:setFunctionBreakpoints <- \(name, env, steps)
   {
@@ -999,6 +939,9 @@ public:
     return(name);
   }
 
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @description
+  #' Print currently set breakpoints.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   static:printBreaks <- \( )
   {

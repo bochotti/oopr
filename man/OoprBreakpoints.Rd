@@ -66,7 +66,7 @@ Represents a function object inside a class.
 The name of the function.}
 
 \item{\code{ooprC}}{\code{ooprC} \cr
-The class object that the function resides}
+The \code{ooprC} class that the function resides.}
 
 \item{\code{encl}}{\code{environment} \cr
 The enclosure inside \code{ooprC}. Can change to set breakpoints
@@ -86,7 +86,7 @@ Returns the un-traced version of the function from
 The srcref for \code{this$fun}.}
 
 \item{\code{breaks}}{\code{integer()} \cr
-Line numbers of actively set breakpoints.}
+Line numbers of each call to \verb{$getSteps}.}
 }
 }
 
@@ -174,8 +174,7 @@ function, e.g. \code{body(fun)[[steps]]}.
 }
 
 \subsection{Returns}{
-\code{character(1L)} of the steps separated by \verb{,}. \code{line} is also saved
-inside a private member for \verb{$breaks} to return line numbers set.
+\code{character(1L)} of the steps separated by \verb{,}.
 }
 }
 
@@ -195,21 +194,14 @@ setBreakpoints(steps = character())
 \if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
 \tabular{ll}{
 \code{steps} \tab \code{character()} \br
-Integer positions separated by \verb{,}. \cr
+Integer positions separated by \verb{,}. If \code{length(steps) == 0L},
+then all breakpoints are removed. \cr
 }
 }
 
 \subsection{Details}{
-If \code{length(steps) == 0L}, then all breakpoints are removed.
 Uses \code{\link[base:trace]{base::trace}} to create a traced function, steps are ordered by
 their depth of nesting so \code{trace} doesn't overwrite its own breakpoints.
-
-The srcref at the requested lines are added to the newly added breakpoints
-to ensure that the line number is available when being hit.
-
-Instances are found (refer \code{./src/breakpoint.cpp}) and they also have
-their functions amended. If the instance becomes out of sync of the
-source file, then its untraced version is set instead.
 }
 
 \subsection{Returns}{
@@ -227,11 +219,11 @@ Represents a class inside a file.
 
 \subsection{Fields}{
 \describe{
-\item{\code{name}}{\code{character(1L)} \cr
-The name of the class.}
-
 \item{\code{ooprC}}{\code{ooprC} \cr
 The \code{ooprC} object.}
+
+\item{\code{name}}{\code{character(1L)} \cr
+The name of the class.}
 
 \item{\code{functions}}{\emph{\verb{[container]}} \cr
 \code{OoprBreakpointsFunction} \cr
@@ -247,7 +239,7 @@ An array of each function inside the class.}
 
 \item{\code{getSteps}}{Get the steps required to get to a line in a function.}
 
-\item{\code{setBreakpoints}}{Set breakpoints for a function in the class.}
+\item{\code{setBreakpoints}}{Set breakpoints inside the class, and any class instances.}
 }
 }
 
@@ -267,7 +259,7 @@ has(name, line = integer(0L))
 \if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
 \tabular{ll}{
 \code{name} \tab \code{character(1L)} \br
-Name of a function to search for. \cr
+The name of the function. \cr
 \code{line} \tab \code{integer(1L)} \br
 Optionally, a line that the function should contain. \cr
 }
@@ -345,7 +337,7 @@ found, then \code{list()} is returned.
 
 \subsection{\hr setBreakpoints}{
 \subsection{Description}{
-Set breakpoints for a function in the class.
+Set breakpoints inside the class, and any class instances.
 }
 
 \subsection{Usage}{
@@ -364,12 +356,14 @@ setBreakpoints(
 \code{name} \tab \code{character(1L)} \br
 Then name of the function. \cr
 \code{steps} \tab \code{character()} \br
-Integer positions separated by \verb{,}. \cr
+Integer positions separated by \verb{,}. If \code{length(steps) == 0L},
+then all breakpoints are removed. \cr
 }
 }
 
 \subsection{Details}{
-If \code{length(steps) == 0L}, then all breakpoints are removed.
+Uses \code{\link[base:trace]{base::trace}} to create a traced function, steps are ordered by
+their depth of nesting so \code{trace} doesn't overwrite its own breakpoints.
 }
 
 \subsection{Returns}{
@@ -404,7 +398,7 @@ The classes defined inside the source file.}
 
 \item{\code{has}}{Check if any class inside the file contains a function and/or a line.}
 
-\item{\code{isInSync}}{Check if a function within the classes is in sync with the source file.}
+\item{\code{isInSync}}{Check if a function is in sync.}
 
 \item{\code{getSteps}}{Get the steps of multiple lines across the file.}
 
@@ -454,7 +448,7 @@ has(name, line = integer(0L))
 \if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
 \tabular{ll}{
 \code{name} \tab \code{character(1L)} \br
-Name of a function to search for. \cr
+The name of the function. \cr
 \code{line} \tab \code{integer(1L)} \br
 Optionally, a line that the function should contain. \cr
 }
@@ -469,7 +463,7 @@ more than one \code{TRUE}.
 
 \subsection{\hr isInSync}{
 \subsection{Description}{
-Check if a function within the classes is in sync with the source file.
+Check if a function is in sync.
 }
 
 \subsection{Usage}{
@@ -483,8 +477,12 @@ isInSync(name)
 \if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
 \tabular{ll}{
 \code{name} \tab \code{character(1L)} \br
-Name of a function to search for. \cr
+The name of the function. \cr
 }
+}
+
+\subsection{Details}{
+If the function is not in the class \code{TRUE} is returned.
 }
 
 \subsection{Returns}{
@@ -508,10 +506,16 @@ getSteps(name, lines)
 \if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
 \tabular{ll}{
 \code{name} \tab \code{character(1L)} \br
-Name of a function to search for. \cr
+Then name of the function. \cr
 \code{lines} \tab \code{list(integer(1L))} \br
 A list of line numbers. \cr
 }
+}
+
+\subsection{Details}{
+The trick here is to append the steps with the name of the class. This
+way when receiving them for setting a breakpoints, the class holding the
+function is known.
 }
 
 \subsection{Returns}{
@@ -541,15 +545,19 @@ setBreakpoints(
 \if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
 \tabular{ll}{
 \code{name} \tab \code{character(1L)} \br
-Name of a function to search for. \cr
+Then name of the function. \cr
 \code{classes} \tab \code{character()} \br
 The classes to set breakpoints for. If
 \code{length(classes) == 0L}, then all classes. \cr
 \code{steps} \tab \code{character()} \br
-The steps to set the breakpoints at. If
-\code{length(classes) == 0L}, then all breakpoints are
-removed. \cr
+Integer positions separated by \verb{,}. If \code{length(steps) == 0L},
+then all breakpoints are removed. \cr
 }
+}
+
+\subsection{Details}{
+Uses \code{\link[base:trace]{base::trace}} to create a traced function, steps are ordered by
+their depth of nesting so \code{trace} doesn't overwrite its own breakpoints.
 }
 
 \subsection{Returns}{
@@ -596,6 +604,9 @@ Gets the environment of a function.}
 
 \item{\code{setFunctionBreakpoints}}{\emph{\verb{[static]}} \cr
 Sets the breakpoints for a function.}
+
+\item{\code{printBreaks}}{\emph{\verb{[static]}} \cr
+Print currently set breakpoints.}
 }
 }
 
@@ -697,6 +708,7 @@ The name of the package, or \code{"R_GlobalEnv"}. \cr
 
 \subsection{Details}{
 This is called first when unsetting a breakpoint.
+
 Returning \code{emptenv()} ensures that the next step is called. This can
 be called multiple times, so I only want to do this once.
 }
@@ -721,7 +733,7 @@ setFunctionBreakpoints(name, env, steps)
 \if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
 \if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
 \tabular{ll}{
-\code{name} \tab \code{character(1L)}
+\code{name} \tab \code{character(1L)} \br
 Name of the function. \cr
 \code{env} \tab \code{character(1L)} \br
 The environment that holds function \code{name}. \cr
@@ -738,7 +750,19 @@ being removed.
 }
 
 \subsection{Returns}{
-\code{functionName}
+\code{name}
+}
+}
+
+\subsection{\hr printBreaks}{
+\subsection{Description}{
+Print currently set breakpoints.
+}
+
+\subsection{Usage}{
+\if{html}{\out{<pre><code class="language-R">}}\preformatted{
+printBreaks()
+}\if{html}{\out{</code></pre>}}
 }
 }
 }
