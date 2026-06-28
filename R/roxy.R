@@ -624,8 +624,9 @@ OoprRoxyClass <- \(block)
   );
   this$block_   <- block;
   this$title_   <- block$object$value@name;
-  this$members_ <- this$pullMemberTags();
   this$warn_    <- this$roxy$block_has_tags(block, "export");
+  this$members_ <- this$pullMemberTags();
+  this$fillMembers();
 }
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 public:
@@ -694,64 +695,19 @@ public:
   makeFields <- \( )
   {
     fields <- OoprRoxyDescribe("Fields");
-    names  <- this$ooprC@meta$subs(
-      "names", method = FALSE, access = c("public", "protected")
-    );
-    cargs  <- names(formals(this$ooprC@encl$this[[this$title_]]));
-    miss   <- vapply(names, logical(1L), FUN = \(name)
+    names  <- names(this$members_);
+    names  <- this$ooprC@meta$subs("names", names = names, method = FALSE);
+
+    for(name in names)
     {
-      tags <- this$members[[name]];
-      if(is.null(tags))
-      {
-        # protected members are optional
-        if(this$ooprC@meta$subs("access", names = name) == "protected")
-        {
-          return(FALSE);
-        }
-        # if inherited member, automatically inherit
-        base <- this$ooprC@meta$subs("inherit", names = name);
-        if(nzchar(base))
-        {
-          tags[[1L]] <- this$roxy$roxy_tag_parse(this$roxy$roxy_tag(
-             tag  = "inherit"
-            ,raw  = sprintf("%s$%s", base, name)
-            ,file = this$block_$file
-            ,line = this$block_$line
-          ));
-        }
-        # carry forward the param from constructor
-        else if(match(name, cargs, 0L))
-        {
-          i <- vapply(this$tags, `[[`, character(1L), "tag") == "param";
-          ctags <- this$tags[i];
-          i <- vapply(ctags, `[[`, character(1L), c("val", "name")) == name;
-          ctags <- ctags[i];
-          if(!length(ctags)) return(TRUE);
-          ctags <- ctags[[1L]];
-          ctags$tag <- "field";
-          class(ctags) <- c("roxy_tag_field", "roxy_tag");
-          tags[[1L]] <- ctags;
-          this$members_[[name]] <- tags;
-        }
-        else
-        {
-          return(TRUE);
-        }
-      }
+      tags <- this$members_[[name]];
       tags <- this$findInheritsTag(tags, name);
       lapply(tags, \(x) if(inherits(x, "roxy_tag_field")) fields$insert(x));
-      return(FALSE)
-    })
-    if(any(miss)) this$warning(
-      "Field%s %s in class %s %s not documented"
-     ,if(sum(miss) > 1L) "s"   else ""
-     ,deparse1(names[miss])
-     ,deparse1(this$title_)
-     ,if(sum(miss) > 1L) "are" else "is"
-    );
+    }
+
     if(fields$size)
     {
-      this$addSpecifiers(fields);
+      this$addSpecifiersToDescribe(fields);
       this$sections$insert("Fields", fields);
     }
   }
@@ -762,57 +718,27 @@ public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   makeMethods <- \( )
   {
-    names <- this$ooprC@meta$subs(
-      "names", method = TRUE, access = c("public", "protected")
-    );
     methods <- OoprRoxyDescribe("Methods");
     this$sections$insert("Methods", methods);
-    miss  <- vapply(names, logical(1L), FUN = \(name)
-    {
-      tags   <- this$members[[name]];
-      if(is.null(tags))
-      {
-        if(this$ooprC@meta$subs("access", names = name) == "protected")
-        {
-          return(FALSE);
-        }
-        base <- this$ooprC@meta$subs("inherit", names = name);
-        if(nzchar(base))
-        {
-          tags[[1L]] <- this$roxy$roxy_tag_parse(this$roxy$roxy_tag(
-             tag  = "inherit"
-            ,raw  = sprintf("%s$%s", base, name)
-            ,file = this$block_$file
-            ,line = this$block_$line
-          ));
-        }
-        else
-        {
-          return(TRUE);
-        }
-      }
-      tags <- this$findInheritsTag(tags, name);
-      desc <- tags[vapply(tags, `[[`, character(1L), "tag") == "description"];
-      desc <- paste(vapply(desc, `[[`, character(1L), "val"), collapse = "\n");
-      methods$insert(desc, name);
 
+    names  <- names(this$members_);
+    names  <- this$ooprC@meta$subs("names", names = names, method = TRUE);
+
+    for(name in names)
+    {
+      tags   <- this$members_[[name]];
+      tags   <- this$findInheritsTag(tags, name);
       fun    <- this$ooprC@encl$this[[name]];
       method <- OoprRoxyMethod(name, tags, fun, this$warn_);
       this$sections$insert(name, method);
-      return(FALSE);
-    })
 
-    if(any(miss)) this$warning(
-      "Method%s %s in class %s %s not documented"
-     ,if(sum(miss) > 1L) "s"   else ""
-     ,deparse1(names[miss])
-     ,deparse1(this$title_)
-     ,if(sum(miss) > 1L) "are" else "is"
-    );
+      # add to list
+      methods$insert(method$sections["Description"]$content, name);
+    }
 
     if(methods$size)
     {
-      this$addSpecifiers(methods);
+      this$addSpecifiersToDescribe(methods);
     }
     else
     {
@@ -910,6 +836,78 @@ private:
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @description
+  #' Attempts to fill missing member tags.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  fillMembers <- \( )
+  {
+    names <- this$ooprC@meta$subs("names", access = c("public", "protected"));
+    cargs <- names(formals(this$ooprC@encl$this[[this$title_]]));
+    miss  <- logical(length(names));
+
+    for(i in seq_along(names))
+    {
+      name <- names[i];
+      if(match(name, names(this$members), 0L)) next;
+      tags <- list();
+
+      # protected members are optional
+      if(this$ooprC@meta$subs("access", names = name) == "protected") next;
+
+      base  <- this$ooprC@meta$subs("inherit", names = name);
+      field <- !this$ooprC@meta$subs("method", names = name);
+
+      # if inherited member, automatically inherit
+      if(nzchar(base))
+      {
+        tags[[1L]] <- this$roxy$roxy_tag_parse(this$roxy$roxy_tag(
+          tag  = "inherit"
+         ,raw  = sprintf("%s$%s", base, name)
+         ,file = this$block_$file
+         ,line = this$block_$line
+        ));
+      }
+      # if a field, carry forward the param from constructor
+      else if(field && match(name, cargs, 0L))
+      {
+        idx  <- vapply(this$tags, `[[`, character(1L), "tag") == "param";
+        tags <- this$tags[idx];
+        idx  <- vapply(tags, `[[`, character(1L), c("val", "name")) == name;
+        tags <- tags[idx];
+        if(length(tags))
+        {
+          tags[[1L]]$tag <- "field";
+          class(tags[[1L]]) <- c("roxy_tag_field", "roxy_tag");
+        }
+      }
+
+      if(length(tags))
+      {
+        this$members_[[name]] <- tags;
+      }
+      else
+      {
+        miss[i] <- TRUE;
+      }
+    }
+
+    # throw warning for missing
+    if(any(miss)) this$warning(
+      "Member%s %s in class %s %s not documented"
+     ,if(sum(miss) > 1L) "s"   else ""
+     ,deparse1(names[miss])
+     ,deparse1(this$title_)
+     ,if(sum(miss) > 1L) "are" else "is"
+    );
+
+    # remove private members
+    this$members_ <- this$members_[names];
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @description
+  #' Locates the tags that `@inherit` points to
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   findInheritsTag <- \(tags, name)
   {
     has <- vapply(tags, inherits, logical(1L), "roxy_tag_inherit");
@@ -924,6 +922,7 @@ private:
       {
         err <- "@inherit tag should be in the form x$y";
       }
+      # check within the same class
       else if(src[1L] == this$title && match(src[2L], names(this$members_), 0L))
       {
         oth <- this$members_[[src[2L]]];
@@ -948,12 +947,6 @@ private:
       }
 
       oth <- lapply(oth, `[[<-`, "INHR_", TRUE);
-      if(match("description", vapply(tags, `[[`, character(1L), "tag"), 0L))
-      {
-        oth <- oth[
-          match(vapply(oth, `[[`, character(1L), "tag"), "description", 0L) == 0
-        ];
-      }
       tags <- c(tags, oth);
       this$members_[[name]] <- c(this$members_[[name]], oth);
     }
@@ -961,8 +954,12 @@ private:
     return(tags);
   }
 
+
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  addSpecifiers <- \(section)
+  #' @description
+  #' Prefixes describe items with specifiers
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  addSpecifiersToDescribe <- \(section)
   {
     content <- section$content
     specs <- character(length(content));
