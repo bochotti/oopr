@@ -895,10 +895,6 @@ private:
         signature <- sprintf("%s(%iL)", signature, length(obj));
       }
     }
-    if(!is.function(obj))
-    {
-      this$out_$title      <- topic;
-    }
     this$out_$description  <- description;
     this$out_$signature    <- signature;
   }
