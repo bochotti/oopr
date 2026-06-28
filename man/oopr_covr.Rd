@@ -41,9 +41,8 @@ For package coverage, write code to initialize this class inside
 
 \subsection{Methods}{
 \describe{
-
-\item{\code{class}}{Test a single class.}
-
+\item{\code{class}}{\emph{\verb{[static]}} \cr
+Test a single class.}
 }
 }
 

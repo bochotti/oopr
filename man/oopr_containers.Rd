@@ -59,7 +59,6 @@ The container.}
 
 \subsection{Methods}{
 \describe{
-
 \item{\code{insert}}{Insert an already instanced class.}
 
 \item{\code{emplace}}{Construct a new class into the container.}
@@ -72,10 +71,11 @@ The container.}
 
 \item{\code{apply}}{Apply a function over every element in the container.}
 
-\item{\code{[}}{Access an element of the container.}
+\item{\code{[}}{\emph{\verb{[S3]}} \cr
+Access an element of the container.}
 
-\item{\code{[<-}}{Assign to an element of the container.}
-
+\item{\code{[<-}}{\emph{\verb{[S3]}} \cr
+Assign to an element of the container.}
 }
 }
 
@@ -324,7 +324,6 @@ The container.}
 
 \subsection{Methods}{
 \describe{
-
 \item{\code{exists}}{Check whether a key exists.}
 
 \item{\code{insert}}{Insert an already instanced class.}
@@ -337,10 +336,11 @@ The container.}
 
 \item{\code{apply}}{Apply a function over every element in the container.}
 
-\item{\code{[}}{Access an element of the container.}
+\item{\code{[}}{\emph{\verb{[S3]}} \cr
+Access an element of the container.}
 
-\item{\code{[<-}}{Assign to an element of the container.}
-
+\item{\code{[<-}}{\emph{\verb{[S3]}} \cr
+Assign to an element of the container.}
 }
 }
 

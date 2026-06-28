@@ -75,7 +75,7 @@ roclet_process.roclet_oopr <- \(x, blocks, env, base_path)
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 roclet_output.roclet_oopr <- \(x, results, base_path, ...)
 {
-  # OoprRoxy$classes$resize();
+  OoprRoxy$classes$resize();
 }
 
 
@@ -97,8 +97,9 @@ OoprRoxySection <- \(title = "", content = character(0L))
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  title   <- character(1L);
-  content <- character(0L);
+  title    <- character(1L);
+  content  <- character(0L);
+  get:size <- \( ) { return(length(this$content)); }
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   virtual:insert <- \(x, i = length(this$content) + 1L)
   {
@@ -126,17 +127,21 @@ public:
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @keywords internal
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-oopr("OoprRoxyFields", public:OoprRoxySection,
+oopr("OoprRoxyDescribe", public:OoprRoxySection,
 {
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-OoprRoxyFields <- \( ) { OoprRoxySection("Fields"); }
+OoprRoxyDescribe <- \(title = "Fields") { OoprRoxySection(title); }
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  insert <- \(x, i = x$val$name)
+  insert <- \(x, i = length(this$content) + 1L)
   {
-    stopifnot(inherits(x, "roxy_tag_field"));
-    OoprRoxySection$insert(x$val$description, i);
+    if(inherits(x, "roxy_tag_field"))
+    {
+      i <- x$val$name;
+      x <- x$val$description;
+    }
+    OoprRoxySection$insert(x, i);
     return(this);
   }
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -151,7 +156,7 @@ public:
     return(OoprRoxySection$toRd());
   }
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-}) ## OoprRoxyFields
+}) ## OoprRoxyDescribe
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 
 
@@ -456,7 +461,7 @@ public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   makeFields <- \( )
   {
-    fields <- OoprRoxyFields();
+    fields <- OoprRoxyDescribe("Fields");
     names  <- this$ooprC@meta$subs("names", method = FALSE, access = "public");
     miss   <- vapply(names, logical(1L), FUN = \(name)
     {
@@ -489,15 +494,18 @@ public:
      ,deparse1(this$title)
      ,if(sum(miss) > 1L) "are" else "is"
     );
-    if(length(fields$content)) this$sections$insert("Fields", fields);
+    if(fields$size)
+    {
+      fields$content <- this$addSpecifiers(fields$content);
+      this$sections$insert("Fields", fields);
+    }
   }
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   makeMethods <- \( )
   {
     names <- this$ooprC@meta$subs("names", method = TRUE, access = "public");
-    this$sections$emplace("Methods", "Methods");
-    this$sections["Methods"]$insert("\\describe{");
-
+    methods <- OoprRoxyDescribe("Methods");
+    this$sections$insert("Methods", methods);
     miss  <- vapply(names, logical(1L), FUN = \(name)
     {
       tags   <- this$members[[name]];
@@ -519,11 +527,9 @@ public:
         }
       }
       tags <- this$findInheritsTag(tags, name);
-
       desc <- tags[vapply(tags, `[[`, character(1L), "tag") == "description"];
       desc <- paste(vapply(desc, `[[`, character(1L), "val"), collapse = "\n");
-      desc <- sprintf("\\item{\\code{%s}}{%s}", name, desc);
-      this$sections["Methods"]$insert(desc);
+      methods$insert(desc, name);
 
       fun    <- this$ooprC@encl$this[[name]];
       method <- OoprRoxyMethod(name, tags, fun, this$warn);
@@ -539,7 +545,14 @@ public:
      ,if(sum(miss) > 1L) "are" else "is"
     );
 
-    this$sections["Methods"]$insert("}");
+    if(methods$size)
+    {
+      methods$content <- this$addSpecifiers(methods$content);
+    }
+    else
+    {
+      this$sections$erase("Methods");
+    }
   }
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   toRd <- \( )
@@ -665,6 +678,21 @@ private:
     }
 
     return(tags);
+  }
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  addSpecifiers <- \(content)
+  {
+    specs <- character(length(content));
+    names <- names(content);
+    for(which in c("S3", "static", "container", "virtual", "final"))
+    {
+      i <- this$ooprC@meta$subs(which, names = names);
+      specs[i] <- sprintf("%s *`[%s]`*", specs[i], which);
+    }
+    specs[nzchar(specs)] <- sprintf("%s \\cr\n", specs[nzchar(specs)]);
+    content <- trimws(sprintf("%s %s", specs, content));
+    names(content) <- names;
+    return(content);
   }
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 }) ## OoprRoxyClass

@@ -92,7 +92,6 @@ Line numbers of actively set breakpoints.}
 
 \subsection{Methods}{
 \describe{
-
 \item{\code{isInSync}}{Check whether \verb{$srcref} matches the source file.}
 
 \item{\code{hasLine}}{Check whether a line number is inside the function.}
@@ -100,7 +99,6 @@ Line numbers of actively set breakpoints.}
 \item{\code{getSteps}}{Get the steps of the function required to reach a line number.}
 
 \item{\code{setBreakpoints}}{Set breakpoints inside the class, and any class instances.}
-
 }
 }
 
@@ -235,14 +233,14 @@ The name of the class.}
 \item{\code{ooprC}}{\code{ooprC} \cr
 The \code{ooprC} object.}
 
-\item{\code{functions}}{\code{OoprBreakpointsFunction[[]]} \cr
+\item{\code{functions}}{\emph{\verb{[container]}} \cr
+\code{OoprBreakpointsFunction} \cr
 An array of each function inside the class.}
 }
 }
 
 \subsection{Methods}{
 \describe{
-
 \item{\code{has}}{Check if the class contains a function and/or a line.}
 
 \item{\code{isInSync}}{Check if a function is in sync.}
@@ -250,7 +248,6 @@ An array of each function inside the class.}
 \item{\code{getSteps}}{Get the steps required to get to a line in a function.}
 
 \item{\code{setBreakpoints}}{Set breakpoints for a function in the class.}
-
 }
 }
 
@@ -395,14 +392,14 @@ The name of the source file.}
 \item{\code{timestamp}}{\code{POSIXct(1L)} \cr
 The last time the source file was read.}
 
-\item{\code{classes}}{\code{OoprBreakpointsClass[[]]} \cr
+\item{\code{classes}}{\emph{\verb{[container]}} \cr
+\code{OoprBreakpointsClass} \cr
 The classes defined inside the source file.}
 }
 }
 
 \subsection{Methods}{
 \describe{
-
 \item{\code{syncClassesWithFile}}{Check if the source file has been modified, if so reload the classes.}
 
 \item{\code{has}}{Check if any class inside the file contains a function and/or a line.}
@@ -412,7 +409,6 @@ The classes defined inside the source file.}
 \item{\code{getSteps}}{Get the steps of multiple lines across the file.}
 
 \item{\code{setBreakpoints}}{Set breakpoints for a function across classes.}
-
 }
 }
 
@@ -581,22 +577,25 @@ function name.
 
 \subsection{Fields}{
 \describe{
-\item{\code{files}}{\code{OoprBreakpointsFile[[]]} \cr
+\item{\code{files}}{\emph{\verb{[static]}} \emph{\verb{[container]}} \cr
+\code{OoprBreakpointsFile} \cr
 The source files that have/had breakpoints.}
 }
 }
 
 \subsection{Methods}{
 \describe{
+\item{\code{isFunctionInSync}}{\emph{\verb{[static]}} \cr
+Checks whether the srcref matches the file.}
 
-\item{\code{isFunctionInSync}}{Checks whether the srcref matches the file.}
+\item{\code{getFunctionSteps}}{\emph{\verb{[static]}} \cr
+Gets the steps required for a line.}
 
-\item{\code{getFunctionSteps}}{Gets the steps required for a line.}
+\item{\code{getEnvironmentOfFunction}}{\emph{\verb{[static]}} \cr
+Gets the environment of a function.}
 
-\item{\code{getEnvironmentOfFunction}}{Gets the environment of a function.}
-
-\item{\code{setFunctionBreakpoints}}{Sets the breakpoints for a function.}
-
+\item{\code{setFunctionBreakpoints}}{\emph{\verb{[static]}} \cr
+Sets the breakpoints for a function.}
 }
 }
 
@@ -687,7 +686,7 @@ getEnvironmentOfFunction(
 \if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
 \if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
 \tabular{ll}{
-\code{name} \tab \code{character(1L)}
+\code{name} \tab \code{character(1L)} \br
 Name of the function. \cr
 \code{file} \tab \code{character(1L)} \br
 Path of the file. \cr

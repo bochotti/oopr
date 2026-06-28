@@ -439,7 +439,7 @@ public:
   ooprC <- NULL;
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  #' @field functions `OoprBreakpointsFunction[[]]` \cr
+  #' @field functions `OoprBreakpointsFunction` \cr
   #'        An array of each function inside the class.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   functions <- OoprBreakpointsFunction[[]];
@@ -598,7 +598,7 @@ public:
   timestamp <- .POSIXct(0);
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  #' @field classes `OoprBreakpointsClass[[]]` \cr
+  #' @field classes `OoprBreakpointsClass` \cr
   #'                The classes defined inside the source file.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   classes <- OoprBreakpointsClass[[]];
@@ -765,7 +765,7 @@ oopr("OoprBreakpoints",,
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  #' @field files `OoprBreakpointsFile[[]]` \cr
+  #' @field files `OoprBreakpointsFile` \cr
   #'              The source files that have/had breakpoints.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   static:files <- OoprBreakpointsFile[[]];
@@ -911,7 +911,7 @@ public:
   #' @description
   #' Gets the environment of a function.
   #'
-  #' @param name `character(1L)`
+  #' @param name `character(1L)` \cr
   #'             Name of the function.
   #'
   #' @param file `character(1L)` \cr

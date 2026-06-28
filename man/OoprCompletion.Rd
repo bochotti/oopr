@@ -5,6 +5,7 @@
 \alias{OoprCompletionRStudio}
 \alias{OoprCompletion}
 \alias{OoprRd}
+\alias{OoprCompletionHelp}
 \title{Completion for oopr internals}
 \usage{
 OoprCompletionSource()
@@ -14,6 +15,8 @@ OoprCompletionRStudio()
 OoprCompletion()
 
 OoprRd(topic, package)
+
+OoprCompletionHelp(topic, source, class, package)
 }
 \arguments{
 \item{topic}{\code{character(1L)} \cr
@@ -91,17 +94,18 @@ is at that location.}
 
 \subsection{Methods}{
 \describe{
+\item{\code{isAvailable}}{\emph{\verb{[virtual]}} \cr
+Check if the call is currently a completion.}
 
-\item{\code{isAvailable}}{Check if the call is currently a completion.}
+\item{\code{load}}{\emph{\verb{[final]}} \cr
+Load the completion context into the class.}
 
-\item{\code{load}}{Load the completion context into the class.}
-
-\item{\code{source}}{Source the file being completed.}
+\item{\code{source}}{\emph{\verb{[final]}} \cr
+Source the file being completed.}
 
 \item{\code{parse}}{Try to parse the file.}
 
 \item{\code{eval}}{Evaluate the \code{oopr}s in \verb{$defs}.}
-
 }
 }
 
@@ -300,17 +304,18 @@ is at that location.}
 
 \subsection{Methods}{
 \describe{
+\item{\code{isAvailable}}{\emph{\verb{[virtual]}} \cr
+Pull information from the \code{.rs.rpc_get_completions} call.}
 
-\item{\code{isAvailable}}{Pull information from the \code{.rs.rpc_get_completions} call.}
+\item{\code{load}}{\emph{\verb{[final]}} \cr
+Load the completion context into the class.}
 
-\item{\code{load}}{Load the completion context into the class.}
-
-\item{\code{source}}{Source the file being completed.}
+\item{\code{source}}{\emph{\verb{[final]}} \cr
+Source the file being completed.}
 
 \item{\code{parse}}{Try to parse the file.}
 
 \item{\code{eval}}{Evaluate the \code{oopr}s in \verb{$defs}.}
-
 }
 }
 
@@ -483,16 +488,19 @@ object, which then fires the \code{names} method below. The evaluation context
 
 \subsection{Fields}{
 \describe{
-\item{\code{isCompleting}}{\code{logical(1L)} \cr
+\item{\code{isCompleting}}{\emph{\verb{[static]}} \cr
+\code{logical(1L)} \cr
 Whether completion is currently in place. This will
 skip over each \code{$} call in the evaluation context.}
 
-\item{\code{isGettingNames}}{\code{logical(1L)} \cr
+\item{\code{isGettingNames}}{\emph{\verb{[static]}} \cr
+\code{logical(1L)} \cr
 Whether names of an \code{ooprC} are being saught.
 This is used from \code{.DollarNames.ooprC} to provide
 more than just public static members.}
 
-\item{\code{source}}{\code{OoprCompletionSource} \cr
+\item{\code{source}}{\emph{\verb{[static]}} \cr
+\code{OoprCompletionSource} \cr
 A instanced class advising whether completion is being
 sought.}
 }
@@ -500,13 +508,11 @@ sought.}
 
 \subsection{Methods}{
 \describe{
-
 \item{\code{isCompletion}}{Is completion being sought?}
 
 \item{\code{names}}{Get the dollar names of the completion context.}
 
 \item{\code{obj}}{Get the object of the completion context.}
-
 }
 }
 
@@ -600,13 +606,11 @@ Whether the Rd was found and parsed at construction.}
 
 \subsection{Methods}{
 \describe{
-
 \item{\code{getDescription}}{Get the description of a field or method.}
 
 \item{\code{getMethod}}{Get the subsection of a method.}
 
 \item{\code{getArguments}}{Get the arguments of a method.}
-
 }
 }
 

@@ -71,11 +71,9 @@ is at that location.}
 
 \subsection{Methods}{
 \describe{
-
 \item{\code{parse}}{Parse \verb{$file} or \verb{$text}.}
 
 \item{\code{eval}}{Evaluate the \code{oopr}s in \verb{$defs}.}
-
 }
 }
 
@@ -172,11 +170,9 @@ is at that location.}
 
 \subsection{Methods}{
 \describe{
-
 \item{\code{parse}}{Try to parse the file.}
 
 \item{\code{eval}}{Evaluate the \code{oopr}s in \verb{$defs}.}
-
 }
 }
 
