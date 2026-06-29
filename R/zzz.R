@@ -25,6 +25,7 @@
   {
     OoprBreakpoints@encl$this$loadInGlobal(FALSE, TRUE);
   }
+  library.dynam.unload("oopr", libpath);
 }
 oopr_onInstall();
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##

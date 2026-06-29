@@ -2,7 +2,7 @@
 #' @name oopr_containers
 #' @title Containers for oopr Instances
 #' @description
-#' Create a vector or key-value pair of `oopr` instances.
+#' Create a container of `oopr` instances.
 #'
 #' @param ooprC `ooprC` \cr
 #'              An `oopr` constructor object.
@@ -20,6 +20,9 @@ NULL
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @rdname oopr_containers
 #' @export
+#' @description
+#' A vector/array, where the container is indexed by an integer position.
+#'
 #' @examples
 #' ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' # create a vector
@@ -312,6 +315,9 @@ private:
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @rdname oopr_containers
 #' @export
+#' @description
+#' A map, where the container is indexed by a string, i.e. key-value pair.
+#'
 #' @examples
 #' ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' # create a key-value pair
@@ -459,7 +465,7 @@ public:
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   #' @exportS3Method "[" OoprMap
-  #' @inherit OoprVec$[
+  #' @inherit OoprVec$`[`
   #' @param i `character(1L)` \cr
   #'          The element to access.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -471,7 +477,7 @@ public:
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   #' @exportS3Method "[<-" OoprMap
-  #' @inherit OoprVec$[<-
+  #' @inherit OoprVec$`[<-`
   #' @param i `character(1L)` \cr
   #'          The element to assign to.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##

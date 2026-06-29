@@ -14,9 +14,13 @@ OoprMap(ooprC)
 \item{ooprC}{\code{ooprC} \cr
 An \code{oopr} class.}
 }
-\description{
-\newcommand{\br}{\if{html}{\out{<br>}}\if{latex}{\out{\newline}}}
-\newcommand{\hr}{\if{html}{\out{<hr>}}\if{latex}{\out{\hrule}}}
+\value{
+
+\newcommand{\br}{\if{html}{\out{<br>}}\if{latex}{\out{\newline{}}}}
+\newcommand{\lbr}{\if{latex}{\out{\hspace{0em}\newline{}}}}
+\newcommand{\hr}{\if{html}{\out{<hr>}}\if{latex}{\out{\hrule\vspace{0.5em}}}}
+\newcommand{\rc}{\if{html}{\out{<pre><code class="language-R">}}#1\if{html}{\out{</code></pre>}}}
+\newcommand{\ar}{\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}}
 \if{latex}{\out{
 \ExplSyntaxOn
 \cs_gset:Npn \Tabularr #1 #2
@@ -37,538 +41,505 @@ An \code{oopr} class.}
 }
 \ExplSyntaxOff
 }}
-Create a vector or key-value pair of \code{oopr} instances.
+
+\describe{
+\item{\code{OoprVec}}{
+\emph{\verb{[4 fields]}} \emph{\verb{[8 methods]}}\cr
+A vector/array, where the container is indexed by an integer position.}
+
+\item{\code{OoprMap}}{
+\emph{\verb{[5 fields]}} \emph{\verb{[8 methods]}}\cr
+A map, where the container is indexed by a string, i.e. key-value pair.}
 }
-\section{\hr\hr OoprVec}{
+
+}
+\description{
+Create a container of \code{oopr} instances.
+}
+\section{\hr\hr{}OoprVec}{
+
+\subsection{Description}{
+\lbr{}A vector/array, where the container is indexed by an integer position.
+}
 
 \subsection{Fields}{
 \describe{
-\item{\code{class}}{\emph{\verb{[read-only]}} \cr
+\item{\code{class}}{
+\emph{\verb{[read-only]}} \cr
 \code{character(1L)} \cr
 The name of the underlying \code{oopr} class.}
 
-\item{\code{empty}}{\emph{\verb{[read-only]}} \cr
+\item{\code{empty}}{
+\emph{\verb{[read-only]}} \cr
 \code{logical(1L)} \cr
 Whether there are no instanced classes in the container.}
 
-\item{\code{size}}{\emph{\verb{[read-only]}} \cr
+\item{\code{size}}{
+\emph{\verb{[read-only]}} \cr
 \code{integer(1L)} \cr
 The amount of instanced classes in the container.}
 
-\item{\code{data}}{\code{list()} \cr
+\item{\code{data}}{
+\lbr{}\code{list()} \cr
 The container.}
 }
 }
 
 \subsection{Methods}{
 \describe{
-\item{\code{insert}}{Insert an already instanced class.}
+\item{\code{insert}}{
+\lbr{}Insert an already instanced class.}
 
-\item{\code{emplace}}{Construct a new class into the container.}
+\item{\code{emplace}}{
+\lbr{}Construct a new class into the container.}
 
-\item{\code{resize}}{Pre-allocate or destroy the container.}
+\item{\code{resize}}{
+\lbr{}Pre-allocate or destroy the container.}
 
-\item{\code{erase}}{Remove a class from the container.}
+\item{\code{erase}}{
+\lbr{}Remove a class from the container.}
 
-\item{\code{swap}}{Swap two elements of the container.}
+\item{\code{swap}}{
+\lbr{}Swap two elements of the container.}
 
-\item{\code{apply}}{Apply a function over every element in the container.}
+\item{\code{apply}}{
+\lbr{}Apply a function over every element in the container.}
 
-\item{\code{[}}{\emph{\verb{[S3]}} \cr
+\item{\code{`[`}}{
+\emph{\verb{[S3]}} \cr
 Access an element of the container.}
 
-\item{\code{[<-}}{\emph{\verb{[S3]}} \cr
+\item{\code{`[<-`}}{
+\emph{\verb{[S3]}} \cr
 Assign to an element of the container.}
 }
 }
 
-\subsection{\hr insert}{
+\subsection{\hr{}\code{insert}}{
 \subsection{Description}{
-Insert an already instanced class.
+\lbr{}Insert an already instanced class.
 }
 
 \subsection{Usage}{
-\if{html}{\out{<pre><code class="language-R">}}\preformatted{
-insert(pos = this$size, x)
-}\if{html}{\out{</code></pre>}}
+\rc{\preformatted{insert(pos = this$size, x)}}
 }
 
 \subsection{Arguments}{
-\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
-\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
-\tabular{ll}{
+\ar{#1}{#2}\tabular{ll}{
 \code{pos} \tab \code{integer(1L)} \br
 The index to insert the class. The default is at the back. \cr
 \code{x} \tab \code{oopr} \br
-An \code{oopr} instance of class \verb{$class}. \cr
-}
+An \code{oopr} instance of class \verb{$class}.}
 }
 
 \subsection{Returns}{
-\code{this} invisibly.
+\lbr{}\code{this} invisibly.
 }
 }
 
-\subsection{\hr emplace}{
+\subsection{\hr{}\code{emplace}}{
 \subsection{Description}{
-Construct a new class into the container.
+\lbr{}Construct a new class into the container.
 }
 
 \subsection{Usage}{
-\if{html}{\out{<pre><code class="language-R">}}\preformatted{
-emplace(. = this$size, ...)
-}\if{html}{\out{</code></pre>}}
+\rc{\preformatted{emplace(. = this$size, ...)}}
 }
 
 \subsection{Arguments}{
-\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
-\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
-\tabular{ll}{
+\ar{#1}{#2}\tabular{ll}{
 \code{.} \tab \code{integer(1L)} \br
 As per \code{pos} argument for the \verb{$insert} method. \cr
 \code{...} \tab \code{varies} \br
-Arguments to pass to \verb{$class}'s constructor. \cr
-}
+Arguments to pass to \verb{$class}'s constructor.}
 }
 
 \subsection{Returns}{
-\code{this} invisibly.
+\lbr{}\code{this} invisibly.
 }
 }
 
-\subsection{\hr resize}{
+\subsection{\hr{}\code{resize}}{
 \subsection{Description}{
-Pre-allocate or destroy the container.
+\lbr{}Pre-allocate or destroy the container.
 }
 
 \subsection{Usage}{
-\if{html}{\out{<pre><code class="language-R">}}\preformatted{
-resize(n)
-}\if{html}{\out{</code></pre>}}
+\rc{\preformatted{resize(n)}}
 }
 
 \subsection{Arguments}{
-\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
-\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
-\tabular{ll}{
+\ar{#1}{#2}\tabular{ll}{
 \code{n} \tab \code{integer(1L)} \br
-The desired length to make the container. \cr
-}
+The desired length to make the container.}
 }
 
 \subsection{Returns}{
-\code{this} invisibly.
+\lbr{}\code{this} invisibly.
 }
 }
 
-\subsection{\hr erase}{
+\subsection{\hr{}\code{erase}}{
 \subsection{Description}{
-Remove a class from the container.
+\lbr{}Remove a class from the container.
 }
 
 \subsection{Usage}{
-\if{html}{\out{<pre><code class="language-R">}}\preformatted{
-erase(pos = this$size)
-}\if{html}{\out{</code></pre>}}
+\rc{\preformatted{erase(pos = this$size)}}
 }
 
 \subsection{Arguments}{
-\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
-\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
-\tabular{ll}{
+\ar{#1}{#2}\tabular{ll}{
 \code{pos} \tab \code{integer(1L)} \br
-The index in the container to remove. \cr
-}
+The index in the container to remove.}
 }
 
 \subsection{Returns}{
-\code{this} invisibly.
+\lbr{}\code{this} invisibly.
 }
 }
 
-\subsection{\hr swap}{
+\subsection{\hr{}\code{swap}}{
 \subsection{Description}{
-Swap two elements of the container.
+\lbr{}Swap two elements of the container.
 }
 
 \subsection{Usage}{
-\if{html}{\out{<pre><code class="language-R">}}\preformatted{
-swap(pos1, pos2)
-}\if{html}{\out{</code></pre>}}
+\rc{\preformatted{swap(pos1, pos2)}}
 }
 
 \subsection{Arguments}{
-\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
-\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
-\tabular{ll}{
+\ar{#1}{#2}\tabular{ll}{
 \code{pos1} \tab \code{integer(1L)} \br
 Element to swap. \cr
 \code{pos2} \tab \code{integer(1L)} \br
-Element to swap. \cr
-}
+Element to swap.}
 }
 
 \subsection{Returns}{
-\code{this} invisibly.
+\lbr{}\code{this} invisibly.
 }
 }
 
-\subsection{\hr apply}{
+\subsection{\hr{}\code{apply}}{
 \subsection{Description}{
-Apply a function over every element in the container.
+\lbr{}Apply a function over every element in the container.
 }
 
 \subsection{Usage}{
-\if{html}{\out{<pre><code class="language-R">}}\preformatted{
-apply(fun, ...)
-}\if{html}{\out{</code></pre>}}
+\rc{\preformatted{apply(fun, ...)}}
 }
 
 \subsection{Arguments}{
-\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
-\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
-\tabular{ll}{
+\ar{#1}{#2}\tabular{ll}{
 \code{fun} \tab \code{function} \br
 Function to use, the first argument not in \code{...} will be
 the containers class instances. \cr
 \code{...} \tab \code{varies} \br
-Further arguments to \code{fun}. \cr
-}
+Further arguments to \code{fun}.}
 }
 
 \subsection{Returns}{
-\code{list()} of the outputs from \code{fun}.
+\lbr{}\code{list()} of the outputs from \code{fun}.
 }
 }
 
-\subsection{\hr [}{
+\subsection{\hr{}\code{`[`}}{
 \subsection{Description}{
-Access an element of the container.
+\lbr{}Access an element of the container.
 }
 
 \subsection{Usage}{
-\if{html}{\out{<pre><code class="language-R">}}\preformatted{
-`[`(i, j, ..., drop)
-}\if{html}{\out{</code></pre>}}
+\rc{\preformatted{`[`(i, j, ..., drop)}}
 }
 
 \subsection{Arguments}{
-\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
-\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
-\tabular{ll}{
+\ar{#1}{#2}\tabular{ll}{
 \code{i} \tab \code{integer(1L)} \br
 The element to access. \cr
 \code{j} \tab \emph{Not Used} \cr
 \code{...} \tab \emph{Not Used} \cr
-\code{drop} \tab \emph{Not Used} \cr
-}
+\code{drop} \tab \emph{Not Used}}
 }
 
 \subsection{Returns}{
-An \code{oopr} object of class \verb{$class}.
+\lbr{}An \code{oopr} object of class \verb{$class}.
 }
 }
 
-\subsection{\hr [<-}{
+\subsection{\hr{}\code{`[<-`}}{
 \subsection{Description}{
-Assign to an element of the container.
+\lbr{}Assign to an element of the container.
 }
 
 \subsection{Usage}{
-\if{html}{\out{<pre><code class="language-R">}}\preformatted{
-`[<-`(i, j, ..., value)
-}\if{html}{\out{</code></pre>}}
+\rc{\preformatted{`[<-`(i, j, ..., value)}}
 }
 
 \subsection{Arguments}{
-\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
-\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
-\tabular{ll}{
+\ar{#1}{#2}\tabular{ll}{
 \code{i} \tab \code{integer(1L)} \br
 The element to assign to. \cr
 \code{j} \tab \emph{Not Used} \cr
 \code{...} \tab \emph{Not Used} \cr
 \code{value} \tab \code{oopr} \br
-An \code{oopr} object of class \verb{$class}. \cr
-}
+An \code{oopr} object of class \verb{$class}.}
 }
 
 \subsection{Details}{
-Can be used to set members of classes within the container, e.g.
+\lbr{}Can be used to set members of classes within the container, e.g.
 \code{x[i]$mem <- ...}.
 }
 
 \subsection{Returns}{
-\code{this} invisibly.
+\lbr{}\code{this} invisibly.
 }
 }
 }
 
-\section{\hr\hr OoprMap}{
+\section{\hr\hr{}OoprMap}{
+
+\subsection{Description}{
+\lbr{}A map, where the container is indexed by a string, i.e. key-value pair.
+}
 
 \subsection{Fields}{
 \describe{
-\item{\code{class}}{\emph{\verb{[read-only]}} \cr
+\item{\code{class}}{
+\emph{\verb{[read-only]}} \cr
 \code{character(1L)} \cr
 The name of the underlying \code{oopr} class.}
 
-\item{\code{empty}}{\emph{\verb{[read-only]}} \cr
+\item{\code{empty}}{
+\emph{\verb{[read-only]}} \cr
 \code{logical(1L)} \cr
 Whether there are no instanced classes in the container.}
 
-\item{\code{size}}{\emph{\verb{[read-only]}} \cr
+\item{\code{size}}{
+\emph{\verb{[read-only]}} \cr
 \code{integer(1L)} \cr
 The amount of instanced classes in the container.}
 
-\item{\code{keys}}{\emph{\verb{[read-only]}} \cr
+\item{\code{keys}}{
+\emph{\verb{[read-only]}} \cr
 \code{character()} \cr
 The keys within the container}
 
-\item{\code{data}}{\code{list()} \cr
+\item{\code{data}}{
+\lbr{}\code{list()} \cr
 The container.}
 }
 }
 
 \subsection{Methods}{
 \describe{
-\item{\code{exists}}{Check whether a key exists.}
+\item{\code{exists}}{
+\lbr{}Check whether a key exists.}
 
-\item{\code{insert}}{Insert an already instanced class.}
+\item{\code{insert}}{
+\lbr{}Insert an already instanced class.}
 
-\item{\code{emplace}}{Construct a new class into the container.}
+\item{\code{emplace}}{
+\lbr{}Construct a new class into the container.}
 
-\item{\code{erase}}{Remove a class from the container.}
+\item{\code{erase}}{
+\lbr{}Remove a class from the container.}
 
-\item{\code{resize}}{Pre-allocate or destroy the container.}
+\item{\code{resize}}{
+\lbr{}Pre-allocate or destroy the container.}
 
-\item{\code{apply}}{Apply a function over every element in the container.}
+\item{\code{apply}}{
+\lbr{}Apply a function over every element in the container.}
 
-\item{\code{[}}{\emph{\verb{[S3]}} \cr
+\item{\code{`[`}}{
+\emph{\verb{[S3]}} \cr
 Access an element of the container.}
 
-\item{\code{[<-}}{\emph{\verb{[S3]}} \cr
+\item{\code{`[<-`}}{
+\emph{\verb{[S3]}} \cr
 Assign to an element of the container.}
 }
 }
 
-\subsection{\hr exists}{
+\subsection{\hr{}\code{exists}}{
 \subsection{Description}{
-Check whether a key exists.
+\lbr{}Check whether a key exists.
 }
 
 \subsection{Usage}{
-\if{html}{\out{<pre><code class="language-R">}}\preformatted{
-exists(key)
-}\if{html}{\out{</code></pre>}}
+\rc{\preformatted{exists(key)}}
 }
 
 \subsection{Arguments}{
-\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
-\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
-\tabular{ll}{
+\ar{#1}{#2}\tabular{ll}{
 \code{key} \tab \code{character(1L)} \br
-The key to check for \cr
-}
+The key to check for}
 }
 
 \subsection{Returns}{
-\code{logical(1L)}.
+\lbr{}\code{logical(1L)}.
 }
 }
 
-\subsection{\hr insert}{
+\subsection{\hr{}\code{insert}}{
 \subsection{Description}{
-Insert an already instanced class.
+\lbr{}Insert an already instanced class.
 }
 
 \subsection{Usage}{
-\if{html}{\out{<pre><code class="language-R">}}\preformatted{
-insert(key, x)
-}\if{html}{\out{</code></pre>}}
+\rc{\preformatted{insert(key, x)}}
 }
 
 \subsection{Arguments}{
-\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
-\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
-\tabular{ll}{
+\ar{#1}{#2}\tabular{ll}{
 \code{key} \tab \code{character(1L)} \br
 The index to insert the class. The default is at the back. \cr
 \code{x} \tab \code{oopr} \br
-An \code{oopr} instance of class \verb{$class}. \cr
-}
+An \code{oopr} instance of class \verb{$class}.}
 }
 
 \subsection{Returns}{
-\code{this} invisibly.
+\lbr{}\code{this} invisibly.
 }
 }
 
-\subsection{\hr emplace}{
+\subsection{\hr{}\code{emplace}}{
 \subsection{Description}{
-Construct a new class into the container.
+\lbr{}Construct a new class into the container.
 }
 
 \subsection{Usage}{
-\if{html}{\out{<pre><code class="language-R">}}\preformatted{
-emplace(., ...)
-}\if{html}{\out{</code></pre>}}
+\rc{\preformatted{emplace(., ...)}}
 }
 
 \subsection{Arguments}{
-\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
-\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
-\tabular{ll}{
+\ar{#1}{#2}\tabular{ll}{
 \code{.} \tab \code{character(1L)} \br
 As per \code{key} argument for the \verb{$insert} method. \cr
 \code{...} \tab \code{varies} \br
-Arguments to pass to \verb{$class}'s constructor. \cr
-}
+Arguments to pass to \verb{$class}'s constructor.}
 }
 
 \subsection{Returns}{
-\code{this} invisibly.
+\lbr{}\code{this} invisibly.
 }
 }
 
-\subsection{\hr erase}{
+\subsection{\hr{}\code{erase}}{
 \subsection{Description}{
-Remove a class from the container.
+\lbr{}Remove a class from the container.
 }
 
 \subsection{Usage}{
-\if{html}{\out{<pre><code class="language-R">}}\preformatted{
-erase(key)
-}\if{html}{\out{</code></pre>}}
+\rc{\preformatted{erase(key)}}
 }
 
 \subsection{Arguments}{
-\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
-\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
-\tabular{ll}{
+\ar{#1}{#2}\tabular{ll}{
 \code{key} \tab \code{character(1L)} \br
-The index in the container to remove. \cr
-}
+The index in the container to remove.}
 }
 
 \subsection{Returns}{
-\code{this} invisibly.
+\lbr{}\code{this} invisibly.
 }
 }
 
-\subsection{\hr resize}{
+\subsection{\hr{}\code{resize}}{
 \subsection{Description}{
-Pre-allocate or destroy the container.
+\lbr{}Pre-allocate or destroy the container.
 }
 
 \subsection{Usage}{
-\if{html}{\out{<pre><code class="language-R">}}\preformatted{
-resize(keys = character(0L))
-}\if{html}{\out{</code></pre>}}
+\rc{\preformatted{resize(keys = character(0L))}}
 }
 
 \subsection{Arguments}{
-\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
-\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
-\tabular{ll}{
+\ar{#1}{#2}\tabular{ll}{
 \code{keys} \tab \code{character()} \br
-Keys to create / remain. \cr
-}
+Keys to create / remain.}
 }
 
 \subsection{Returns}{
-\code{this} invisibly.
+\lbr{}\code{this} invisibly.
 }
 }
 
-\subsection{\hr apply}{
+\subsection{\hr{}\code{apply}}{
 \subsection{Description}{
-Apply a function over every element in the container.
+\lbr{}Apply a function over every element in the container.
 }
 
 \subsection{Usage}{
-\if{html}{\out{<pre><code class="language-R">}}\preformatted{
-apply(fun, ...)
-}\if{html}{\out{</code></pre>}}
+\rc{\preformatted{apply(fun, ...)}}
 }
 
 \subsection{Arguments}{
-\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
-\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
-\tabular{ll}{
+\ar{#1}{#2}\tabular{ll}{
 \code{fun} \tab \code{function} \br
 Function to apply with, the first two arguments being the
 \code{key} and \code{value}, respectively. \cr
 \code{...} \tab \code{varies} \br
-Further arguments to \code{fun}. \cr
-}
+Further arguments to \code{fun}.}
 }
 
 \subsection{Returns}{
-\code{list()} of the outputs from \code{fun}.
+\lbr{}\code{list()} of the outputs from \code{fun}.
 }
 }
 
-\subsection{\hr [}{
+\subsection{\hr{}\code{`[`}}{
 \subsection{Description}{
-Access an element of the container.
+\lbr{}Access an element of the container.
 }
 
 \subsection{Usage}{
-\if{html}{\out{<pre><code class="language-R">}}\preformatted{
-`[`(i, j, ..., drop)
-}\if{html}{\out{</code></pre>}}
+\rc{\preformatted{`[`(i, j, ..., drop)}}
 }
 
 \subsection{Arguments}{
-\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
-\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
-\tabular{ll}{
+\ar{#1}{#2}\tabular{ll}{
 \code{i} \tab \code{character(1L)} \br
 The element to access. \cr
 \code{j} \tab \emph{Not Used} \cr
 \code{...} \tab \emph{Not Used} \cr
-\code{drop} \tab \emph{Not Used} \cr
-}
+\code{drop} \tab \emph{Not Used}}
 }
 
 \subsection{Returns}{
-An \code{oopr} object of class \verb{$class}.
+\lbr{}An \code{oopr} object of class \verb{$class}.
 }
 }
 
-\subsection{\hr [<-}{
+\subsection{\hr{}\code{`[<-`}}{
 \subsection{Description}{
-Assign to an element of the container.
+\lbr{}Assign to an element of the container.
 }
 
 \subsection{Usage}{
-\if{html}{\out{<pre><code class="language-R">}}\preformatted{
-`[<-`(i, j, ..., value)
-}\if{html}{\out{</code></pre>}}
+\rc{\preformatted{`[<-`(i, j, ..., value)}}
 }
 
 \subsection{Arguments}{
-\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
-\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
-\tabular{ll}{
+\ar{#1}{#2}\tabular{ll}{
 \code{i} \tab \code{character(1L)} \br
 The element to assign to. \cr
 \code{j} \tab \emph{Not Used} \cr
 \code{...} \tab \emph{Not Used} \cr
 \code{value} \tab \code{oopr} \br
-An \code{oopr} object of class \verb{$class}. \cr
-}
+An \code{oopr} object of class \verb{$class}.}
 }
 
 \subsection{Details}{
-Can be used to set members of classes within the container, e.g.
+\lbr{}Can be used to set members of classes within the container, e.g.
 \code{x[i]$mem <- ...}.
 }
 
 \subsection{Returns}{
-\code{this} invisibly.
+\lbr{}\code{this} invisibly.
 }
 }
+\lbr\hr\hr
 }
 
 \examples{

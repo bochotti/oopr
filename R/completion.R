@@ -3,6 +3,7 @@
 #' @title Completion for oopr
 #' @include init.R
 #' @include source.R
+#' @include roxy.R
 #' @export
 #' @description
 #' Code-completion / intellisense for `oopr` classes.
@@ -614,6 +615,8 @@ public:
   getDescription <- \(name, html = TRUE)
   {
     if(this$fail) return("");
+    name <- this$wrapNames(name);
+    m <- 0L;
     for(type in c("Fields", "Methods"))
     {
       rd    <- this$pullSection(type);
@@ -645,6 +648,7 @@ public:
   getMethod <- \(name, html = FALSE)
   {
     if(this$fail) return("");
+    name <- this$wrapNames(name);
     rd <- this$pullSection(name);
     if(is.null(rd)) return("");
     if(html)
@@ -713,7 +717,7 @@ private:
   {
     class <- class(rd);
     rd    <- rd[this$whichTag(c("\\section", "\\subsection"), rd)];
-    names <- vapply(rd, \(x) { trimws(tail(x[[1L]], 1L)) }, character(1L));
+    names <- vapply(rd, \(x) { unlist(tail(x[[1L]], 1L)); }, character(1L));
     m     <- match(name, names, 0L);
     rd    <- if(m) rd[[c(m, 2L)]] else return(NULL);
     class(rd) <- class;
@@ -746,6 +750,10 @@ private:
     }
     return(out[-1L]);
   }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  static:wrapNames <- OoprRoxyClass@encl$this$wrapNames;
+
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 }) ## OoprRd
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##

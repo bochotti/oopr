@@ -43,10 +43,10 @@ Collate:
     'source.R'
     'container.R'
     'breakpoint.R'
+    'roxy.R'
     'completion.R'
     'covr.R'
     'install.R'
-    'roxy.R'
     'zzz.R'
 VignetteBuilder: knitr
 URL: https://bochotti.github.io/oopr/

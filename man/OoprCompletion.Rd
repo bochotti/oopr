@@ -25,9 +25,13 @@ The class name.}
 \item{package}{\code{character(1L)} \cr
 The package that the class lives in.}
 }
-\description{
-\newcommand{\br}{\if{html}{\out{<br>}}\if{latex}{\out{\newline}}}
-\newcommand{\hr}{\if{html}{\out{<hr>}}\if{latex}{\out{\hrule}}}
+\value{
+
+\newcommand{\br}{\if{html}{\out{<br>}}\if{latex}{\out{\newline{}}}}
+\newcommand{\lbr}{\if{latex}{\out{\hspace{0em}\newline{}}}}
+\newcommand{\hr}{\if{html}{\out{<hr>}}\if{latex}{\out{\hrule\vspace{0.5em}}}}
+\newcommand{\rc}{\if{html}{\out{<pre><code class="language-R">}}#1\if{html}{\out{</code></pre>}}}
+\newcommand{\ar}{\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}}
 \if{latex}{\out{
 \ExplSyntaxOn
 \cs_gset:Npn \Tabularr #1 #2
@@ -48,49 +52,80 @@ The package that the class lives in.}
 }
 \ExplSyntaxOff
 }}
+
+\describe{
+\item{\code{OoprCompletionSource}}{
+\emph{\verb{[10 fields]}} \emph{\verb{[5 methods]}}\cr
+A virtual class that can be inherited to use as a completion identifier.}
+
+\item{\code{OoprCompletionRStudio}}{
+\emph{\verb{[10 fields]}} \emph{\verb{[5 methods]}}\cr
+Use completion in RStudio.}
+
+\item{\code{OoprCompletion}}{
+\emph{\verb{[3 fields]}} \emph{\verb{[3 methods]}}\cr
+Use completion.}
+
+\item{\code{OoprRd}}{
+\emph{\verb{[4 fields]}} \emph{\verb{[3 methods]}}\cr
+Read the Rd (documentation) of an \code{oopr} class.}
+}
+
+}
+\description{
 Completion for oopr internals
 }
-\section{\hr\hr OoprCompletionSource}{
+\section{\hr\hr{}OoprCompletionSource}{
 
 \subsection{Description}{
-A virtual class that can be inherited to use as a completion identifier.
+\lbr{}A virtual class that can be inherited to use as a completion identifier.
 }
 
 \subsection{Fields}{
 \describe{
-\item{\code{env}}{\emph{\verb{[read-only]}} \cr
+\item{\code{env}}{
+\emph{\verb{[read-only]}} \cr
 \code{environment} \cr
 The environment provided to \verb{$load}.}
 
-\item{\code{call}}{\code{call} \cr
+\item{\code{call}}{
+\lbr{}\code{call} \cr
 The evaluation string/call at the position \code{row} & \code{col} in
 the file, e.g. \code{this$a$b}.}
 
-\item{\code{file}}{\code{character(1L)} \cr
+\item{\code{file}}{
+\lbr{}\code{character(1L)} \cr
 An R source file.}
 
-\item{\code{text}}{\code{character()} \cr
+\item{\code{text}}{
+\lbr{}\code{character()} \cr
 A vector of lines of an R source file.}
 
-\item{\code{row}}{\code{integer(1L)} \cr
+\item{\code{row}}{
+\lbr{}\code{integer(1L)} \cr
 Line of a text cursor position.}
 
-\item{\code{col}}{\code{integer(1L)} \cr
+\item{\code{col}}{
+\lbr{}\code{integer(1L)} \cr
 Line of a text cursor position.}
 
-\item{\code{expr}}{\emph{\verb{[read-only]}} \cr
+\item{\code{expr}}{
+\emph{\verb{[read-only]}} \cr
 \code{expression} \cr
 A parsed expressed of \verb{$file} or \verb{$text} from \verb{$parse()}.}
 
-\item{\code{defs}}{\emph{\verb{[read-only]}} \cr
+\item{\code{defs}}{
+\emph{\verb{[read-only]}} \cr
 \code{list()} \cr
 A named list of \code{oopr} definitions from \verb{$parse()}.}
 
-\item{\code{objs}}{\emph{\verb{[read-only]}} \cr
+\item{\code{objs}}{
+\emph{\verb{[read-only]}} \cr
 \code{list()} \cr
 A named list of \code{oopr} object from \verb{$eval()}.}
 
-\item{\code{obj}}{\emph{\verb{[read-only]}} \cr
+\item{\code{obj}}{
+\emph{\verb{[read-only]}} \cr
 \code{ooprC}
 If \verb{$row} and \verb{$col} are set, then the \code{oopr} object that
 is at that location.}
@@ -99,64 +134,63 @@ is at that location.}
 
 \subsection{Methods}{
 \describe{
-\item{\code{isAvailable}}{\emph{\verb{[virtual]}} \cr
+\item{\code{isAvailable}}{
+\emph{\verb{[virtual]}} \cr
 Check if the call is currently a completion.}
 
-\item{\code{load}}{\emph{\verb{[final]}} \cr
+\item{\code{load}}{
+\emph{\verb{[final]}} \cr
 Load the completion context into the class.}
 
-\item{\code{source}}{\emph{\verb{[final]}} \cr
+\item{\code{source}}{
+\emph{\verb{[final]}} \cr
 Source the file being completed.}
 
-\item{\code{parse}}{Try to parse the file.}
+\item{\code{parse}}{
+\lbr{}Try to parse the file.}
 
-\item{\code{eval}}{Evaluate the \code{oopr}s in \verb{$defs}.}
+\item{\code{eval}}{
+\lbr{}Evaluate the \code{oopr}s in \verb{$defs}.}
 }
 }
 
-\subsection{\hr isAvailable}{
+\subsection{\hr{}\code{isAvailable}}{
 \subsection{Description}{
-Check if the call is currently a completion.
+\lbr{}Check if the call is currently a completion.
 }
 
 \subsection{Usage}{
-\if{html}{\out{<pre><code class="language-R">}}\preformatted{
-isAvailable()
-}\if{html}{\out{</code></pre>}}
+\rc{\preformatted{isAvailable()}}
 }
 
 \subsection{Details}{
-This method should check the call stack to ensure the appropriate
+\lbr{}This method should check the call stack to ensure the appropriate
 completion call is being made above. It should also use the \verb{$load}
 method.
 }
 
 \subsection{Returns}{
-\code{logical(1L)}.
+\lbr{}\code{logical(1L)}.
 }
 }
 
-\subsection{\hr load}{
+\subsection{\hr{}\code{load}}{
 \subsection{Description}{
-Load the completion context into the class.
+\lbr{}Load the completion context into the class.
 }
 
 \subsection{Usage}{
-\if{html}{\out{<pre><code class="language-R">}}\preformatted{
-load(
+\rc{\preformatted{load(
   env  = globalenv()
  ,file
  ,text = NULL
  ,row 
  ,col 
-)
-}\if{html}{\out{</code></pre>}}
+)}}
 }
 
 \subsection{Arguments}{
-\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
-\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
-\tabular{ll}{
+\ar{#1}{#2}\tabular{ll}{
 \code{env} \tab \code{environment} \br
 The environment which acts as the parent of oopr classes. \cr
 \code{file} \tab \code{character(1L)} \br
@@ -168,52 +202,47 @@ The text containing lines of the source file. If \code{NULL} and
 \code{row} \tab \code{integer(1L)} \br
 Text cursor position of the line number, indexed by 1. \cr
 \code{col} \tab \code{integer(1L)} \br
-Text cursor position of column on the line, indexed by 1. \cr
-}
+Text cursor position of column on the line, indexed by 1.}
 }
 
 \subsection{Details}{
-Cannot be over-ridden. This is used inside \code{OoprCompletion} class.
+\lbr{}Cannot be over-ridden. This is used inside \code{OoprCompletion} class.
 }
 
 \subsection{Returns}{
-\code{this} invisibly.
+\lbr{}\code{this} invisibly.
 }
 }
 
-\subsection{\hr source}{
+\subsection{\hr{}\code{source}}{
 \subsection{Description}{
-Source the file being completed.
+\lbr{}Source the file being completed.
 }
 
 \subsection{Usage}{
-\if{html}{\out{<pre><code class="language-R">}}\preformatted{
-source()
-}\if{html}{\out{</code></pre>}}
+\rc{\preformatted{source()}}
 }
 
 \subsection{Details}{
-Cannot be over-ridden. This is used inside \code{OoprCompletion} class.
+\lbr{}Cannot be over-ridden. This is used inside \code{OoprCompletion} class.
 }
 
 \subsection{Returns}{
-\code{this} invisibly.
+\lbr{}\code{this} invisibly.
 }
 }
 
-\subsection{\hr parse}{
+\subsection{\hr{}\code{parse}}{
 \subsection{Description}{
-Try to parse the file.
+\lbr{}Try to parse the file.
 }
 
 \subsection{Usage}{
-\if{html}{\out{<pre><code class="language-R">}}\preformatted{
-parse()
-}\if{html}{\out{</code></pre>}}
+\rc{\preformatted{parse()}}
 }
 
 \subsection{Details}{
-When completing, the contents of a file may fail to parse:
+\lbr{}When completing, the contents of a file may fail to parse:
 \enumerate{
 \item \code{$} with no rhs, e.g. \verb{this$}
 \item Incomplete control-flow, e.g. \verb{if(i in this$)}
@@ -231,81 +260,86 @@ class members are not reference checked.
 }
 
 \subsection{Returns}{
-See \code{OoprSource$parse()}.
+\lbr{}See \code{OoprSource$parse()}.
 }
 }
 
-\subsection{\hr eval}{
+\subsection{\hr{}\code{eval}}{
 \subsection{Description}{
-Evaluate the \code{oopr}s in \verb{$defs}.
+\lbr{}Evaluate the \code{oopr}s in \verb{$defs}.
 }
 
 \subsection{Usage}{
-\if{html}{\out{<pre><code class="language-R">}}\preformatted{
-eval(top = globalenv())
-}\if{html}{\out{</code></pre>}}
+\rc{\preformatted{eval(top = globalenv())}}
 }
 
 \subsection{Arguments}{
-\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
-\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
-\tabular{ll}{
+\ar{#1}{#2}\tabular{ll}{
 \code{top} \tab \code{environment} \br
-An environment to be the top-level of the \code{oopr} objects. \cr
-}
+An environment to be the top-level of the \code{oopr} objects.}
 }
 
 \subsection{Details}{
-If \verb{$row} & \verb{$col} are set, then evaluation stops at that \code{oopr} call.
+\lbr{}If \verb{$row} & \verb{$col} are set, then evaluation stops at that \code{oopr} call.
 }
 
 \subsection{Returns}{
-Saves the \code{oopr} objects to \verb{$objs}.
+\lbr{}Saves the \code{oopr} objects to \verb{$objs}.
 }
 }
 }
 
-\section{\hr\hr OoprCompletionRStudio}{
+\section{\hr\hr{}OoprCompletionRStudio}{
 
 \subsection{Description}{
-Use completion in RStudio.
+\lbr{}Use completion in RStudio.
 }
 
 \subsection{Fields}{
 \describe{
-\item{\code{env}}{\emph{\verb{[read-only]}} \cr
+\item{\code{env}}{
+\emph{\verb{[read-only]}} \cr
 \code{environment} \cr
 The environment provided to \verb{$load}.}
 
-\item{\code{call}}{\code{call} \cr
+\item{\code{call}}{
+\lbr{}\code{call} \cr
 The evaluation string/call at the position \code{row} & \code{col} in
 the file, e.g. \code{this$a$b}.}
 
-\item{\code{file}}{\code{character(1L)} \cr
+\item{\code{file}}{
+\lbr{}\code{character(1L)} \cr
 An R source file.}
 
-\item{\code{text}}{\code{character()} \cr
+\item{\code{text}}{
+\lbr{}\code{character()} \cr
 A vector of lines of an R source file.}
 
-\item{\code{row}}{\code{integer(1L)} \cr
+\item{\code{row}}{
+\lbr{}\code{integer(1L)} \cr
 Line of a text cursor position.}
 
-\item{\code{col}}{\code{integer(1L)} \cr
+\item{\code{col}}{
+\lbr{}\code{integer(1L)} \cr
 Line of a text cursor position.}
 
-\item{\code{expr}}{\emph{\verb{[read-only]}} \cr
+\item{\code{expr}}{
+\emph{\verb{[read-only]}} \cr
 \code{expression} \cr
 A parsed expressed of \verb{$file} or \verb{$text} from \verb{$parse()}.}
 
-\item{\code{defs}}{\emph{\verb{[read-only]}} \cr
+\item{\code{defs}}{
+\emph{\verb{[read-only]}} \cr
 \code{list()} \cr
 A named list of \code{oopr} definitions from \verb{$parse()}.}
 
-\item{\code{objs}}{\emph{\verb{[read-only]}} \cr
+\item{\code{objs}}{
+\emph{\verb{[read-only]}} \cr
 \code{list()} \cr
 A named list of \code{oopr} object from \verb{$eval()}.}
 
-\item{\code{obj}}{\emph{\verb{[read-only]}} \cr
+\item{\code{obj}}{
+\emph{\verb{[read-only]}} \cr
 \code{ooprC}
 If \verb{$row} and \verb{$col} are set, then the \code{oopr} object that
 is at that location.}
@@ -314,63 +348,62 @@ is at that location.}
 
 \subsection{Methods}{
 \describe{
-\item{\code{isAvailable}}{\emph{\verb{[virtual]}} \cr
+\item{\code{isAvailable}}{
+\emph{\verb{[virtual]}} \cr
 Pull information from the \code{.rs.rpc_get_completions} call.}
 
-\item{\code{load}}{\emph{\verb{[final]}} \cr
+\item{\code{load}}{
+\emph{\verb{[final]}} \cr
 Load the completion context into the class.}
 
-\item{\code{source}}{\emph{\verb{[final]}} \cr
+\item{\code{source}}{
+\emph{\verb{[final]}} \cr
 Source the file being completed.}
 
-\item{\code{parse}}{Try to parse the file.}
+\item{\code{parse}}{
+\lbr{}Try to parse the file.}
 
-\item{\code{eval}}{Evaluate the \code{oopr}s in \verb{$defs}.}
+\item{\code{eval}}{
+\lbr{}Evaluate the \code{oopr}s in \verb{$defs}.}
 }
 }
 
-\subsection{\hr isAvailable}{
+\subsection{\hr{}\code{isAvailable}}{
 \subsection{Description}{
-Pull information from the \code{.rs.rpc_get_completions} call.
+\lbr{}Pull information from the \code{.rs.rpc_get_completions} call.
 }
 
 \subsection{Usage}{
-\if{html}{\out{<pre><code class="language-R">}}\preformatted{
-isAvailable()
-}\if{html}{\out{</code></pre>}}
+\rc{\preformatted{isAvailable()}}
 }
 
 \subsection{Details}{
-Specifically pulls the rstudio \code{id} for the completion which contains
+\lbr{}Specifically pulls the rstudio \code{id} for the completion which contains
 the file path, row and column.
 }
 
 \subsection{Returns}{
-\code{logical(1L)}.
+\lbr{}\code{logical(1L)}.
 }
 }
 
-\subsection{\hr load}{
+\subsection{\hr{}\code{load}}{
 \subsection{Description}{
-Load the completion context into the class.
+\lbr{}Load the completion context into the class.
 }
 
 \subsection{Usage}{
-\if{html}{\out{<pre><code class="language-R">}}\preformatted{
-load(
+\rc{\preformatted{load(
   env  = globalenv()
  ,file
  ,text = NULL
  ,row 
  ,col 
-)
-}\if{html}{\out{</code></pre>}}
+)}}
 }
 
 \subsection{Arguments}{
-\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
-\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
-\tabular{ll}{
+\ar{#1}{#2}\tabular{ll}{
 \code{env} \tab \code{environment} \br
 The environment which acts as the parent of oopr classes. \cr
 \code{file} \tab \code{character(1L)} \br
@@ -382,52 +415,47 @@ The text containing lines of the source file. If \code{NULL} and
 \code{row} \tab \code{integer(1L)} \br
 Text cursor position of the line number, indexed by 1. \cr
 \code{col} \tab \code{integer(1L)} \br
-Text cursor position of column on the line, indexed by 1. \cr
-}
+Text cursor position of column on the line, indexed by 1.}
 }
 
 \subsection{Details}{
-Cannot be over-ridden. This is used inside \code{OoprCompletion} class.
+\lbr{}Cannot be over-ridden. This is used inside \code{OoprCompletion} class.
 }
 
 \subsection{Returns}{
-\code{this} invisibly.
+\lbr{}\code{this} invisibly.
 }
 }
 
-\subsection{\hr source}{
+\subsection{\hr{}\code{source}}{
 \subsection{Description}{
-Source the file being completed.
+\lbr{}Source the file being completed.
 }
 
 \subsection{Usage}{
-\if{html}{\out{<pre><code class="language-R">}}\preformatted{
-source()
-}\if{html}{\out{</code></pre>}}
+\rc{\preformatted{source()}}
 }
 
 \subsection{Details}{
-Cannot be over-ridden. This is used inside \code{OoprCompletion} class.
+\lbr{}Cannot be over-ridden. This is used inside \code{OoprCompletion} class.
 }
 
 \subsection{Returns}{
-\code{this} invisibly.
+\lbr{}\code{this} invisibly.
 }
 }
 
-\subsection{\hr parse}{
+\subsection{\hr{}\code{parse}}{
 \subsection{Description}{
-Try to parse the file.
+\lbr{}Try to parse the file.
 }
 
 \subsection{Usage}{
-\if{html}{\out{<pre><code class="language-R">}}\preformatted{
-parse()
-}\if{html}{\out{</code></pre>}}
+\rc{\preformatted{parse()}}
 }
 
 \subsection{Details}{
-When completing, the contents of a file may fail to parse:
+\lbr{}When completing, the contents of a file may fail to parse:
 \enumerate{
 \item \code{$} with no rhs, e.g. \verb{this$}
 \item Incomplete control-flow, e.g. \verb{if(i in this$)}
@@ -445,48 +473,43 @@ class members are not reference checked.
 }
 
 \subsection{Returns}{
-See \code{OoprSource$parse()}.
+\lbr{}See \code{OoprSource$parse()}.
 }
 }
 
-\subsection{\hr eval}{
+\subsection{\hr{}\code{eval}}{
 \subsection{Description}{
-Evaluate the \code{oopr}s in \verb{$defs}.
+\lbr{}Evaluate the \code{oopr}s in \verb{$defs}.
 }
 
 \subsection{Usage}{
-\if{html}{\out{<pre><code class="language-R">}}\preformatted{
-eval(top = globalenv())
-}\if{html}{\out{</code></pre>}}
+\rc{\preformatted{eval(top = globalenv())}}
 }
 
 \subsection{Arguments}{
-\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
-\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
-\tabular{ll}{
+\ar{#1}{#2}\tabular{ll}{
 \code{top} \tab \code{environment} \br
-An environment to be the top-level of the \code{oopr} objects. \cr
-}
+An environment to be the top-level of the \code{oopr} objects.}
 }
 
 \subsection{Details}{
-If \verb{$row} & \verb{$col} are set, then evaluation stops at that \code{oopr} call.
+\lbr{}If \verb{$row} & \verb{$col} are set, then evaluation stops at that \code{oopr} call.
 }
 
 \subsection{Returns}{
-Saves the \code{oopr} objects to \verb{$objs}.
+\lbr{}Saves the \code{oopr} objects to \verb{$objs}.
 }
 }
 }
 
-\section{\hr\hr OoprCompletion}{
+\section{\hr\hr{}OoprCompletion}{
 
 \subsection{Description}{
-Use completion.
+\lbr{}Use completion.
 }
 
 \subsection{Details}{
-Completion call on an object is in the form \verb{this$a$b$}. The trick here
+\lbr{}Completion call on an object is in the form \verb{this$a$b$}. The trick here
 is to check whether the text cursor is inside a class in the source file.
 If so, collect that information and skip over everything before the last
 dollar.
@@ -498,18 +521,21 @@ object, which then fires the \code{names} method below. The evaluation context
 
 \subsection{Fields}{
 \describe{
-\item{\code{isCompleting}}{\emph{\verb{[read-only]}} \emph{\verb{[static]}} \cr
+\item{\code{isCompleting}}{
+\emph{\verb{[read-only]}} \emph{\verb{[static]}} \cr
 \code{logical(1L)} \cr
 Whether completion is currently in place. This will
 skip over each \code{$} call in the evaluation context.}
 
-\item{\code{isGettingNames}}{\emph{\verb{[static]}} \cr
+\item{\code{isGettingNames}}{
+\emph{\verb{[static]}} \cr
 \code{logical(1L)} \cr
 Whether names of an \code{ooprC} are being saught.
 This is used from \code{.DollarNames.ooprC} to provide
 more than just public static members.}
 
-\item{\code{source}}{\emph{\verb{[static]}} \cr
+\item{\code{source}}{
+\emph{\verb{[static]}} \cr
 \code{OoprCompletionSource} \cr
 A instanced class advising whether completion is being
 sought.}
@@ -518,81 +544,78 @@ sought.}
 
 \subsection{Methods}{
 \describe{
-\item{\code{isCompletion}}{Is completion being sought?}
+\item{\code{isCompletion}}{
+\lbr{}Is completion being sought?}
 
-\item{\code{names}}{Get the dollar names of the completion context.}
+\item{\code{names}}{
+\lbr{}Get the dollar names of the completion context.}
 
-\item{\code{obj}}{Get the object of the completion context.}
+\item{\code{obj}}{
+\lbr{}Get the object of the completion context.}
 }
 }
 
-\subsection{\hr isCompletion}{
+\subsection{\hr{}\code{isCompletion}}{
 \subsection{Description}{
-Is completion being sought?
+\lbr{}Is completion being sought?
 }
 
 \subsection{Usage}{
-\if{html}{\out{<pre><code class="language-R">}}\preformatted{
-isCompletion()
-}\if{html}{\out{</code></pre>}}
+\rc{\preformatted{isCompletion()}}
 }
 
 \subsection{Details}{
-Checks the \code{source} member as to whether the \code{$} or \code{.DollarNames} calls
+\lbr{}Checks the \code{source} member as to whether the \code{$} or \code{.DollarNames} calls
 are within a completion context. If so, then the file is parsed,
 \code{oopr} class constructor collected, and \verb{$isCompleting} set to \code{TRUE}.
 }
 
 \subsection{Returns}{
-\code{logical(1L)}.
+\lbr{}\code{logical(1L)}.
 }
 }
 
-\subsection{\hr names}{
+\subsection{\hr{}\code{names}}{
 \subsection{Description}{
-Get the dollar names of the completion context.
+\lbr{}Get the dollar names of the completion context.
 }
 
 \subsection{Usage}{
-\if{html}{\out{<pre><code class="language-R">}}\preformatted{
-names()
-}\if{html}{\out{</code></pre>}}
+\rc{\preformatted{names()}}
 }
 
 \subsection{Returns}{
-\code{character()} of names.
+\lbr{}\code{character()} of names.
 }
 }
 
-\subsection{\hr obj}{
+\subsection{\hr{}\code{obj}}{
 \subsection{Description}{
-Get the object of the completion context.
+\lbr{}Get the object of the completion context.
 }
 
 \subsection{Usage}{
-\if{html}{\out{<pre><code class="language-R">}}\preformatted{
-obj()
-}\if{html}{\out{</code></pre>}}
+\rc{\preformatted{obj()}}
 }
 
 \subsection{Details}{
-Used within \code{.rs.rpc.get_custom_parameter_help}.
+\lbr{}Used within \code{.rs.rpc.get_custom_parameter_help}.
 }
 
 \subsection{Returns}{
-\code{varies}.
+\lbr{}\code{varies}.
 }
 }
 }
 
-\section{\hr\hr OoprRd}{
+\section{\hr\hr{}OoprRd}{
 
 \subsection{Description}{
-Read the Rd (documentation) of an \code{oopr} class.
+\lbr{}Read the Rd (documentation) of an \code{oopr} class.
 }
 
 \subsection{Details}{
-Will read the \code{.Rd} file that holds the \code{oopr} class, then provides
+\lbr{}Will read the \code{.Rd} file that holds the \code{oopr} class, then provides
 methods to access specific information.
 
 Used to help with documentation auto-completion in RStudio.
@@ -600,122 +623,115 @@ Used to help with documentation auto-completion in RStudio.
 
 \subsection{Fields}{
 \describe{
-\item{\code{topic}}{\code{character(1L)} \cr
+\item{\code{topic}}{
+\lbr{}\code{character(1L)} \cr
 The class name.}
 
-\item{\code{package}}{\code{character(1L)} \cr
+\item{\code{package}}{
+\lbr{}\code{character(1L)} \cr
 The package that the class lives in.}
 
-\item{\code{rd}}{\code{list()} \cr
+\item{\code{rd}}{
+\lbr{}\code{list()} \cr
 The parsed \code{Rd}.}
 
-\item{\code{fail}}{\code{logical(1L)} \cr
+\item{\code{fail}}{
+\lbr{}\code{logical(1L)} \cr
 Whether the Rd was found and parsed at construction.}
 }
 }
 
 \subsection{Methods}{
 \describe{
-\item{\code{getDescription}}{Get the description of a field or method.}
+\item{\code{getDescription}}{
+\lbr{}Get the description of a field or method.}
 
-\item{\code{getMethod}}{Get the subsection of a method.}
+\item{\code{getMethod}}{
+\lbr{}Get the subsection of a method.}
 
-\item{\code{getArguments}}{Get the arguments of a method.}
+\item{\code{getArguments}}{
+\lbr{}Get the arguments of a method.}
 }
 }
 
-\subsection{\hr getDescription}{
+\subsection{\hr{}\code{getDescription}}{
 \subsection{Description}{
-Get the description of a field or method.
+\lbr{}Get the description of a field or method.
 }
 
 \subsection{Usage}{
-\if{html}{\out{<pre><code class="language-R">}}\preformatted{
-getDescription(name, html = TRUE)
-}\if{html}{\out{</code></pre>}}
+\rc{\preformatted{getDescription(name, html = TRUE)}}
 }
 
 \subsection{Arguments}{
-\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
-\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
-\tabular{ll}{
+\ar{#1}{#2}\tabular{ll}{
 \code{name} \tab \code{character(1L)} \br
 The name of the field or method. \cr
 \code{html} \tab \code{logical(1L)} \br
-Whether to to output as HTML, otherwise \code{Rd}. \cr
-}
+Whether to to output as HTML, otherwise \code{Rd}.}
 }
 
 \subsection{Details}{
-If \code{name} is not valid, then a zero-character is returned.
+\lbr{}If \code{name} is not valid, then a zero-character is returned.
 }
 
 \subsection{Returns}{
-If \code{html} is \code{TRUE}, then \code{character(1L)}, otherwise an \code{Rd}.
+\lbr{}If \code{html} is \code{TRUE}, then \code{character(1L)}, otherwise an \code{Rd}.
 }
 }
 
-\subsection{\hr getMethod}{
+\subsection{\hr{}\code{getMethod}}{
 \subsection{Description}{
-Get the subsection of a method.
+\lbr{}Get the subsection of a method.
 }
 
 \subsection{Usage}{
-\if{html}{\out{<pre><code class="language-R">}}\preformatted{
-getMethod(name, html = FALSE)
-}\if{html}{\out{</code></pre>}}
+\rc{\preformatted{getMethod(name, html = FALSE)}}
 }
 
 \subsection{Arguments}{
-\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
-\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
-\tabular{ll}{
+\ar{#1}{#2}\tabular{ll}{
 \code{name} \tab \code{character(1L)} \br
 The name of the field or method. \cr
 \code{html} \tab \code{logical(1L)} \br
-Whether to to output as HTML, otherwise \code{Rd}. \cr
-}
+Whether to to output as HTML, otherwise \code{Rd}.}
 }
 
 \subsection{Details}{
-If \code{name} is not valid, then a zero-character is returned.
+\lbr{}If \code{name} is not valid, then a zero-character is returned.
 }
 
 \subsection{Returns}{
-If \code{html} is \code{TRUE}, then \code{character(1L)}, otherwise an \code{Rd}.
+\lbr{}If \code{html} is \code{TRUE}, then \code{character(1L)}, otherwise an \code{Rd}.
 }
 }
 
-\subsection{\hr getArguments}{
+\subsection{\hr{}\code{getArguments}}{
 \subsection{Description}{
-Get the arguments of a method.
+\lbr{}Get the arguments of a method.
 }
 
 \subsection{Usage}{
-\if{html}{\out{<pre><code class="language-R">}}\preformatted{
-getArguments(name, html = TRUE)
-}\if{html}{\out{</code></pre>}}
+\rc{\preformatted{getArguments(name, html = TRUE)}}
 }
 
 \subsection{Arguments}{
-\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
-\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
-\tabular{ll}{
+\ar{#1}{#2}\tabular{ll}{
 \code{name} \tab \code{character(1L)} \br
 The name of the field or method. \cr
 \code{html} \tab \code{logical(1L)} \br
-Whether to to output as HTML, otherwise \code{Rd}. \cr
-}
+Whether to to output as HTML, otherwise \code{Rd}.}
 }
 
 \subsection{Details}{
-If \code{name} is not valid, then a zero-character is returned.
+\lbr{}If \code{name} is not valid, then a zero-character is returned.
 }
 
 \subsection{Returns}{
-If \code{html} is \code{TRUE}, then a named character vector.
+\lbr{}If \code{html} is \code{TRUE}, then a named character vector.
 }
 }
+\lbr\hr\hr
 }
 
 \keyword{internal}

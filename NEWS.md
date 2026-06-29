@@ -1,4 +1,4 @@
-# oopr (development version)
+# oopr 999.999 (development version)
 
 ## Added
 
@@ -17,7 +17,7 @@
   empty.
 
 * Using roxygen2 `@inherits class$member` can now pull documentation from
-  within the same class. Inherited `@description` is no longer appended.
+  within the same class.
 
 * When inheriting fields that are also inherited, the active binding is used
   instead of creating a new one. This speeds up access.
@@ -27,6 +27,8 @@
 * `OoprCovr$class` identifies filename of correct class.
 
 * Multiple `@param` for methods now ordered by the methods signature.
+
+* Inherited `@description` is no longer appended in the methods list.
 
 
 # oopr 0.0.0.9000 (2026-06-20)
