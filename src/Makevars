@@ -1,0 +1,23 @@
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+override SOURCES := $(shell find . -name '*.cpp' -or -name '*.c')
+override OBJECTS := $(SOURCES:.cpp=.o)
+override OBJECTS := $(OBJECTS:.c=.o)
+override DEPS    := $(OBJECTS:.o=.d)
+#$(info SOURCES=$(SOURCES))
+#$(info OBJECTS=$(OBJECTS))
+#$(info DEPS=$(DEPS))
+
+PKG_CPPFLAGS += -I.
+CXX_STD = CXX17
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+all: $(SHLIB)
+
+%.o: %.cpp
+	$(CXX) $(ALL_CPPFLAGS) $(ALL_CXXFLAGS) -MMD -MP -c $< -o $@
+
+-include $(DEPS)
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+clean:
+	rm -f $(OBJECTS) $(DEPS) $(SHLIB)

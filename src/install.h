@@ -2,7 +2,10 @@
 #ifndef OOPR_INSTALL_H
 #define OOPR_INSTALL_H
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-#include "utils.h"
+#include "common.h"
+#include "./util/psexp.h"
+#include "./util/symbols.h"
+#include "./util/validate.h"
 #include "meta.h"
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * When loading a package, ensure that classes from other packages are

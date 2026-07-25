@@ -2,8 +2,11 @@
 #ifndef OOPR_BREAKPOINT_H
 #define OOPR_BREAKPOINT_H
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-#include "utils.h"
+#include "common.h"
 #include <vector>
+#include "util/psexp.h"
+#include "util/symbols.h"
+#include "util/validate.h"
 #include "meta.h"
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Find oopr class instances.

@@ -4,11 +4,13 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Traverse an expression object to identify bits & bobs.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-#include "utils.h"
+#include "common.h"
 #include <vector>
 #include <map>
 #include <string>
 #include <type_traits>
+#include "./util/psexp.h"
+#include "./util/symbols.h"
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Provide a function, expression, list/environment of, to get all
  * members references. Outputs:
