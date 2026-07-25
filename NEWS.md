@@ -1,5 +1,7 @@
 # oopr 999.999 (development version)
 
+# oopr 0.0.1 (2026-07-26)
+
 ## Added
 
 * Documentation for RStudio help completion with class members and method 
