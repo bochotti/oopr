@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">oopr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -38,6 +38,7 @@
     <li><a class="dropdown-item" href="../articles/oopr-inheritance.html">Inheritance</a></li>
     <li><a class="dropdown-item" href="../articles/oopr-methods.html">Methods</a></li>
     <li><a class="dropdown-item" href="../articles/oopr-property.html">Properties</a></li>
+    <li><a class="dropdown-item" href="../articles/oopr-roxygen.html">Roxygen</a></li>
     <li><a class="dropdown-item" href="../articles/oopr-static.html">Static Members</a></li>
   </ul>
 </li>
@@ -133,7 +134,7 @@ increment the number:</p>
 <span>  <span class="va">incr</span> <span class="op">&lt;-</span> \<span class="op">(</span> <span class="op">)</span> <span class="op">{</span> <span class="va">this</span><span class="op">$</span><span class="va">x</span> <span class="op">&lt;-</span> <span class="va">this</span><span class="op">$</span><span class="va">x</span> <span class="op">+</span> <span class="fl">1L</span>; <span class="op">}</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">Counter</span><span class="op">)</span></span>
-<span><span class="co">#&gt; &lt;Counter ooprC: 0x55588f0b8758&gt;</span></span>
+<span><span class="co">#&gt; &lt;Counter ooprC: 0x5584f7ad3270&gt;</span></span>
 <span><span class="co">#&gt; Usage:</span></span>
 <span><span class="co">#&gt;   Counter()</span></span></code></pre></div>
 <p>There are a few things to note here:</p>
@@ -167,7 +168,7 @@ function:</p>
 <code class="sourceCode R"><span><span class="co"># initialize the class for a new instance</span></span>
 <span><span class="va">obj</span> <span class="op">&lt;-</span> <span class="fu">Counter</span><span class="op">(</span><span class="op">)</span>;</span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span>;</span>
-<span><span class="co">#&gt; &lt;Counter: 0x55588ed83d08&gt;</span></span>
+<span><span class="co">#&gt; &lt;Counter: 0x5584f77a18e0&gt;</span></span>
 <span><span class="co">#&gt;  ├─$x   : int 0</span></span>
 <span><span class="co">#&gt;  └─$incr:\()</span></span></code></pre></div>
 <p>To access the members of a class instance, use the <code>$</code>
@@ -275,7 +276,7 @@ right-most symbol will become the name of the member.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

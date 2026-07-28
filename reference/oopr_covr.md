@@ -9,6 +9,12 @@ single class.
 OoprCovr()
 ```
 
+## Value
+
+- [`OoprCovr`](#oopr_covr-OoprCovr):
+
+  *`[0 fields]`* *`[1 method]`*
+
 ## Details
 
 For package coverage, write code to initialize this class inside
@@ -22,8 +28,9 @@ OoprCovr
 
 ### Methods
 
-- `class`:
+- [`class`](#oopr_covr-OoprCovr-class):
 
+  *`[static]`*  
   Test a single class.
 
 ------------------------------------------------------------------------
@@ -37,7 +44,6 @@ Test a single class.
 #### Usage
 
 ``` R
-
 class(ooprC, file = NULL, report = TRUE)
 ```
 
@@ -54,6 +60,10 @@ class(ooprC, file = NULL, report = TRUE)
 #### Returns
 
 An object of class `coverage`.
+
+------------------------------------------------------------------------
+
+------------------------------------------------------------------------
 
 ## Examples
 

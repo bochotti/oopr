@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">oopr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -38,6 +38,7 @@
     <li><a class="dropdown-item" href="../articles/oopr-inheritance.html">Inheritance</a></li>
     <li><a class="dropdown-item" href="../articles/oopr-methods.html">Methods</a></li>
     <li><a class="dropdown-item" href="../articles/oopr-property.html">Properties</a></li>
+    <li><a class="dropdown-item" href="../articles/oopr-roxygen.html">Roxygen</a></li>
     <li><a class="dropdown-item" href="../articles/oopr-static.html">Static Members</a></li>
   </ul>
 </li>
@@ -87,8 +88,8 @@ the member becomes a class instance.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">obj</span> <span class="op">&lt;-</span> <span class="fu">ClassMemExample</span><span class="op">(</span><span class="op">)</span>;</span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span>;</span>
-<span><span class="co">#&gt; &lt;ClassMemExample: 0x55e0e71296a0&gt;</span></span>
-<span><span class="co">#&gt;  └─$mem:&lt;MemberClass: 0x55e0e7125de8&gt;</span></span>
+<span><span class="co">#&gt; &lt;ClassMemExample: 0x55eddf0a7688&gt;</span></span>
+<span><span class="co">#&gt;  └─$mem:&lt;MemberClass: 0x55eddf0a7c00&gt;</span></span>
 <span><span class="co">#&gt;          └─$x: int 1</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -114,17 +115,17 @@ Suffixing <code>[]</code> uses <code><a href="../reference/oopr_containers.html"
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">obj</span> <span class="op">&lt;-</span> <span class="fu">ClassMemExample</span><span class="op">(</span><span class="op">)</span>;</span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span>;</span>
-<span><span class="co">#&gt; &lt;ClassMemExample: 0x55e0e7e5fe68&gt;</span></span>
-<span><span class="co">#&gt;  └─$mem:&lt;OoprVec: 0x55e0e7e29ac8&gt;</span></span>
+<span><span class="co">#&gt; &lt;ClassMemExample: 0x55edda074290&gt;</span></span>
+<span><span class="co">#&gt;  └─$mem:&lt;OoprVec: 0x55edda0f4ac8&gt;</span></span>
 <span><span class="co">#&gt;          ├─$class  : chr "MemberClass"</span></span>
 <span><span class="co">#&gt;          ├─$empty  : logi FALSE</span></span>
 <span><span class="co">#&gt;          ├─$size   : int 3</span></span>
 <span><span class="co">#&gt;          ├─$data   :List of 3</span></span>
-<span><span class="co">#&gt;          │           $:&lt;MemberClass: 0x55e0e7e2d7b8&gt;</span></span>
+<span><span class="co">#&gt;          │           $:&lt;MemberClass: 0x55edda0e7f30&gt;</span></span>
 <span><span class="co">#&gt;          │            ..└─$x: int 1</span></span>
-<span><span class="co">#&gt;          │           $:&lt;MemberClass: 0x55e0e7e42df0&gt;</span></span>
+<span><span class="co">#&gt;          │           $:&lt;MemberClass: 0x55edda0a7ac0&gt;</span></span>
 <span><span class="co">#&gt;          │            ..└─$x: int 2</span></span>
-<span><span class="co">#&gt;          │           $:&lt;MemberClass: 0x55e0e7e52a70&gt;</span></span>
+<span><span class="co">#&gt;          │           $:&lt;MemberClass: 0x55edda093d18&gt;</span></span>
 <span><span class="co">#&gt;          │            ..└─$x: int 3</span></span>
 <span><span class="co">#&gt;          ├─$insert :\(pos = this$size, x)  </span></span>
 <span><span class="co">#&gt;          ├─$emplace:\(. = this$size)  </span></span>
@@ -178,10 +179,10 @@ only option.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">obj</span> <span class="op">&lt;-</span> <span class="fu">ClassMemExample</span><span class="op">(</span><span class="op">)</span>;</span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span>;</span>
-<span><span class="co">#&gt; &lt;ClassMemExample: 0x55e0e61f1980&gt;</span></span>
-<span><span class="co">#&gt;  ├─$mem1:&lt;MemberClass: 0x55e0e61ec018&gt;</span></span>
+<span><span class="co">#&gt; &lt;ClassMemExample: 0x55eddcd71598&gt;</span></span>
+<span><span class="co">#&gt;  ├─$mem1:&lt;MemberClass: 0x55eddcd71aa0&gt;</span></span>
 <span><span class="co">#&gt;  │        └─$x: int 1</span></span>
-<span><span class="co">#&gt;  └─$mem2:&lt;MemberClass: 0x55e0e61e8398&gt;</span></span>
+<span><span class="co">#&gt;  └─$mem2:&lt;MemberClass: 0x55eddcd70018&gt;</span></span>
 <span><span class="co">#&gt;           └─$x: int 2</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
@@ -195,7 +196,7 @@ only option.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

@@ -10,6 +10,19 @@ OoprSource()
 OoprSourceTry(file = NULL, text = NULL, row = NULL, col = NULL)
 ```
 
+## Value
+
+- [`OoprSource`](#OoprSource-OoprSource):
+
+  *`[8 fields]`* *`[2 methods]`*  
+  Takes a file and parses the oopr definitions inside it.
+
+- [`OoprSourceTry`](#OoprSource-OoprSourceTry):
+
+  *`[9 fields]`* *`[2 methods]`*  
+  Tries to parse and evaluate a file containing ooprs, intended for
+  completion.
+
 ------------------------------------------------------------------------
 
 ------------------------------------------------------------------------
@@ -44,31 +57,35 @@ Takes a file and parses the oopr definitions inside it.
 
 - `expr`:
 
+  *`[read-only]`*  
   `expression`  
   A parsed expressed of `$file` or `$text` from `$parse()`.
 
 - `defs`:
 
+  *`[read-only]`*  
   [`list()`](https://rdrr.io/r/base/list.html)  
   A named list of `oopr` definitions from `$parse()`.
 
 - `objs`:
 
+  *`[read-only]`*  
   [`list()`](https://rdrr.io/r/base/list.html)  
   A named list of `oopr` object from `$eval()`.
 
 - `obj`:
 
+  *`[read-only]`*  
   `ooprC` If `$row` and `$col` are set, then the `oopr` object that is
   at that location.
 
 ### Methods
 
-- `parse`:
+- [`parse`](#OoprSource-OoprSource-parse):
 
   Parse `$file` or `$text`.
 
-- `eval`:
+- [`eval`](#OoprSource-OoprSource-eval):
 
   Evaluate the `oopr`s in `$defs`.
 
@@ -83,7 +100,6 @@ Parse `$file` or `$text`.
 #### Usage
 
 ``` R
-
 parse()
 ```
 
@@ -106,7 +122,6 @@ Evaluate the `oopr`s in `$defs`.
 #### Usage
 
 ``` R
-
 eval(top = globalenv())
 ```
 
@@ -165,31 +180,35 @@ completion.
 
 - `expr`:
 
+  *`[read-only]`*  
   `expression`  
   A parsed expressed of `$file` or `$text` from `$parse()`.
 
 - `defs`:
 
+  *`[read-only]`*  
   [`list()`](https://rdrr.io/r/base/list.html)  
   A named list of `oopr` definitions from `$parse()`.
 
 - `objs`:
 
+  *`[read-only]`*  
   [`list()`](https://rdrr.io/r/base/list.html)  
   A named list of `oopr` object from `$eval()`.
 
 - `obj`:
 
+  *`[read-only]`*  
   `ooprC` If `$row` and `$col` are set, then the `oopr` object that is
   at that location.
 
 ### Methods
 
-- `parse`:
+- [`parse`](#OoprSource-OoprSourceTry-parse):
 
   Try to parse the file.
 
-- `eval`:
+- [`eval`](#OoprSource-OoprSourceTry-eval):
 
   Evaluate the `oopr`s in `$defs`.
 
@@ -204,7 +223,6 @@ Try to parse the file.
 #### Usage
 
 ``` R
-
 parse()
 ```
 
@@ -241,7 +259,6 @@ Evaluate the `oopr`s in `$defs`.
 #### Usage
 
 ``` R
-
 eval(top = globalenv())
 ```
 
@@ -258,3 +275,7 @@ If `$row` & `$col` are set, then evaluation stops at that `oopr` call.
 #### Returns
 
 Saves the `oopr` objects to `$objs`.
+
+------------------------------------------------------------------------
+
+------------------------------------------------------------------------

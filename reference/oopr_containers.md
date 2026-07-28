@@ -1,6 +1,6 @@
 # Containers for oopr Instances
 
-Create a vector or key-value pair of `oopr` instances.
+Create a container of `oopr` instances.
 
 ## Usage
 
@@ -17,26 +17,46 @@ OoprMap(ooprC)
   `ooprC`  
   An `oopr` class.
 
+## Value
+
+- [`OoprVec`](#oopr_containers-OoprVec):
+
+  *`[4 fields]`* *`[8 methods]`*  
+  A vector/array, where the container is indexed by an integer position.
+
+- [`OoprMap`](#oopr_containers-OoprMap):
+
+  *`[5 fields]`* *`[8 methods]`*  
+  A map, where the container is indexed by a string, i.e. key-value
+  pair.
+
 ------------------------------------------------------------------------
 
 ------------------------------------------------------------------------
 
 OoprVec
 
+### Description
+
+A vector/array, where the container is indexed by an integer position.
+
 ### Fields
 
 - `class`:
 
+  *`[read-only]`*  
   `character(1L)`  
   The name of the underlying `oopr` class.
 
 - `empty`:
 
+  *`[read-only]`*  
   `logical(1L)`  
   Whether there are no instanced classes in the container.
 
 - `size`:
 
+  *`[read-only]`*  
   `integer(1L)`  
   The amount of instanced classes in the container.
 
@@ -47,36 +67,38 @@ OoprVec
 
 ### Methods
 
-- `insert`:
+- [`insert`](#oopr_containers-OoprVec-insert):
 
   Insert an already instanced class.
 
-- `emplace`:
+- [`emplace`](#oopr_containers-OoprVec-emplace):
 
   Construct a new class into the container.
 
-- `resize`:
+- [`resize`](#oopr_containers-OoprVec-resize):
 
   Pre-allocate or destroy the container.
 
-- `erase`:
+- [`erase`](#oopr_containers-OoprVec-erase):
 
   Remove a class from the container.
 
-- `swap`:
+- [`swap`](#oopr_containers-OoprVec-swap):
 
   Swap two elements of the container.
 
-- `apply`:
+- [`apply`](#oopr_containers-OoprVec-apply):
 
   Apply a function over every element in the container.
 
-- `[`:
+- [`` `[` ``](#oopr_containers-OoprVec-%60%5B%60):
 
+  *`[S3]`*  
   Access an element of the container.
 
-- `[<-`:
+- [`` `[<-` ``](#oopr_containers-OoprVec-%60%5B%3C-%60):
 
+  *`[S3]`*  
   Assign to an element of the container.
 
 ------------------------------------------------------------------------
@@ -90,7 +112,6 @@ Insert an already instanced class.
 #### Usage
 
 ``` R
-
 insert(pos = this$size, x)
 ```
 
@@ -115,7 +136,6 @@ Construct a new class into the container.
 #### Usage
 
 ``` R
-
 emplace(. = this$size, ...)
 ```
 
@@ -140,7 +160,6 @@ Pre-allocate or destroy the container.
 #### Usage
 
 ``` R
-
 resize(n)
 ```
 
@@ -165,7 +184,6 @@ Remove a class from the container.
 #### Usage
 
 ``` R
-
 erase(pos = this$size)
 ```
 
@@ -190,7 +208,6 @@ Swap two elements of the container.
 #### Usage
 
 ``` R
-
 swap(pos1, pos2)
 ```
 
@@ -215,7 +232,6 @@ Apply a function over every element in the container.
 #### Usage
 
 ``` R
-
 apply(fun, ...)
 ```
 
@@ -231,7 +247,7 @@ apply(fun, ...)
 
 ------------------------------------------------------------------------
 
-\[
+‘\[’
 
 #### Description
 
@@ -240,7 +256,6 @@ Access an element of the container.
 #### Usage
 
 ``` R
-
 `[`(i, j, ..., drop)
 ```
 
@@ -256,7 +271,7 @@ An `oopr` object of class `$class`.
 
 ------------------------------------------------------------------------
 
-\[\<-
+‘\[\<-’
 
 #### Description
 
@@ -265,7 +280,6 @@ Assign to an element of the container.
 #### Usage
 
 ``` R
-
 `[<-`(i, j, ..., value)
 ```
 
@@ -290,25 +304,33 @@ Can be used to set members of classes within the container, e.g.
 
 OoprMap
 
+### Description
+
+A map, where the container is indexed by a string, i.e. key-value pair.
+
 ### Fields
 
 - `class`:
 
+  *`[read-only]`*  
   `character(1L)`  
   The name of the underlying `oopr` class.
 
 - `empty`:
 
+  *`[read-only]`*  
   `logical(1L)`  
   Whether there are no instanced classes in the container.
 
 - `size`:
 
+  *`[read-only]`*  
   `integer(1L)`  
   The amount of instanced classes in the container.
 
 - `keys`:
 
+  *`[read-only]`*  
   [`character()`](https://rdrr.io/r/base/character.html)  
   The keys within the container
 
@@ -319,36 +341,38 @@ OoprMap
 
 ### Methods
 
-- `exists`:
+- [`exists`](#oopr_containers-OoprMap-exists):
 
   Check whether a key exists.
 
-- `insert`:
+- [`insert`](#oopr_containers-OoprMap-insert):
 
   Insert an already instanced class.
 
-- `emplace`:
+- [`emplace`](#oopr_containers-OoprMap-emplace):
 
   Construct a new class into the container.
 
-- `erase`:
+- [`erase`](#oopr_containers-OoprMap-erase):
 
   Remove a class from the container.
 
-- `resize`:
+- [`resize`](#oopr_containers-OoprMap-resize):
 
   Pre-allocate or destroy the container.
 
-- `apply`:
+- [`apply`](#oopr_containers-OoprMap-apply):
 
   Apply a function over every element in the container.
 
-- `[`:
+- [`` `[` ``](#oopr_containers-OoprMap-%60%5B%60):
 
+  *`[S3]`*  
   Access an element of the container.
 
-- `[<-`:
+- [`` `[<-` ``](#oopr_containers-OoprMap-%60%5B%3C-%60):
 
+  *`[S3]`*  
   Assign to an element of the container.
 
 ------------------------------------------------------------------------
@@ -362,7 +386,6 @@ Check whether a key exists.
 #### Usage
 
 ``` R
-
 exists(key)
 ```
 
@@ -387,7 +410,6 @@ Insert an already instanced class.
 #### Usage
 
 ``` R
-
 insert(key, x)
 ```
 
@@ -412,7 +434,6 @@ Construct a new class into the container.
 #### Usage
 
 ``` R
-
 emplace(., ...)
 ```
 
@@ -437,7 +458,6 @@ Remove a class from the container.
 #### Usage
 
 ``` R
-
 erase(key)
 ```
 
@@ -462,7 +482,6 @@ Pre-allocate or destroy the container.
 #### Usage
 
 ``` R
-
 resize(keys = character(0L))
 ```
 
@@ -487,7 +506,6 @@ Apply a function over every element in the container.
 #### Usage
 
 ``` R
-
 apply(fun, ...)
 ```
 
@@ -503,7 +521,7 @@ apply(fun, ...)
 
 ------------------------------------------------------------------------
 
-\[
+‘\[’
 
 #### Description
 
@@ -512,7 +530,6 @@ Access an element of the container.
 #### Usage
 
 ``` R
-
 `[`(i, j, ..., drop)
 ```
 
@@ -528,7 +545,7 @@ An `oopr` object of class `$class`.
 
 ------------------------------------------------------------------------
 
-\[\<-
+‘\[\<-’
 
 #### Description
 
@@ -537,7 +554,6 @@ Assign to an element of the container.
 #### Usage
 
 ``` R
-
 `[<-`(i, j, ..., value)
 ```
 
@@ -555,6 +571,10 @@ Can be used to set members of classes within the container, e.g.
 #### Returns
 
 `this` invisibly.
+
+------------------------------------------------------------------------
+
+------------------------------------------------------------------------
 
 ## Examples
 
@@ -576,14 +596,14 @@ vec$emplace(, 1L);
 vec$insert(0L, test(2L));
 
 print(vec);
-#> <OoprVec: 0x56374b16dfd8>
+#> <OoprVec: 0x55a57eb86578>
 #>  ├─$class  : chr "test"
 #>  ├─$empty  : logi FALSE
 #>  ├─$size   : int 2
 #>  ├─$data   :List of 2
-#>  │           $:<test: 0x56374b1efbd0>
+#>  │           $:<test: 0x55a57ebb92a8>
 #>  │            ..└─$x: int 2
-#>  │           $:<test: 0x56374b1b0e20>
+#>  │           $:<test: 0x55a57eb99010>
 #>  │            ..└─$x: int 1
 #>  ├─$insert :\(pos = this$size, x)  
 #>  ├─$emplace:\(. = this$size, x)  
@@ -597,14 +617,14 @@ print(vec);
 # $swap will swap elements
 vec$swap(2L, 1L);
 print(vec);
-#> <OoprVec: 0x56374b16dfd8>
+#> <OoprVec: 0x55a57eb86578>
 #>  ├─$class  : chr "test"
 #>  ├─$empty  : logi FALSE
 #>  ├─$size   : int 2
 #>  ├─$data   :List of 2
-#>  │           $:<test: 0x56374b1b0e20>
+#>  │           $:<test: 0x55a57eb99010>
 #>  │            ..└─$x: int 1
-#>  │           $:<test: 0x56374b1efbd0>
+#>  │           $:<test: 0x55a57ebb92a8>
 #>  │            ..└─$x: int 2
 #>  ├─$insert :\(pos = this$size, x)  
 #>  ├─$emplace:\(. = this$size, x)  
@@ -635,15 +655,15 @@ vec$apply(\(x) { x$x; })
 map <- OoprMap(test);
 map$emplace("a", "a")$emplace("b", "b");
 print(map);
-#> <OoprMap: 0x56374baa8cc8>
+#> <OoprMap: 0x55a57f7fdba8>
 #>  ├─$class  : chr "test"
 #>  ├─$empty  : logi FALSE
 #>  ├─$size   : int 2
 #>  ├─$keys   : chr [1:2] "a" "b"
 #>  ├─$data   :List of 2
-#>  │           $a:<test: 0x56374bad8408>
+#>  │           $a:<test: 0x55a57f82b3d8>
 #>  │            ..└─$x: chr "a"
-#>  │           $b:<test: 0x56374badb8a8>
+#>  │           $b:<test: 0x55a57f8326a8>
 #>  │            ..└─$x: chr "b"
 #>  ├─$exists :\(key)  
 #>  ├─$insert :\(key, x)  

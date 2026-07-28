@@ -10,7 +10,46 @@ OoprCompletionSource()
 OoprCompletionRStudio()
 
 OoprCompletion()
+
+OoprRd(topic, package)
+
+OoprCompletionHelp(topic, source, class, package)
 ```
+
+## Arguments
+
+- topic:
+
+  `character(1L)`  
+  The class name.
+
+- package:
+
+  `character(1L)`  
+  The package that the class lives in.
+
+## Value
+
+- [`OoprCompletionSource`](#OoprCompletion-OoprCompletionSource):
+
+  *`[10 fields]`* *`[5 methods]`*  
+  A virtual class that can be inherited to use as a completion
+  identifier.
+
+- [`OoprCompletionRStudio`](#OoprCompletion-OoprCompletionRStudio):
+
+  *`[10 fields]`* *`[5 methods]`*  
+  Use completion in RStudio.
+
+- [`OoprCompletion`](#OoprCompletion-OoprCompletion):
+
+  *`[3 fields]`* *`[3 methods]`*  
+  Use completion.
+
+- [`OoprRd`](#OoprCompletion-OoprRd):
+
+  *`[4 fields]`* *`[3 methods]`*  
+  Read the Rd (documentation) of an `oopr` class.
 
 ------------------------------------------------------------------------
 
@@ -26,6 +65,7 @@ A virtual class that can be inherited to use as a completion identifier.
 
 - `env`:
 
+  *`[read-only]`*  
   `environment`  
   The environment provided to `$load`.
 
@@ -57,43 +97,50 @@ A virtual class that can be inherited to use as a completion identifier.
 
 - `expr`:
 
+  *`[read-only]`*  
   `expression`  
   A parsed expressed of `$file` or `$text` from `$parse()`.
 
 - `defs`:
 
+  *`[read-only]`*  
   [`list()`](https://rdrr.io/r/base/list.html)  
   A named list of `oopr` definitions from `$parse()`.
 
 - `objs`:
 
+  *`[read-only]`*  
   [`list()`](https://rdrr.io/r/base/list.html)  
   A named list of `oopr` object from `$eval()`.
 
 - `obj`:
 
+  *`[read-only]`*  
   `ooprC` If `$row` and `$col` are set, then the `oopr` object that is
   at that location.
 
 ### Methods
 
-- `isAvailable`:
+- [`isAvailable`](#OoprCompletion-OoprCompletionSource-isAvailable):
 
+  *`[virtual]`*  
   Check if the call is currently a completion.
 
-- `load`:
+- [`load`](#OoprCompletion-OoprCompletionSource-load):
 
+  *`[final]`*  
   Load the completion context into the class.
 
-- `source`:
+- [`source`](#OoprCompletion-OoprCompletionSource-source):
 
+  *`[final]`*  
   Source the file being completed.
 
-- `parse`:
+- [`parse`](#OoprCompletion-OoprCompletionSource-parse):
 
   Try to parse the file.
 
-- `eval`:
+- [`eval`](#OoprCompletion-OoprCompletionSource-eval):
 
   Evaluate the `oopr`s in `$defs`.
 
@@ -108,7 +155,6 @@ Check if the call is currently a completion.
 #### Usage
 
 ``` R
-
 isAvailable()
 ```
 
@@ -133,7 +179,6 @@ Load the completion context into the class.
 #### Usage
 
 ``` R
-
 load(
   env  = globalenv()
  ,file
@@ -168,7 +213,6 @@ Source the file being completed.
 #### Usage
 
 ``` R
-
 source()
 ```
 
@@ -191,7 +235,6 @@ Try to parse the file.
 #### Usage
 
 ``` R
-
 parse()
 ```
 
@@ -228,7 +271,6 @@ Evaluate the `oopr`s in `$defs`.
 #### Usage
 
 ``` R
-
 eval(top = globalenv())
 ```
 
@@ -260,6 +302,7 @@ Use completion in RStudio.
 
 - `env`:
 
+  *`[read-only]`*  
   `environment`  
   The environment provided to `$load`.
 
@@ -291,43 +334,50 @@ Use completion in RStudio.
 
 - `expr`:
 
+  *`[read-only]`*  
   `expression`  
   A parsed expressed of `$file` or `$text` from `$parse()`.
 
 - `defs`:
 
+  *`[read-only]`*  
   [`list()`](https://rdrr.io/r/base/list.html)  
   A named list of `oopr` definitions from `$parse()`.
 
 - `objs`:
 
+  *`[read-only]`*  
   [`list()`](https://rdrr.io/r/base/list.html)  
   A named list of `oopr` object from `$eval()`.
 
 - `obj`:
 
+  *`[read-only]`*  
   `ooprC` If `$row` and `$col` are set, then the `oopr` object that is
   at that location.
 
 ### Methods
 
-- `isAvailable`:
+- [`isAvailable`](#OoprCompletion-OoprCompletionRStudio-isAvailable):
 
+  *`[virtual]`*  
   Pull information from the `.rs.rpc_get_completions` call.
 
-- `load`:
+- [`load`](#OoprCompletion-OoprCompletionRStudio-load):
 
+  *`[final]`*  
   Load the completion context into the class.
 
-- `source`:
+- [`source`](#OoprCompletion-OoprCompletionRStudio-source):
 
+  *`[final]`*  
   Source the file being completed.
 
-- `parse`:
+- [`parse`](#OoprCompletion-OoprCompletionRStudio-parse):
 
   Try to parse the file.
 
-- `eval`:
+- [`eval`](#OoprCompletion-OoprCompletionRStudio-eval):
 
   Evaluate the `oopr`s in `$defs`.
 
@@ -342,7 +392,6 @@ Pull information from the `.rs.rpc_get_completions` call.
 #### Usage
 
 ``` R
-
 isAvailable()
 ```
 
@@ -366,7 +415,6 @@ Load the completion context into the class.
 #### Usage
 
 ``` R
-
 load(
   env  = globalenv()
  ,file
@@ -401,7 +449,6 @@ Source the file being completed.
 #### Usage
 
 ``` R
-
 source()
 ```
 
@@ -424,7 +471,6 @@ Try to parse the file.
 #### Usage
 
 ``` R
-
 parse()
 ```
 
@@ -461,7 +507,6 @@ Evaluate the `oopr`s in `$defs`.
 #### Usage
 
 ``` R
-
 eval(top = globalenv())
 ```
 
@@ -504,32 +549,35 @@ context `this$a$b` is found, and `.DollarNames` provided.
 
 - `isCompleting`:
 
+  *`[read-only]`* *`[static]`*  
   `logical(1L)`  
   Whether completion is currently in place. This will skip over each `$`
   call in the evaluation context.
 
 - `isGettingNames`:
 
+  *`[static]`*  
   `logical(1L)`  
   Whether names of an `ooprC` are being saught. This is used from
   `.DollarNames.ooprC` to provide more than just public static members.
 
 - `source`:
 
+  *`[static]`*  
   `OoprCompletionSource`  
   A instanced class advising whether completion is being sought.
 
 ### Methods
 
-- `isCompletion`:
+- [`isCompletion`](#OoprCompletion-OoprCompletion-isCompletion):
 
   Is completion being sought?
 
-- `names`:
+- [`names`](#OoprCompletion-OoprCompletion-names):
 
   Get the dollar names of the completion context.
 
-- `obj`:
+- [`obj`](#OoprCompletion-OoprCompletion-obj):
 
   Get the object of the completion context.
 
@@ -544,7 +592,6 @@ Is completion being sought?
 #### Usage
 
 ``` R
-
 isCompletion()
 ```
 
@@ -569,7 +616,6 @@ Get the dollar names of the completion context.
 #### Usage
 
 ``` R
-
 names()
 ```
 
@@ -588,7 +634,6 @@ Get the object of the completion context.
 #### Usage
 
 ``` R
-
 obj()
 ```
 
@@ -599,3 +644,144 @@ Used within `.rs.rpc.get_custom_parameter_help`.
 #### Returns
 
 `varies`.
+
+------------------------------------------------------------------------
+
+------------------------------------------------------------------------
+
+OoprRd
+
+### Description
+
+Read the Rd (documentation) of an `oopr` class.
+
+### Details
+
+Will read the `.Rd` file that holds the `oopr` class, then provides
+methods to access specific information.
+
+Used to help with documentation auto-completion in RStudio.
+
+### Fields
+
+- `topic`:
+
+  `character(1L)`  
+  The class name.
+
+- `package`:
+
+  `character(1L)`  
+  The package that the class lives in.
+
+- `rd`:
+
+  [`list()`](https://rdrr.io/r/base/list.html)  
+  The parsed `Rd`.
+
+- `fail`:
+
+  `logical(1L)`  
+  Whether the Rd was found and parsed at construction.
+
+### Methods
+
+- [`getDescription`](#OoprCompletion-OoprRd-getDescription):
+
+  Get the description of a field or method.
+
+- [`getMethod`](#OoprCompletion-OoprRd-getMethod):
+
+  Get the subsection of a method.
+
+- [`getArguments`](#OoprCompletion-OoprRd-getArguments):
+
+  Get the arguments of a method.
+
+------------------------------------------------------------------------
+
+getDescription
+
+#### Description
+
+Get the description of a field or method.
+
+#### Usage
+
+``` R
+getDescription(name, html = TRUE)
+```
+
+#### Arguments
+
+### 
+
+[TABLE]
+
+#### Details
+
+If `name` is not valid, then a zero-character is returned.
+
+#### Returns
+
+If `html` is `TRUE`, then `character(1L)`, otherwise an `Rd`.
+
+------------------------------------------------------------------------
+
+getMethod
+
+#### Description
+
+Get the subsection of a method.
+
+#### Usage
+
+``` R
+getMethod(name, html = FALSE)
+```
+
+#### Arguments
+
+### 
+
+[TABLE]
+
+#### Details
+
+If `name` is not valid, then a zero-character is returned.
+
+#### Returns
+
+If `html` is `TRUE`, then `character(1L)`, otherwise an `Rd`.
+
+------------------------------------------------------------------------
+
+getArguments
+
+#### Description
+
+Get the arguments of a method.
+
+#### Usage
+
+``` R
+getArguments(name, html = TRUE)
+```
+
+#### Arguments
+
+### 
+
+[TABLE]
+
+#### Details
+
+If `name` is not valid, then a zero-character is returned.
+
+#### Returns
+
+If `html` is `TRUE`, then a named character vector.
+
+------------------------------------------------------------------------
+
+------------------------------------------------------------------------

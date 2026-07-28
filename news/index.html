@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">oopr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -23,6 +23,7 @@
     <li><a class="dropdown-item" href="../articles/oopr-inheritance.html">Inheritance</a></li>
     <li><a class="dropdown-item" href="../articles/oopr-methods.html">Methods</a></li>
     <li><a class="dropdown-item" href="../articles/oopr-property.html">Properties</a></li>
+    <li><a class="dropdown-item" href="../articles/oopr-roxygen.html">Roxygen</a></li>
     <li><a class="dropdown-item" href="../articles/oopr-static.html">Static Members</a></li>
   </ul></li>
 <li class="active nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -41,10 +42,39 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="development version" id="oopr-development-version">oopr (development version)<a class="anchor" aria-label="anchor" href="#oopr-development-version"></a></h2>
+<h2 class="pkg-version" data-toc-text="999.999" id="oopr-999999-development-version">oopr 999.999 (development version)<a class="anchor" aria-label="anchor" href="#oopr-999999-development-version"></a></h2>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.0.1" id="oopr-001-2026-07-28">oopr 0.0.1 (2026-07-28)<a class="anchor" aria-label="anchor" href="#oopr-001-2026-07-28"></a></h2>
+<div class="section level3">
+<h3 id="added-0-0-1">Added<a class="anchor" aria-label="anchor" href="#added-0-0-1"></a></h3>
+<ul><li><p>Documentation for RStudio help completion with class members and method arguments.</p></li>
+<li><p>Lists of members in roxygen documentation include some specifiers.</p></li>
+<li><p>Hyperlinks to jump to class sections and their methods.</p></li>
+<li><p><code>.Rbuildignore</code> can be added to <code>@keywords</code> tag to build ignore the Rd file.</p></li>
+<li><p>Vignette for using Roxygen2 to document <code>oopr</code> classes.</p></li>
+<li><p>Non-documented fields are now be copied from constructor <code>@param</code>.</p></li>
+<li><p>Ability to document protected members.</p></li>
+</ul></div>
+<div class="section level3">
+<h3 id="changed-0-0-1">Changed<a class="anchor" aria-label="anchor" href="#changed-0-0-1"></a></h3>
+<ul><li><p><code>OoprMap$keys</code> now returns <code>character(0L)</code> instead of <code>NULL</code> if container is empty.</p></li>
+<li><p>Using roxygen2 <code>@inherits class$member</code> can now pull documentation from within the same class.</p></li>
+<li><p>When inheriting fields that are also inherited, the active binding is used instead of creating a new one. This speeds up access.</p></li>
+</ul></div>
+<div class="section level3">
+<h3 id="fixed-0-0-1">Fixed<a class="anchor" aria-label="anchor" href="#fixed-0-0-1"></a></h3>
+<ul><li><p><code>OoprCovr$class</code> identifies filename of correct class.</p></li>
+<li><p>Multiple <code>@param</code> for methods now ordered by the methods signature.</p></li>
+<li><p>Inherited <code>@description</code> is no longer appended in the methods list.</p></li>
+</ul></div>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.0.0.9000" id="oopr-0009000-2026-06-20">oopr 0.0.0.9000 (2026-06-20)<a class="anchor" aria-label="anchor" href="#oopr-0009000-2026-06-20"></a></h2>
 <ul><li>Initial public repo</li>
 </ul></div>
-  </main></div>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside></div>
 
 
     <footer><div class="pkgdown-footer-left">
@@ -52,7 +82,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

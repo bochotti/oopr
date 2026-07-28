@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">oopr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -38,6 +38,7 @@
     <li><a class="dropdown-item" href="../articles/oopr-inheritance.html">Inheritance</a></li>
     <li><a class="dropdown-item" href="../articles/oopr-methods.html">Methods</a></li>
     <li><a class="dropdown-item" href="../articles/oopr-property.html">Properties</a></li>
+    <li><a class="dropdown-item" href="../articles/oopr-roxygen.html">Roxygen</a></li>
     <li><a class="dropdown-item" href="../articles/oopr-static.html">Static Members</a></li>
   </ul>
 </li>
@@ -126,7 +127,7 @@ derived instance S3 class list.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Inherits private by default</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span></span>
-<span><span class="co">#&gt; &lt;InheritanceExample: 0x55bd07deed18&gt;</span></span>
+<span><span class="co">#&gt; &lt;InheritanceExample: 0x55769d70ce50&gt;</span></span>
 <span><span class="co">#&gt;  └─$speak:\()</span></span>
 <span></span>
 <span><span class="co"># Inherit as public</span></span>
@@ -139,7 +140,7 @@ derived instance S3 class list.</p>
 <span></span>
 <span><span class="co"># Base public members are visible</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span>;</span>
-<span><span class="co">#&gt; &lt;InheritanceExample: 0x55bd03efb358&gt;</span></span>
+<span><span class="co">#&gt; &lt;InheritanceExample: 0x55769ee951d0&gt;</span></span>
 <span><span class="co">#&gt;  ├─$speak:\()  </span></span>
 <span><span class="co">#&gt;  └─$shout:\()</span></span>
 <span></span>
@@ -215,7 +216,7 @@ class methods via <code>base$</code> instead of <code>this$</code>:</p>
 <code class="sourceCode R"><span><span class="co"># only one method</span></span>
 <span><span class="va">obj</span> <span class="op">&lt;-</span> <span class="fu">Derived</span><span class="op">(</span><span class="op">)</span>;</span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span>;</span>
-<span><span class="co">#&gt; &lt;Derived: 0x55bd05760260&gt;</span></span>
+<span><span class="co">#&gt; &lt;Derived: 0x5576a030a588&gt;</span></span>
 <span><span class="co">#&gt;  └─$method:\()</span></span>
 <span></span>
 <span><span class="co"># which calls the base class</span></span>
@@ -347,7 +348,7 @@ derived customer method:</p>
 <span><span class="co"># success</span></span>
 <span><span class="va">obj</span> <span class="op">&lt;-</span> <span class="fu">Derived</span><span class="op">(</span><span class="fl">1L</span><span class="op">)</span>;</span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span>;</span>
-<span><span class="co">#&gt; &lt;Derived: 0x55bd03633a88&gt;</span></span>
+<span><span class="co">#&gt; &lt;Derived: 0x5576a23f0dd8&gt;</span></span>
 <span><span class="co">#&gt;  └─$x: int 1</span></span></code></pre></div>
 <p>Note that base class members cannot be accessed until they are
 constructed:</p>
@@ -382,7 +383,7 @@ constructed:</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

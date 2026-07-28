@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">oopr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -23,6 +23,7 @@
     <li><a class="dropdown-item" href="../articles/oopr-inheritance.html">Inheritance</a></li>
     <li><a class="dropdown-item" href="../articles/oopr-methods.html">Methods</a></li>
     <li><a class="dropdown-item" href="../articles/oopr-property.html">Properties</a></li>
+    <li><a class="dropdown-item" href="../articles/oopr-roxygen.html">Roxygen</a></li>
     <li><a class="dropdown-item" href="../articles/oopr-static.html">Static Members</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -53,7 +54,24 @@
     </div>
 
     <div class="section level2">
-    <h2 id="-ooprsource"><hr><hr> OoprSource<a class="anchor" aria-label="anchor" href="#-ooprsource"></a></h2>
+    <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
+
+
+<p></p>
+<dl><dt><code><a href="#OoprSource-OoprSource">OoprSource</a></code></dt>
+<dd><p><em><code>[8 fields]</code></em> <em><code>[2 methods]</code></em><br>
+Takes a file and parses the oopr definitions inside it.</p></dd>
+
+
+<dt><code><a href="#OoprSource-OoprSourceTry">OoprSourceTry</a></code></dt>
+<dd><p><em><code>[9 fields]</code></em> <em><code>[2 methods]</code></em><br>
+Tries to parse and evaluate a file containing ooprs, intended for
+completion.</p></dd>
+
+
+</dl></div>
+    <div class="section level2">
+    <h2 id="ooprsource"><a id="OoprSource-OoprSource" style="display:block;position:relative;top:-40px;"></a><hr><hr>OoprSource<a class="anchor" aria-label="anchor" href="#ooprsource"></a></h2>
 
 
 <div class="section">
@@ -85,22 +103,22 @@ Line of a text cursor position.</p></dd>
 
 
 <dt><code>expr</code></dt>
-<dd><p><code>expression</code> <br>
+<dd><p><em><code>[read-only]</code></em> <br><code>expression</code> <br>
 A parsed expressed of <code>$file</code> or <code>$text</code> from <code>$parse()</code>.</p></dd>
 
 
 <dt><code>defs</code></dt>
-<dd><p><code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code> <br>
+<dd><p><em><code>[read-only]</code></em> <br><code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code> <br>
 A named list of <code>oopr</code> definitions from <code>$parse()</code>.</p></dd>
 
 
 <dt><code>objs</code></dt>
-<dd><p><code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code> <br>
+<dd><p><em><code>[read-only]</code></em> <br><code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code> <br>
 A named list of <code>oopr</code> object from <code>$eval()</code>.</p></dd>
 
 
 <dt><code>obj</code></dt>
-<dd><p><code>ooprC</code>
+<dd><p><em><code>[read-only]</code></em> <br><code>ooprC</code>
 If <code>$row</code> and <code>$col</code> are set, then the <code>oopr</code> object that
 is at that location.</p></dd>
 
@@ -110,19 +128,18 @@ is at that location.</p></dd>
 <div class="section">
 <h3 id="methods">Methods<a class="anchor" aria-label="anchor" href="#methods"></a></h3>
 
-<dl><dt><code>parse</code></dt>
+<dl><dt><code><a href="#OoprSource-OoprSource-parse">parse</a></code></dt>
 <dd><p>Parse <code>$file</code> or <code>$text</code>.</p></dd>
 
 
-<dt><code>eval</code></dt>
+<dt><code><a href="#OoprSource-OoprSource-eval">eval</a></code></dt>
 <dd><p>Evaluate the <code>oopr</code>s in <code>$defs</code>.</p></dd>
-
 
 
 </dl></div>
 
 <div class="section">
-<h3 id="-parse"><hr> parse<a class="anchor" aria-label="anchor" href="#-parse"></a></h3>
+<h3 id="parse"><code><a id="OoprSource-OoprSource-parse" style="display:block;position:relative;top:-40px;"></a></code><hr>parse<a class="anchor" aria-label="anchor" href="#parse"></a></h3>
 
 <div class="section">
 <h4 id="description-1">Description<a class="anchor" aria-label="anchor" href="#description-1"></a></h4>
@@ -131,8 +148,7 @@ is at that location.</p></dd>
 
 <div class="section">
 <h4 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a></h4>
-<p></p><div class="sourceCode"><pre><code class="language-R"><span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/parse.html" class="external-link">parse</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p></p><div class="sourceCode"><pre><code class="language-R"><span><span class="fu"><a href="https://rdrr.io/r/base/parse.html" class="external-link">parse</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 </div>
 
 <div class="section">
@@ -149,7 +165,7 @@ object.</p>
 </div>
 
 <div class="section">
-<h3 id="-eval"><hr> eval<a class="anchor" aria-label="anchor" href="#-eval"></a></h3>
+<h3 id="eval"><code><a id="OoprSource-OoprSource-eval" style="display:block;position:relative;top:-40px;"></a></code><hr>eval<a class="anchor" aria-label="anchor" href="#eval"></a></h3>
 
 <div class="section">
 <h4 id="description-2">Description<a class="anchor" aria-label="anchor" href="#description-2"></a></h4>
@@ -158,8 +174,7 @@ object.</p>
 
 <div class="section">
 <h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
-<p></p><div class="sourceCode"><pre><code class="language-R"><span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/eval.html" class="external-link">eval</a></span><span class="op">(</span>top <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/environment.html" class="external-link">globalenv</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p></p><div class="sourceCode"><pre><code class="language-R"><span><span class="fu"><a href="https://rdrr.io/r/base/eval.html" class="external-link">eval</a></span><span class="op">(</span>top <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/environment.html" class="external-link">globalenv</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 
 <div class="section">
@@ -181,7 +196,7 @@ An environment to be the top-level of the <code>oopr</code> objects.</td></tr></
 
     </div>
     <div class="section level2">
-    <h2 id="-ooprsourcetry"><hr><hr> OoprSourceTry<a class="anchor" aria-label="anchor" href="#-ooprsourcetry"></a></h2>
+    <h2 id="ooprsourcetry"><a id="OoprSource-OoprSourceTry" style="display:block;position:relative;top:-40px;"></a><hr><hr>OoprSourceTry<a class="anchor" aria-label="anchor" href="#ooprsourcetry"></a></h2>
 
 
 <div class="section">
@@ -220,22 +235,22 @@ Line of a text cursor position.</p></dd>
 
 
 <dt><code>expr</code></dt>
-<dd><p><code>expression</code> <br>
+<dd><p><em><code>[read-only]</code></em> <br><code>expression</code> <br>
 A parsed expressed of <code>$file</code> or <code>$text</code> from <code>$parse()</code>.</p></dd>
 
 
 <dt><code>defs</code></dt>
-<dd><p><code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code> <br>
+<dd><p><em><code>[read-only]</code></em> <br><code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code> <br>
 A named list of <code>oopr</code> definitions from <code>$parse()</code>.</p></dd>
 
 
 <dt><code>objs</code></dt>
-<dd><p><code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code> <br>
+<dd><p><em><code>[read-only]</code></em> <br><code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code> <br>
 A named list of <code>oopr</code> object from <code>$eval()</code>.</p></dd>
 
 
 <dt><code>obj</code></dt>
-<dd><p><code>ooprC</code>
+<dd><p><em><code>[read-only]</code></em> <br><code>ooprC</code>
 If <code>$row</code> and <code>$col</code> are set, then the <code>oopr</code> object that
 is at that location.</p></dd>
 
@@ -245,19 +260,18 @@ is at that location.</p></dd>
 <div class="section">
 <h3 id="methods-1">Methods<a class="anchor" aria-label="anchor" href="#methods-1"></a></h3>
 
-<dl><dt><code>parse</code></dt>
+<dl><dt><code><a href="#OoprSource-OoprSourceTry-parse">parse</a></code></dt>
 <dd><p>Try to parse the file.</p></dd>
 
 
-<dt><code>eval</code></dt>
+<dt><code><a href="#OoprSource-OoprSourceTry-eval">eval</a></code></dt>
 <dd><p>Evaluate the <code>oopr</code>s in <code>$defs</code>.</p></dd>
-
 
 
 </dl></div>
 
 <div class="section">
-<h3 id="-parse-1"><hr> parse<a class="anchor" aria-label="anchor" href="#-parse-1"></a></h3>
+<h3 id="parse-1"><code><a id="OoprSource-OoprSourceTry-parse" style="display:block;position:relative;top:-40px;"></a></code><hr>parse<a class="anchor" aria-label="anchor" href="#parse-1"></a></h3>
 
 <div class="section">
 <h4 id="description-4">Description<a class="anchor" aria-label="anchor" href="#description-4"></a></h4>
@@ -266,8 +280,7 @@ is at that location.</p></dd>
 
 <div class="section">
 <h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
-<p></p><div class="sourceCode"><pre><code class="language-R"><span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/parse.html" class="external-link">parse</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p></p><div class="sourceCode"><pre><code class="language-R"><span><span class="fu"><a href="https://rdrr.io/r/base/parse.html" class="external-link">parse</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 </div>
 
 <div class="section">
@@ -289,7 +302,7 @@ class members are not reference checked.</p>
 </div>
 
 <div class="section">
-<h3 id="-eval-1"><hr> eval<a class="anchor" aria-label="anchor" href="#-eval-1"></a></h3>
+<h3 id="eval-1"><code><a id="OoprSource-OoprSourceTry-eval" style="display:block;position:relative;top:-40px;"></a></code><hr>eval<a class="anchor" aria-label="anchor" href="#eval-1"></a></h3>
 
 <div class="section">
 <h4 id="description-5">Description<a class="anchor" aria-label="anchor" href="#description-5"></a></h4>
@@ -298,8 +311,7 @@ class members are not reference checked.</p>
 
 <div class="section">
 <h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
-<p></p><div class="sourceCode"><pre><code class="language-R"><span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/eval.html" class="external-link">eval</a></span><span class="op">(</span>top <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/environment.html" class="external-link">globalenv</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p></p><div class="sourceCode"><pre><code class="language-R"><span><span class="fu"><a href="https://rdrr.io/r/base/eval.html" class="external-link">eval</a></span><span class="op">(</span>top <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/environment.html" class="external-link">globalenv</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 
 <div class="section">
@@ -317,9 +329,7 @@ An environment to be the top-level of the <code>oopr</code> objects.</td></tr></
 <p>Saves the <code>oopr</code> objects to <code>$objs</code>.</p>
 </div>
 
-</div>
-
-    </div>
+</div><p></p><hr><hr></div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
@@ -330,7 +340,7 @@ An environment to be the top-level of the <code>oopr</code> objects.</td></tr></
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

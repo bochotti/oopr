@@ -37,6 +37,41 @@ OoprBreakpoints()
   The environment that holds the class definitions. Either a package
   namespace or the global environment.
 
+## Value
+
+- [`OoprBreakpointsFunction`](#OoprBreakpoints-OoprBreakpointsFunction):
+
+  *`[7 fields]`* *`[4 methods]`*  
+  Represents a function object inside a class.
+
+- [`OoprBreakpointsClass`](#OoprBreakpoints-OoprBreakpointsClass):
+
+  *`[3 fields]`* *`[4 methods]`*  
+  Represents a class inside a file.
+
+- [`OoprBreakpointsFile`](#OoprBreakpoints-OoprBreakpointsFile):
+
+  *`[3 fields]`* *`[5 methods]`*  
+  Represents a source file that contains `oopr` classes.
+
+- [`OoprBreakpoints`](#OoprBreakpoints-OoprBreakpoints):
+
+  *`[1 field]`* *`[5 methods]`*  
+  The controller of the breakpoints. Process of setting a breakpoint is:
+
+  1.  Check the function is in sync.
+
+  2.  Get the steps of the functions body to arrive at a line.
+
+  3.  Get the environment that the function is assigned to.
+
+  4.  Set the breakpoints into the function. Only steps 3 & 4 are
+      conducted when unsetting a breakpoint.
+
+  RStudio maintains its own database for breakpoints and is recorded by
+  file and function name. However, multiple classes in a file could
+  share a function name.
+
 ------------------------------------------------------------------------
 
 ------------------------------------------------------------------------
@@ -57,7 +92,7 @@ Represents a function object inside a class.
 - `ooprC`:
 
   `ooprC`  
-  The class object that the function resides
+  The `ooprC` class that the function resides.
 
 - `encl`:
 
@@ -79,29 +114,31 @@ Represents a function object inside a class.
 
 - `srcref`:
 
+  *`[read-only]`*  
   `srcref`  
   The srcref for `this$fun`.
 
 - `breaks`:
 
+  *`[read-only]`*  
   [`integer()`](https://rdrr.io/r/base/integer.html)  
-  Line numbers of actively set breakpoints.
+  Line numbers of each call to `$getSteps`.
 
 ### Methods
 
-- `isInSync`:
+- [`isInSync`](#OoprBreakpoints-OoprBreakpointsFunction-isInSync):
 
   Check whether `$srcref` matches the source file.
 
-- `hasLine`:
+- [`hasLine`](#OoprBreakpoints-OoprBreakpointsFunction-hasLine):
 
   Check whether a line number is inside the function.
 
-- `getSteps`:
+- [`getSteps`](#OoprBreakpoints-OoprBreakpointsFunction-getSteps):
 
   Get the steps of the function required to reach a line number.
 
-- `setBreakpoints`:
+- [`setBreakpoints`](#OoprBreakpoints-OoprBreakpointsFunction-setBreakpoints):
 
   Set breakpoints inside the class, and any class instances.
 
@@ -116,7 +153,6 @@ Check whether `$srcref` matches the source file.
 #### Usage
 
 ``` R
-
 isInSync()
 ```
 
@@ -139,7 +175,6 @@ Check whether a line number is inside the function.
 #### Usage
 
 ``` R
-
 hasLine(line)
 ```
 
@@ -164,7 +199,6 @@ Get the steps of the function required to reach a line number.
 #### Usage
 
 ``` R
-
 getSteps(line)
 ```
 
@@ -182,8 +216,7 @@ function, e.g. `body(fun)[[steps]]`.
 
 #### Returns
 
-`character(1L)` of the steps separated by `,`. `line` is also saved
-inside a private member for `$breaks` to return line numbers set.
+`character(1L)` of the steps separated by `,`.
 
 ------------------------------------------------------------------------
 
@@ -196,7 +229,6 @@ Set breakpoints inside the class, and any class instances.
 #### Usage
 
 ``` R
-
 setBreakpoints(steps = character())
 ```
 
@@ -208,17 +240,9 @@ setBreakpoints(steps = character())
 
 #### Details
 
-If `length(steps) == 0L`, then all breakpoints are removed. Uses
-[`base::trace`](https://rdrr.io/r/base/trace.html) to create a traced
-function, steps are ordered by their depth of nesting so `trace` doesn't
-overwrite its own breakpoints.
-
-The srcref at the requested lines are added to the newly added
-breakpoints to ensure that the line number is available when being hit.
-
-Instances are found (refer `./src/breakpoint.cpp`) and they also have
-their functions amended. If the instance becomes out of sync of the
-source file, then its untraced version is set instead.
+Uses [`base::trace`](https://rdrr.io/r/base/trace.html) to create a
+traced function, steps are ordered by their depth of nesting so `trace`
+doesn't overwrite its own breakpoints.
 
 #### Returns
 
@@ -237,38 +261,40 @@ Represents a class inside a file.
 
 ### Fields
 
-- `name`:
-
-  `character(1L)`  
-  The name of the class.
-
 - `ooprC`:
 
   `ooprC`  
   The `ooprC` object.
 
+- `name`:
+
+  *`[read-only]`*  
+  `character(1L)`  
+  The name of the class.
+
 - `functions`:
 
-  `OoprBreakpointsFunction[[]]`  
+  *`[container]`*  
+  `OoprBreakpointsFunction`  
   An array of each function inside the class.
 
 ### Methods
 
-- `has`:
+- [`has`](#OoprBreakpoints-OoprBreakpointsClass-has):
 
   Check if the class contains a function and/or a line.
 
-- `isInSync`:
+- [`isInSync`](#OoprBreakpoints-OoprBreakpointsClass-isInSync):
 
   Check if a function is in sync.
 
-- `getSteps`:
+- [`getSteps`](#OoprBreakpoints-OoprBreakpointsClass-getSteps):
 
   Get the steps required to get to a line in a function.
 
-- `setBreakpoints`:
+- [`setBreakpoints`](#OoprBreakpoints-OoprBreakpointsClass-setBreakpoints):
 
-  Set breakpoints for a function in the class.
+  Set breakpoints inside the class, and any class instances.
 
 ------------------------------------------------------------------------
 
@@ -281,7 +307,6 @@ Check if the class contains a function and/or a line.
 #### Usage
 
 ``` R
-
 has(name, line = integer(0L))
 ```
 
@@ -306,7 +331,6 @@ Check if a function is in sync.
 #### Usage
 
 ``` R
-
 isInSync(name)
 ```
 
@@ -335,7 +359,6 @@ Get the steps required to get to a line in a function.
 #### Usage
 
 ``` R
-
 getSteps(name, line)
 ```
 
@@ -364,12 +387,11 @@ setBreakpoints
 
 #### Description
 
-Set breakpoints for a function in the class.
+Set breakpoints inside the class, and any class instances.
 
 #### Usage
 
 ``` R
-
 setBreakpoints(
   name
  ,steps = character(0L)
@@ -384,7 +406,9 @@ setBreakpoints(
 
 #### Details
 
-If `length(steps) == 0L`, then all breakpoints are removed.
+Uses [`base::trace`](https://rdrr.io/r/base/trace.html) to create a
+traced function, steps are ordered by their depth of nesting so `trace`
+doesn't overwrite its own breakpoints.
 
 #### Returns
 
@@ -404,6 +428,7 @@ Represents a source file that contains `oopr` classes.
 
 - `file`:
 
+  *`[read-only]`*  
   `character(1L)`  
   The name of the source file.
 
@@ -414,29 +439,29 @@ Represents a source file that contains `oopr` classes.
 
 - `classes`:
 
-  `OoprBreakpointsClass[[]]`  
+  *`[container]`*  
+  `OoprBreakpointsClass`  
   The classes defined inside the source file.
 
 ### Methods
 
-- `syncClassesWithFile`:
+- [`syncClassesWithFile`](#OoprBreakpoints-OoprBreakpointsFile-syncClassesWithFile):
 
   Check if the source file has been modified, if so reload the classes.
 
-- `has`:
+- [`has`](#OoprBreakpoints-OoprBreakpointsFile-has):
 
   Check if any class inside the file contains a function and/or a line.
 
-- `isInSync`:
+- [`isInSync`](#OoprBreakpoints-OoprBreakpointsFile-isInSync):
 
-  Check if a function within the classes is in sync with the source
-  file.
+  Check if a function is in sync.
 
-- `getSteps`:
+- [`getSteps`](#OoprBreakpoints-OoprBreakpointsFile-getSteps):
 
   Get the steps of multiple lines across the file.
 
-- `setBreakpoints`:
+- [`setBreakpoints`](#OoprBreakpoints-OoprBreakpointsFile-setBreakpoints):
 
   Set breakpoints for a function across classes.
 
@@ -451,7 +476,6 @@ Check if the source file has been modified, if so reload the classes.
 #### Usage
 
 ``` R
-
 syncClassesWithFile(env)
 ```
 
@@ -476,7 +500,6 @@ Check if any class inside the file contains a function and/or a line.
 #### Usage
 
 ``` R
-
 has(name, line = integer(0L))
 ```
 
@@ -498,12 +521,11 @@ isInSync
 
 #### Description
 
-Check if a function within the classes is in sync with the source file.
+Check if a function is in sync.
 
 #### Usage
 
 ``` R
-
 isInSync(name)
 ```
 
@@ -512,6 +534,10 @@ isInSync(name)
 ### 
 
 [TABLE]
+
+#### Details
+
+If the function is not in the class `TRUE` is returned.
 
 #### Returns
 
@@ -528,7 +554,6 @@ Get the steps of multiple lines across the file.
 #### Usage
 
 ``` R
-
 getSteps(name, lines)
 ```
 
@@ -537,6 +562,12 @@ getSteps(name, lines)
 ### 
 
 [TABLE]
+
+#### Details
+
+The trick here is to append the steps with the name of the class. This
+way when receiving them for setting a breakpoints, the class holding the
+function is known.
 
 #### Returns
 
@@ -556,7 +587,6 @@ Set breakpoints for a function across classes.
 #### Usage
 
 ``` R
-
 setBreakpoints(
   name
  ,classes = character(0L)
@@ -569,6 +599,12 @@ setBreakpoints(
 ### 
 
 [TABLE]
+
+#### Details
+
+Uses [`base::trace`](https://rdrr.io/r/base/trace.html) to create a
+traced function, steps are ordered by their depth of nesting so `trace`
+doesn't overwrite its own breakpoints.
 
 #### Returns
 
@@ -601,26 +637,36 @@ a function name.
 
 - `files`:
 
-  `OoprBreakpointsFile[[]]`  
+  *`[static]`* *`[container]`*  
+  `OoprBreakpointsFile`  
   The source files that have/had breakpoints.
 
 ### Methods
 
-- `isFunctionInSync`:
+- [`isFunctionInSync`](#OoprBreakpoints-OoprBreakpoints-isFunctionInSync):
 
+  *`[static]`*  
   Checks whether the srcref matches the file.
 
-- `getFunctionSteps`:
+- [`getFunctionSteps`](#OoprBreakpoints-OoprBreakpoints-getFunctionSteps):
 
+  *`[static]`*  
   Gets the steps required for a line.
 
-- `getEnvironmentOfFunction`:
+- [`getEnvironmentOfFunction`](#OoprBreakpoints-OoprBreakpoints-getEnvironmentOfFunction):
 
+  *`[static]`*  
   Gets the environment of a function.
 
-- `setFunctionBreakpoints`:
+- [`setFunctionBreakpoints`](#OoprBreakpoints-OoprBreakpoints-setFunctionBreakpoints):
 
+  *`[static]`*  
   Sets the breakpoints for a function.
+
+- [`printBreaks`](#OoprBreakpoints-OoprBreakpoints-printBreaks):
+
+  *`[static]`*  
+  Print currently set breakpoints.
 
 ------------------------------------------------------------------------
 
@@ -633,7 +679,6 @@ Checks whether the srcref matches the file.
 #### Usage
 
 ``` R
-
 isFunctionInSync(name, file, pkg)
 ```
 
@@ -662,7 +707,6 @@ Gets the steps required for a line.
 #### Usage
 
 ``` R
-
 getFunctionSteps(name, file, pkg, lines)
 ```
 
@@ -691,7 +735,6 @@ Gets the environment of a function.
 #### Usage
 
 ``` R
-
 getEnvironmentOfFunction(
   name
  ,file
@@ -707,9 +750,10 @@ getEnvironmentOfFunction(
 
 #### Details
 
-This is called first when unsetting a breakpoint. Returning `emptenv()`
-ensures that the next step is called. This can be called multiple times,
-so I only want to do this once.
+This is called first when unsetting a breakpoint.
+
+Returning `emptenv()` ensures that the next step is called. This can be
+called multiple times, so I only want to do this once.
 
 #### Returns
 
@@ -726,7 +770,6 @@ Sets the breakpoints for a function.
 #### Usage
 
 ``` R
-
 setFunctionBreakpoints(name, env, steps)
 ```
 
@@ -745,4 +788,22 @@ being removed.
 
 #### Returns
 
-`functionName`
+`name`
+
+------------------------------------------------------------------------
+
+printBreaks
+
+#### Description
+
+Print currently set breakpoints.
+
+#### Usage
+
+``` R
+printBreaks()
+```
+
+------------------------------------------------------------------------
+
+------------------------------------------------------------------------
