@@ -2,7 +2,11 @@
 #ifndef OOPR_CONSTRUCT_H
 #define OOPR_CONSTRUCT_H
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-#include "utils.h"
+#include "common.h"
+#include "./util/psexp.h"
+#include "./util/symbols.h"
+#include "./util/validate.h"
+#include "./util/unwind.h"
 #include "meta.h"
 #include "enclosure.h"
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //

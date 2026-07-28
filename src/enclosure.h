@@ -2,7 +2,9 @@
 #ifndef OOPR_ENCLOSURE_H
 #define OOPR_ENCLOSURE_H
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-#include "utils.h"
+#include "common.h"
+#include "./util/psexp.h"
+#include "./util/symlink.h"
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Creates an interface environment. Which holds references back to the
  * original environment. It will copy methods and active bindings directly,

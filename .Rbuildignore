@@ -9,3 +9,7 @@
 ^doc$
 ^Meta$
 ^\.github$
+^man/OoprRoxy\.Rd$
+^man/OoprSource\.Rd$
+^man/OoprBreakpoints\.Rd$
+^man/OoprCompletion\.Rd$

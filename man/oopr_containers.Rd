@@ -20,6 +20,8 @@ An \code{oopr} class.}
 \newcommand{\lbr}{\if{latex}{\out{\hspace{0em}\newline{}}}}
 \newcommand{\hr}{\if{html}{\out{<hr>}}\if{latex}{\out{\hrule\vspace{0.5em}}}}
 \newcommand{\rc}{\if{html}{\out{<pre><code class="language-R">}}#1\if{html}{\out{</code></pre>}}}
+\newcommand{\ht}{\if{html}{\out{<a id="#1" style="display:block;position:relative;top:-40px;"></a>}}\if{latex}{\out{\belowpdfbookmark{#2}{#1}\hypertarget{#1}{}}}}
+\newcommand{\hl}{\if{html}{\out{<a href="##1">#2</a>}}\if{latex}{\out{\hyperlink{#1}{#2}}}}
 \newcommand{\ar}{\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}}
 \if{latex}{\out{
 \ExplSyntaxOn
@@ -43,11 +45,11 @@ An \code{oopr} class.}
 }}
 
 \describe{
-\item{\code{OoprVec}}{
+\item{\code{\hl{oopr_containers-OoprVec}{OoprVec}}}{
 \emph{\verb{[4 fields]}} \emph{\verb{[8 methods]}}\cr
 A vector/array, where the container is indexed by an integer position.}
 
-\item{\code{OoprMap}}{
+\item{\code{\hl{oopr_containers-OoprMap}{OoprMap}}}{
 \emph{\verb{[5 fields]}} \emph{\verb{[8 methods]}}\cr
 A map, where the container is indexed by a string, i.e. key-value pair.}
 }
@@ -56,7 +58,7 @@ A map, where the container is indexed by a string, i.e. key-value pair.}
 \description{
 Create a container of \code{oopr} instances.
 }
-\section{\hr\hr{}OoprVec}{
+\section{\ht{oopr_containers-OoprVec}{OoprVec}\hr\hr{}OoprVec}{
 
 \subsection{Description}{
 \lbr{}A vector/array, where the container is indexed by an integer position.
@@ -87,35 +89,35 @@ The container.}
 
 \subsection{Methods}{
 \describe{
-\item{\code{insert}}{
+\item{\code{\hl{oopr_containers-OoprVec-insert}{insert}}}{
 \lbr{}Insert an already instanced class.}
 
-\item{\code{emplace}}{
+\item{\code{\hl{oopr_containers-OoprVec-emplace}{emplace}}}{
 \lbr{}Construct a new class into the container.}
 
-\item{\code{resize}}{
+\item{\code{\hl{oopr_containers-OoprVec-resize}{resize}}}{
 \lbr{}Pre-allocate or destroy the container.}
 
-\item{\code{erase}}{
+\item{\code{\hl{oopr_containers-OoprVec-erase}{erase}}}{
 \lbr{}Remove a class from the container.}
 
-\item{\code{swap}}{
+\item{\code{\hl{oopr_containers-OoprVec-swap}{swap}}}{
 \lbr{}Swap two elements of the container.}
 
-\item{\code{apply}}{
+\item{\code{\hl{oopr_containers-OoprVec-apply}{apply}}}{
 \lbr{}Apply a function over every element in the container.}
 
-\item{\code{`[`}}{
+\item{\code{\hl{oopr_containers-OoprVec-`[`}{`[`}}}{
 \emph{\verb{[S3]}} \cr
 Access an element of the container.}
 
-\item{\code{`[<-`}}{
+\item{\code{\hl{oopr_containers-OoprVec-`[<-`}{`[<-`}}}{
 \emph{\verb{[S3]}} \cr
 Assign to an element of the container.}
 }
 }
 
-\subsection{\hr{}\code{insert}}{
+\subsection{\code{\ht{oopr_containers-OoprVec-insert}{insert}}\hr{}insert}{
 \subsection{Description}{
 \lbr{}Insert an already instanced class.
 }
@@ -137,7 +139,7 @@ An \code{oopr} instance of class \verb{$class}.}
 }
 }
 
-\subsection{\hr{}\code{emplace}}{
+\subsection{\code{\ht{oopr_containers-OoprVec-emplace}{emplace}}\hr{}emplace}{
 \subsection{Description}{
 \lbr{}Construct a new class into the container.
 }
@@ -159,7 +161,7 @@ Arguments to pass to \verb{$class}'s constructor.}
 }
 }
 
-\subsection{\hr{}\code{resize}}{
+\subsection{\code{\ht{oopr_containers-OoprVec-resize}{resize}}\hr{}resize}{
 \subsection{Description}{
 \lbr{}Pre-allocate or destroy the container.
 }
@@ -179,7 +181,7 @@ The desired length to make the container.}
 }
 }
 
-\subsection{\hr{}\code{erase}}{
+\subsection{\code{\ht{oopr_containers-OoprVec-erase}{erase}}\hr{}erase}{
 \subsection{Description}{
 \lbr{}Remove a class from the container.
 }
@@ -199,7 +201,7 @@ The index in the container to remove.}
 }
 }
 
-\subsection{\hr{}\code{swap}}{
+\subsection{\code{\ht{oopr_containers-OoprVec-swap}{swap}}\hr{}swap}{
 \subsection{Description}{
 \lbr{}Swap two elements of the container.
 }
@@ -221,7 +223,7 @@ Element to swap.}
 }
 }
 
-\subsection{\hr{}\code{apply}}{
+\subsection{\code{\ht{oopr_containers-OoprVec-apply}{apply}}\hr{}apply}{
 \subsection{Description}{
 \lbr{}Apply a function over every element in the container.
 }
@@ -244,7 +246,7 @@ Further arguments to \code{fun}.}
 }
 }
 
-\subsection{\hr{}\code{`[`}}{
+\subsection{\code{\ht{oopr_containers-OoprVec-`[`}{`[`}}\hr{}\sQuote{[}}{
 \subsection{Description}{
 \lbr{}Access an element of the container.
 }
@@ -267,7 +269,7 @@ The element to access. \cr
 }
 }
 
-\subsection{\hr{}\code{`[<-`}}{
+\subsection{\code{\ht{oopr_containers-OoprVec-`[<-`}{`[<-`}}\hr{}\sQuote{[<-}}{
 \subsection{Description}{
 \lbr{}Assign to an element of the container.
 }
@@ -297,7 +299,7 @@ An \code{oopr} object of class \verb{$class}.}
 }
 }
 
-\section{\hr\hr{}OoprMap}{
+\section{\ht{oopr_containers-OoprMap}{OoprMap}\hr\hr{}OoprMap}{
 
 \subsection{Description}{
 \lbr{}A map, where the container is indexed by a string, i.e. key-value pair.
@@ -333,35 +335,35 @@ The container.}
 
 \subsection{Methods}{
 \describe{
-\item{\code{exists}}{
+\item{\code{\hl{oopr_containers-OoprMap-exists}{exists}}}{
 \lbr{}Check whether a key exists.}
 
-\item{\code{insert}}{
+\item{\code{\hl{oopr_containers-OoprMap-insert}{insert}}}{
 \lbr{}Insert an already instanced class.}
 
-\item{\code{emplace}}{
+\item{\code{\hl{oopr_containers-OoprMap-emplace}{emplace}}}{
 \lbr{}Construct a new class into the container.}
 
-\item{\code{erase}}{
+\item{\code{\hl{oopr_containers-OoprMap-erase}{erase}}}{
 \lbr{}Remove a class from the container.}
 
-\item{\code{resize}}{
+\item{\code{\hl{oopr_containers-OoprMap-resize}{resize}}}{
 \lbr{}Pre-allocate or destroy the container.}
 
-\item{\code{apply}}{
+\item{\code{\hl{oopr_containers-OoprMap-apply}{apply}}}{
 \lbr{}Apply a function over every element in the container.}
 
-\item{\code{`[`}}{
+\item{\code{\hl{oopr_containers-OoprMap-`[`}{`[`}}}{
 \emph{\verb{[S3]}} \cr
 Access an element of the container.}
 
-\item{\code{`[<-`}}{
+\item{\code{\hl{oopr_containers-OoprMap-`[<-`}{`[<-`}}}{
 \emph{\verb{[S3]}} \cr
 Assign to an element of the container.}
 }
 }
 
-\subsection{\hr{}\code{exists}}{
+\subsection{\code{\ht{oopr_containers-OoprMap-exists}{exists}}\hr{}exists}{
 \subsection{Description}{
 \lbr{}Check whether a key exists.
 }
@@ -381,7 +383,7 @@ The key to check for}
 }
 }
 
-\subsection{\hr{}\code{insert}}{
+\subsection{\code{\ht{oopr_containers-OoprMap-insert}{insert}}\hr{}insert}{
 \subsection{Description}{
 \lbr{}Insert an already instanced class.
 }
@@ -403,7 +405,7 @@ An \code{oopr} instance of class \verb{$class}.}
 }
 }
 
-\subsection{\hr{}\code{emplace}}{
+\subsection{\code{\ht{oopr_containers-OoprMap-emplace}{emplace}}\hr{}emplace}{
 \subsection{Description}{
 \lbr{}Construct a new class into the container.
 }
@@ -425,7 +427,7 @@ Arguments to pass to \verb{$class}'s constructor.}
 }
 }
 
-\subsection{\hr{}\code{erase}}{
+\subsection{\code{\ht{oopr_containers-OoprMap-erase}{erase}}\hr{}erase}{
 \subsection{Description}{
 \lbr{}Remove a class from the container.
 }
@@ -445,7 +447,7 @@ The index in the container to remove.}
 }
 }
 
-\subsection{\hr{}\code{resize}}{
+\subsection{\code{\ht{oopr_containers-OoprMap-resize}{resize}}\hr{}resize}{
 \subsection{Description}{
 \lbr{}Pre-allocate or destroy the container.
 }
@@ -465,7 +467,7 @@ Keys to create / remain.}
 }
 }
 
-\subsection{\hr{}\code{apply}}{
+\subsection{\code{\ht{oopr_containers-OoprMap-apply}{apply}}\hr{}apply}{
 \subsection{Description}{
 \lbr{}Apply a function over every element in the container.
 }
@@ -488,7 +490,7 @@ Further arguments to \code{fun}.}
 }
 }
 
-\subsection{\hr{}\code{`[`}}{
+\subsection{\code{\ht{oopr_containers-OoprMap-`[`}{`[`}}\hr{}\sQuote{[}}{
 \subsection{Description}{
 \lbr{}Access an element of the container.
 }
@@ -511,7 +513,7 @@ The element to access. \cr
 }
 }
 
-\subsection{\hr{}\code{`[<-`}}{
+\subsection{\code{\ht{oopr_containers-OoprMap-`[<-`}{`[<-`}}\hr{}\sQuote{[<-}}{
 \subsection{Description}{
 \lbr{}Assign to an element of the container.
 }
