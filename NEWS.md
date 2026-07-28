@@ -1,6 +1,6 @@
 # oopr 999.999 (development version)
 
-# oopr 0.0.1 (2026-07-26)
+# oopr 0.0.1 (2026-07-28)
 
 ## Added
 
@@ -12,6 +12,8 @@
 * Hyperlinks to jump to class sections and their methods.
 
 * `.Rbuildignore` can be added to `@keywords` tag to build ignore the Rd file.
+
+* Vignette for using Roxygen2 to document `oopr` classes.
 
 * Non-documented fields are now be copied from constructor `@param`.
 

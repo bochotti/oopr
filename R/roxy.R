@@ -1037,7 +1037,6 @@ private:
     return(tags);
   }
 
-
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   #' @description
   #' Prefixes describe items with specifiers
@@ -1254,7 +1253,7 @@ private:
       dc <- "";
       if(sections$exists("Description"))
       {
-        dc <- sub("^\\\\lbr\\{\\}", "", sections["Description"]$content);
+        dc <- sub("^\\\\lbr\\{\\}", "", sections["Description"]$content[1L]);
         dc <- sprintf("\\cr\n%s", dc);
       }
       items[i] <- sprintf(
