@@ -1,0 +1,174 @@
+---
+title: "Roxygen"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Roxygen}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+This package exports `oopr_roclet()`, which is designed to help document
+classes. To use additional roclets in a package workflow, refer to
+`vignette("extending", "roxygen2")`.
+
+## Layout
+
+The roclet generates documentation across three main components: 
+
+Constructor Method 
+  : Appears in the **Usage** and **Arguments** sections (if applicable).
+
+Value Section
+  : Features a described list of each class, including its member count and
+    description.
+    
+Class Sections 
+  : Each class receives a dedicated section broken down 
+    into the following hierarchy
+    
+  : Overview
+    : Both **Description** and **Details** subsections.
+    
+  : Members
+    : A described list of all **Fields** and **Methods**, including their 
+      specifiers and descriptions.
+      
+  : Method Details
+    : Each individual method breaks down into five subsections: 
+      Description, Usage, Arguments, Details, and Returns.
+    
+See the `OoprVec()` documentation page for a live example of this layout.
+
+## Usage 
+
+### Classes
+
+To document class-level `@description` and `@details`, use these tags directly
+above the class definition. As each class has its own section in a page, it 
+is recommended to set page-level documentation via `NULL`.
+
+```{r, eval=FALSE}
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @name example
+#' @title example
+#' @description
+#' Page-level description
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+NULL
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @rdname example
+#' @description
+#' Class-level description
+#'
+#' @details
+#' Class-level details
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+oopr("example",, { })
+```
+
+### Members
+
+All public members must be documented, if not a warning is thrown. Documenting
+protected members is optional, and any documentation for private members is
+ignored.
+
+Members will have their specifiers automatically added to the documentation, so
+users easily know if it is static, virtual, read-only, etc.
+
+### Fields
+
+Fields (and properties) can be documented by using the `@field` tag directly
+above its definition:
+
+```{r, eval=FALSE}
+oopr("example",,
+{
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @field field `integer(1L)` \cr
+  #'              A documented field
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  field <- 1L;
+})
+```
+
+### Methods
+
+Methods can be documented using the `@description`, `@usage`, `@param`, 
+`@details`, and `@return` tags directly above the method definition.
+
+```{r, eval=FALSE}
+oopr("example",,
+{
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @description
+  #' A documented method
+  #'
+  #' @param x `integer(1)` \cr
+  #'          A documented argument
+  #'
+  #' @details
+  #' Some details on this method
+  #'
+  #' @returns
+  #' The return value of this method
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  method <- \(x)
+  {
+    return(x + this$field);
+  }
+})
+```
+
+A warning will be thrown if `@description`, `@returns` or `@param` (for an 
+argument, if any) are not provided.
+
+Any tags used for the constructor method are automatically moved to the 
+page-level sections. A constructor method does not have its own section like
+normal methods.
+
+## Re-use
+
+To avoid repeating the same documentation across members, they can be re-used
+implicitly and explicitly.
+
+### Implicit 
+
+Missing tags trigger implicit documentation re-use based on two conditions:
+
+Inherited Members
+  : Automatically re-use documentation from the base class member.
+
+Fields
+  : Automatically re-use documentation from a constructor argument, if they 
+    share the same name
+
+### Explicit
+
+Use the `@inherit` tag to pull the documentation of another class member 
+(within from the same class or another). The expected syntax 
+is `@inherit class$member`.
+
+All inherited tags are copied over for methods, except those that are already
+in use. Allowing a choice over which parts of the inherited member to use.
+
+## .Rbuildignore
+
+Generating documentation for internal classes can be helpful when using this
+package, given the auto-complete functionality with RStudio with the
+`devtools::load_all()` workflow. However, this generates a lot of help pages 
+and aliases in the final package build which end-users do not need to see.
+
+Any topic with an `oopr` class can use the `@keywords .Rbuildignore` tag to 
+automatically add the `.Rd` file to `.Rbuildignore`. 
+
+*Note* that the actual `.Rbuildignore` needs to be amended alongside removing 
+the tag if one decides to stop build ignoring a `.Rd` file.
+
