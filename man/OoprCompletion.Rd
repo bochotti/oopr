@@ -736,4 +736,4 @@ Whether to to output as HTML, otherwise \code{Rd}.}
 \lbr\hr\hr
 }
 
-\keyword{internal}
+\keyword{.Rbuildignore}

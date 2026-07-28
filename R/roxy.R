@@ -81,13 +81,12 @@ roclet_output.roclet_oopr <- \(x, results, base_path, ...)
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @name OoprRoxy
 #' @title OoprRoxy Internals
+#' @keywords .Rbuildignore
 #' @description
 #' `OoprRoxy` is called by `roxygen2` methods. It creates `OoprRoxyClass`
 #' which creates a roxy block containing sections for each class.
 #'
 #' **TODO**:
-#'
-#'   1.  `@internal` .Rbuildignore can be used to hide internals.
 #'
 #'   3.  Try to constrain horizontal width for nested sections.
 #'
@@ -1146,6 +1145,7 @@ public:
       this$insertHeaderSection(topic);
       this$insertTableOfContents(topic, keys);
       this$insertHRule(topic, keys);
+      this$addToRBuildIgnore(topic);
     }
   }
 
@@ -1293,6 +1293,26 @@ private:
     content    <- topic$sections$section$value$content;
     content[i] <- sprintf("%s\n\\lbr\\hr\\hr", content[i]);
     topic$sections$section$value$content <- content;
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @description
+  #' Add file to .Rbuildignore
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  static:addToRBuildIgnore <- \(topic)
+  {
+    file <- ".Rbuildignore";
+    if(!match(file, topic$sections$keyword$value, 0L)) return();
+    if(!file.exists(file))
+    {
+      file.create(file);
+    }
+    man <- file.path("man", topic$filename);
+    man <- sprintf("^%s$", gsub("\\.", "\\\\.", man));
+    if(!match(man, readLines(file), 0L))
+    {
+      cat(man, file = file, sep = "\n", append = TRUE);
+    }
   }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##

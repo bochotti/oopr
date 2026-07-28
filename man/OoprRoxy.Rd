@@ -116,13 +116,6 @@ which creates a roxy block containing sections for each class.
 
 \strong{TODO}:
 \enumerate{
-\item \verb{@internal} .Rbuildignore can be used to hide internals.
-\item Hyperlinks for each class section, and inside those further links
-for methods.
-\itemize{
-\item Class hyperlinks can be inside \code{Format} section.
-\item Would be useful to have a ↩ next to each heading.
-}
 \item Try to constrain horizontal width for nested sections.
 \item Tidy up pdf
 }
@@ -757,4 +750,5 @@ The subsections inside the class section.}
 \lbr\hr\hr
 }
 
+\keyword{.Rbuildignore}
 \keyword{internal}

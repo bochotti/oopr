@@ -11,6 +11,8 @@
 
 * Hyperlinks to jump to class sections and their methods.
 
+* `.Rbuildignore` can be added to `@keywords` tag to build ignore the Rd file.
+
 * Non-documented fields are now be copied from constructor `@param`.
 
 * Ability to document protected members.

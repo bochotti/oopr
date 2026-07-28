@@ -758,4 +758,4 @@ being removed.
 \lbr\hr\hr
 }
 
-\keyword{internal}
+\keyword{.Rbuildignore}

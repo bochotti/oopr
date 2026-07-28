@@ -276,4 +276,4 @@ An environment to be the top-level of the \code{oopr} objects.}
 \lbr\hr\hr
 }
 
-\keyword{internal}
+\keyword{.Rbuildignore}
