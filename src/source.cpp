@@ -138,7 +138,7 @@ public:
     const R_xlen_t len = Rf_xlength(text);
     for(R_xlen_t i = 0; i < len; ++i)
     {
-      text_.append(CHAR(STRING_ELT(text, i)));
+      text_.append(Rf_translateCharUTF8(STRING_ELT(text, i)));
       text_.append("\n");
     }
     makePos(INTEGER_ELT(row, 0), INTEGER_ELT(col, 0));

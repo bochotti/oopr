@@ -1,7 +1,7 @@
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @name OoprSource
 #' @title Source files for oopr
-#' @keywords internal
+#' @keywords .Rbuildignore
 #' @include init.R
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 NULL
@@ -289,6 +289,11 @@ public:
   {
     text  <- paste(this$text, collapse = '\n');
     parts <- .Call(Cpp_eval_context, text, this$row, this$col);
+
+    # const char* counts multi-byte
+    encoding <- Encoding(text);
+    Encoding(text) <- "bytes";
+
     text  <- this$replaceThis(text, parts);
     if(length(parts) > 1)
     {
@@ -298,6 +303,8 @@ public:
     {
       text  <- this$collectCall(text, parts[[1L]]);
     }
+
+    Encoding(text) <- encoding;
     this$text <- text <- strsplit(text, '\n')[[1L]];
     this$tryParse(
       # , # add { ... } after control flows

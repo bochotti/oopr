@@ -165,7 +165,14 @@ public:
       else
       {
         R_removeVarFromFrame(nm, thiz);
-        symlinkR(inhr, sym["this"], thiz, nm);
+        if(R_BindingIsActive(nm, inhr))
+        {
+          R_MakeActiveBinding(nm, R_ActiveBindingFunction(nm, inhr), thiz);
+        }
+        else
+        {
+          symlinkR(inhr, sym["this"], thiz, nm);
+        }
       }
     }
   }

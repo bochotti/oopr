@@ -9,9 +9,15 @@ OoprSource()
 
 OoprSourceTry(file = NULL, text = NULL, row = NULL, col = NULL)
 }
-\description{
-\newcommand{\br}{\if{html}{\out{<br>}}\if{latex}{\out{\newline}}}
-\newcommand{\hr}{\if{html}{\out{<hr>}}\if{latex}{\out{\hrule}}}
+\value{
+
+\newcommand{\br}{\if{html}{\out{<br>}}\if{latex}{\out{\newline{}}}}
+\newcommand{\lbr}{\if{latex}{\out{\hspace{0em}\newline{}}}}
+\newcommand{\hr}{\if{html}{\out{<hr>}}\if{latex}{\out{\hrule\vspace{0.5em}}}}
+\newcommand{\rc}{\if{html}{\out{<pre><code class="language-R">}}#1\if{html}{\out{</code></pre>}}}
+\newcommand{\ht}{\if{html}{\out{<a id="#1" style="display:block;position:relative;top:-40px;"></a>}}\if{latex}{\out{\belowpdfbookmark{#2}{#1}\hypertarget{#1}{}}}}
+\newcommand{\hl}{\if{html}{\out{<a href="##1">#2</a>}}\if{latex}{\out{\hyperlink{#1}{#2}}}}
+\newcommand{\ar}{\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}}
 \if{latex}{\out{
 \ExplSyntaxOn
 \cs_gset:Npn \Tabularr #1 #2
@@ -32,38 +38,64 @@ OoprSourceTry(file = NULL, text = NULL, row = NULL, col = NULL)
 }
 \ExplSyntaxOff
 }}
+
+\describe{
+\item{\code{\hl{OoprSource-OoprSource}{OoprSource}}}{
+\emph{\verb{[8 fields]}} \emph{\verb{[2 methods]}}\cr
+Takes a file and parses the oopr definitions inside it.}
+
+\item{\code{\hl{OoprSource-OoprSourceTry}{OoprSourceTry}}}{
+\emph{\verb{[9 fields]}} \emph{\verb{[2 methods]}}\cr
+Tries to parse and evaluate a file containing ooprs, intended for
+completion.}
+}
+
+}
+\description{
 Source files for oopr
 }
-\section{\hr\hr OoprSource}{
+\section{\ht{OoprSource-OoprSource}{OoprSource}\hr\hr{}OoprSource}{
 
 \subsection{Description}{
-Takes a file and parses the oopr definitions inside it.
+\lbr{}Takes a file and parses the oopr definitions inside it.
 }
 
 \subsection{Fields}{
 \describe{
-\item{\code{file}}{\code{character(1L)} \cr
+\item{\code{file}}{
+\lbr{}\code{character(1L)} \cr
 An R source file.}
 
-\item{\code{text}}{\code{character()} \cr
+\item{\code{text}}{
+\lbr{}\code{character()} \cr
 A vector of lines of an R source file.}
 
-\item{\code{row}}{\code{integer(1L)} \cr
+\item{\code{row}}{
+\lbr{}\code{integer(1L)} \cr
 Line of a text cursor position.}
 
-\item{\code{col}}{\code{integer(1L)} \cr
+\item{\code{col}}{
+\lbr{}\code{integer(1L)} \cr
 Line of a text cursor position.}
 
-\item{\code{expr}}{\code{expression} \cr
+\item{\code{expr}}{
+\emph{\verb{[read-only]}} \cr
+\code{expression} \cr
 A parsed expressed of \verb{$file} or \verb{$text} from \verb{$parse()}.}
 
-\item{\code{defs}}{\code{list()} \cr
+\item{\code{defs}}{
+\emph{\verb{[read-only]}} \cr
+\code{list()} \cr
 A named list of \code{oopr} definitions from \verb{$parse()}.}
 
-\item{\code{objs}}{\code{list()} \cr
+\item{\code{objs}}{
+\emph{\verb{[read-only]}} \cr
+\code{list()} \cr
 A named list of \code{oopr} object from \verb{$eval()}.}
 
-\item{\code{obj}}{\code{ooprC}
+\item{\code{obj}}{
+\emph{\verb{[read-only]}} \cr
+\code{ooprC}
 If \verb{$row} and \verb{$col} are set, then the \code{oopr} object that
 is at that location.}
 }
@@ -71,100 +103,106 @@ is at that location.}
 
 \subsection{Methods}{
 \describe{
+\item{\code{\hl{OoprSource-OoprSource-parse}{parse}}}{
+\lbr{}Parse \verb{$file} or \verb{$text}.}
 
-\item{\code{parse}}{Parse \verb{$file} or \verb{$text}.}
-
-\item{\code{eval}}{Evaluate the \code{oopr}s in \verb{$defs}.}
-
+\item{\code{\hl{OoprSource-OoprSource-eval}{eval}}}{
+\lbr{}Evaluate the \code{oopr}s in \verb{$defs}.}
 }
 }
 
-\subsection{\hr parse}{
+\subsection{\code{\ht{OoprSource-OoprSource-parse}{parse}}\hr{}parse}{
 \subsection{Description}{
-Parse \verb{$file} or \verb{$text}.
+\lbr{}Parse \verb{$file} or \verb{$text}.
 }
 
 \subsection{Usage}{
-\if{html}{\out{<pre><code class="language-R">}}\preformatted{
-parse()
-}\if{html}{\out{</code></pre>}}
+\rc{\preformatted{parse()}}
 }
 
 \subsection{Details}{
-If \verb{$file} is set, then it acts as the \code{srcfile} of the parsed
+\lbr{}If \verb{$file} is set, then it acts as the \code{srcfile} of the parsed
 object.
 }
 
 \subsection{Returns}{
-Saves the entire parse to \verb{$expr} and the \code{oopr} calls to \verb{$defs}.
+\lbr{}Saves the entire parse to \verb{$expr} and the \code{oopr} calls to \verb{$defs}.
 }
 }
 
-\subsection{\hr eval}{
+\subsection{\code{\ht{OoprSource-OoprSource-eval}{eval}}\hr{}eval}{
 \subsection{Description}{
-Evaluate the \code{oopr}s in \verb{$defs}.
+\lbr{}Evaluate the \code{oopr}s in \verb{$defs}.
 }
 
 \subsection{Usage}{
-\if{html}{\out{<pre><code class="language-R">}}\preformatted{
-eval(top = globalenv())
-}\if{html}{\out{</code></pre>}}
+\rc{\preformatted{eval(top = globalenv())}}
 }
 
 \subsection{Arguments}{
-\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
-\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
-\tabular{ll}{
+\ar{#1}{#2}\tabular{ll}{
 \code{top} \tab \code{environment} \br
-An environment to be the top-level of the \code{oopr} objects. \cr
-}
+An environment to be the top-level of the \code{oopr} objects.}
 }
 
 \subsection{Details}{
-If \verb{$row} & \verb{$col} are set, then evaluation stops at that \code{oopr} call.
+\lbr{}If \verb{$row} & \verb{$col} are set, then evaluation stops at that \code{oopr} call.
 }
 
 \subsection{Returns}{
-Saves the \code{oopr} objects to \verb{$objs}.
+\lbr{}Saves the \code{oopr} objects to \verb{$objs}.
 }
 }
 }
 
-\section{\hr\hr OoprSourceTry}{
+\section{\ht{OoprSource-OoprSourceTry}{OoprSourceTry}\hr\hr{}OoprSourceTry}{
 
 \subsection{Description}{
-Tries to parse and evaluate a file containing ooprs, intended for
+\lbr{}Tries to parse and evaluate a file containing ooprs, intended for
 completion.
 }
 
 \subsection{Fields}{
 \describe{
-\item{\code{call}}{\code{call} \cr
+\item{\code{call}}{
+\lbr{}\code{call} \cr
 The evaluation string/call at the position \code{row} & \code{col} in
 the file, e.g. \code{this$a$b}.}
 
-\item{\code{file}}{\code{character(1L)} \cr
+\item{\code{file}}{
+\lbr{}\code{character(1L)} \cr
 An R source file.}
 
-\item{\code{text}}{\code{character()} \cr
+\item{\code{text}}{
+\lbr{}\code{character()} \cr
 A vector of lines of an R source file.}
 
-\item{\code{row}}{\code{integer(1L)} \cr
+\item{\code{row}}{
+\lbr{}\code{integer(1L)} \cr
 Line of a text cursor position.}
 
-\item{\code{col}}{\code{integer(1L)} \cr
+\item{\code{col}}{
+\lbr{}\code{integer(1L)} \cr
 Line of a text cursor position.}
 
-\item{\code{expr}}{\code{expression} \cr
+\item{\code{expr}}{
+\emph{\verb{[read-only]}} \cr
+\code{expression} \cr
 A parsed expressed of \verb{$file} or \verb{$text} from \verb{$parse()}.}
 
-\item{\code{defs}}{\code{list()} \cr
+\item{\code{defs}}{
+\emph{\verb{[read-only]}} \cr
+\code{list()} \cr
 A named list of \code{oopr} definitions from \verb{$parse()}.}
 
-\item{\code{objs}}{\code{list()} \cr
+\item{\code{objs}}{
+\emph{\verb{[read-only]}} \cr
+\code{list()} \cr
 A named list of \code{oopr} object from \verb{$eval()}.}
 
-\item{\code{obj}}{\code{ooprC}
+\item{\code{obj}}{
+\emph{\verb{[read-only]}} \cr
+\code{ooprC}
 If \verb{$row} and \verb{$col} are set, then the \code{oopr} object that
 is at that location.}
 }
@@ -172,27 +210,25 @@ is at that location.}
 
 \subsection{Methods}{
 \describe{
+\item{\code{\hl{OoprSource-OoprSourceTry-parse}{parse}}}{
+\lbr{}Try to parse the file.}
 
-\item{\code{parse}}{Try to parse the file.}
-
-\item{\code{eval}}{Evaluate the \code{oopr}s in \verb{$defs}.}
-
+\item{\code{\hl{OoprSource-OoprSourceTry-eval}{eval}}}{
+\lbr{}Evaluate the \code{oopr}s in \verb{$defs}.}
 }
 }
 
-\subsection{\hr parse}{
+\subsection{\code{\ht{OoprSource-OoprSourceTry-parse}{parse}}\hr{}parse}{
 \subsection{Description}{
-Try to parse the file.
+\lbr{}Try to parse the file.
 }
 
 \subsection{Usage}{
-\if{html}{\out{<pre><code class="language-R">}}\preformatted{
-parse()
-}\if{html}{\out{</code></pre>}}
+\rc{\preformatted{parse()}}
 }
 
 \subsection{Details}{
-When completing, the contents of a file may fail to parse:
+\lbr{}When completing, the contents of a file may fail to parse:
 \enumerate{
 \item \code{$} with no rhs, e.g. \verb{this$}
 \item Incomplete control-flow, e.g. \verb{if(i in this$)}
@@ -210,38 +246,34 @@ class members are not reference checked.
 }
 
 \subsection{Returns}{
-See \code{OoprSource$parse()}.
+\lbr{}See \code{OoprSource$parse()}.
 }
 }
 
-\subsection{\hr eval}{
+\subsection{\code{\ht{OoprSource-OoprSourceTry-eval}{eval}}\hr{}eval}{
 \subsection{Description}{
-Evaluate the \code{oopr}s in \verb{$defs}.
+\lbr{}Evaluate the \code{oopr}s in \verb{$defs}.
 }
 
 \subsection{Usage}{
-\if{html}{\out{<pre><code class="language-R">}}\preformatted{
-eval(top = globalenv())
-}\if{html}{\out{</code></pre>}}
+\rc{\preformatted{eval(top = globalenv())}}
 }
 
 \subsection{Arguments}{
-\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
-\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
-\tabular{ll}{
+\ar{#1}{#2}\tabular{ll}{
 \code{top} \tab \code{environment} \br
-An environment to be the top-level of the \code{oopr} objects. \cr
-}
+An environment to be the top-level of the \code{oopr} objects.}
 }
 
 \subsection{Details}{
-If \verb{$row} & \verb{$col} are set, then evaluation stops at that \code{oopr} call.
+\lbr{}If \verb{$row} & \verb{$col} are set, then evaluation stops at that \code{oopr} call.
 }
 
 \subsection{Returns}{
-Saves the \code{oopr} objects to \verb{$objs}.
+\lbr{}Saves the \code{oopr} objects to \verb{$objs}.
 }
 }
+\lbr\hr\hr
 }
 
-\keyword{internal}
+\keyword{.Rbuildignore}

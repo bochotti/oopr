@@ -3,6 +3,7 @@
 #' @title Completion for oopr
 #' @include init.R
 #' @include source.R
+#' @include roxy.R
 #' @export
 #' @description
 #' Code-completion / intellisense for `oopr` classes.
@@ -76,7 +77,7 @@ class(this) <- c("oopr_this", "oopr");
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @name OoprCompletion
 #' @title Completion for oopr internals
-#' @keywords internal
+#' @keywords .Rbuildignore
 #' @aliases NULL
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 NULL
@@ -521,9 +522,250 @@ private:
 }) ## OoprCompletion
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @rdname OoprCompletion
+#' @description
+#' Read the Rd (documentation) of an `oopr` class.
+#'
+#' @details
+#' Will read the `.Rd` file that holds the `oopr` class, then provides
+#' methods to access specific information.
+#'
+#' Used to help with documentation auto-completion in RStudio.
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+oopr("OoprRd",,
+{
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @param topic   `character(1L)` \cr
+#'                The class name.
+#'
+#' @param package `character(1L)` \cr
+#'                The package that the class lives in.
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+OoprRd <- \(topic, package)
+{
+  call <- substitute(
+    help(topic = .T, package = .P)
+   ,list(.T = topic, .P = package)
+  );
+  tryCatch(
+    help <- eval(call, globalenv())
+   ,error = \(e) this$fail <- TRUE
+  )
+  if(this$fail) return();
+
+  if(inherits(help, "dev_topic"))
+  {
+    rd <- tools::parse_Rd(help$path);
+  }
+  else
+  {
+    rd <- tools::Rd_db(package, lib.loc = dirname(dirname(dirname(help))));
+    rd <- rd[[match(sprintf("%s.Rd", basename(help)), names(rd), 0L)]];
+  }
+
+  this$topic   <- topic;
+  this$package <- package;
+  this$rd      <- this$pullSection(topic, rd);
+}
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+public:
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @field topic `character(1L)` \cr
+  #'              The class name.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  topic   <- character(1L);
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @field package `character(1L)` \cr
+  #'                The package that the class lives in.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  package <- character(1L);
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @field rd `list()` \cr
+  #'           The parsed `Rd`.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  rd      <- list();
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @field fail `logical(1L)` \cr
+  #'             Whether the Rd was found and parsed at construction.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  fail    <- FALSE;
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @description
+  #' Get the description of a field or method.
+  #'
+  #' @param name `character(1L)` \cr
+  #'             The name of the field or method.
+  #'
+  #' @param html `logical(1L)` \cr
+  #'             Whether to to output as HTML, otherwise `Rd`.
+  #'
+  #' @details
+  #' If `name` is not valid, then a zero-character is returned.
+  #'
+  #' @returns
+  #' If `html` is `TRUE`, then `character(1L)`, otherwise an `Rd`.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  getDescription <- \(name, html = TRUE)
+  {
+    if(this$fail) return("");
+    name <- this$wrapNames(name);
+    m <- 0L;
+    for(type in c("Fields", "Methods"))
+    {
+      rd    <- this$pullSection(type);
+      if(is.null(rd)) next;
+      rd    <- rd[[this$whichTag("\\describe", rd)]];
+      rd    <- rd[this$whichTag("\\item", rd)];
+      idx   <- c(1L, 1L, 1L);
+      if(type == "Methods")
+      {
+        idx[[length(idx) + 1L]] <- 3L;
+      }
+      names <- vapply(rd, `[[`, character(1L), idx);
+      m     <- match(name, names, 0L);
+      if(m) break;
+    }
+    if(!m) return("");
+    rd <- rd[[c(m, 2L)]];
+    if(html)
+    {
+      rd <- this$toHTML(rd);
+    }
+    else
+    {
+      class(rd) <- "Rd";
+    }
+    return(rd);
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @inherit OoprRd$getDescription
+  #' @description
+  #' Get the subsection of a method.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  getMethod <- \(name, html = FALSE)
+  {
+    if(this$fail) return("");
+    rd <- this$pullSection(name);
+    if(is.null(rd)) return("");
+    if(html)
+    {
+      rd <- this$toHTML(rd);
+    }
+    return(rd);
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @inherit OoprRd$getDescription
+  #' @description
+  #' Get the arguments of a method.
+  #'
+  #' @returns
+  #' If `html` is `TRUE`, then a named character vector.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  getArguments <- \(name, html = TRUE)
+  {
+    if(this$fail) return("");
+    rd <- this$getMethod(name, html = FALSE);
+    if(is.null(rd)) return("");
+    rd <- this$pullSection("Arguments", rd);
+    if(!html) return(rd);
+    rd <- rd[this$whichTag("\\tabular", rd)];
+    rd <- this$toHTML(rd);
+    rd <- paste(rd, collapse = "\n");
+
+    p <- "(?xs)
+    <tr>(.*?)
+    <td(.*?)>\\s*(?'key'.*?)\\s*</td>
+    <td(.*?)>\\s*(?'val'.*?)\\s*</td>
+    (.*?)</tr>
+    "
+    m  <- gregexec(p, rd, perl = TRUE)[[1L]];
+    l  <- attr(m, "match.length");
+    rd <- rep.int(rd, ncol(m));
+
+    desc <- substr(rd, m["val", ], m["val", ] + l["val", ] - 1L);
+    args <- substr(rd, m["key", ], m["key", ] + l["key", ] - 1L);
+    args <- sub("(<code>)(.*?)(</code>)", "\\2", args);
+    names(desc) <- args;
+    return(desc);
+  }
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+private:
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @param `tag` `character(1L)` \cr
+  #'              An `Rd` tag, e.g. `"\\section"`.
+  #'
+  #' @returns
+  #' `integer` of the position containing `tag`.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  whichTag <- \(tag, rd = this$rd)
+  {
+    tags <- vapply(rd, attr, character(1L), "Rd_tag");
+    return(which(match(tags, tag, 0L) > 0L));
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @returns
+  #' `list()` of the `Rd` section or subsection `name`.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  pullSection <- \(name, rd = this$rd)
+  {
+    class <- class(rd);
+    rd    <- rd[this$whichTag(c("\\section", "\\subsection"), rd)];
+    names <- vapply(rd, \(x) { unlist(tail(x[[1L]], 1L)); }, character(1L));
+    m     <- match(name, names, 0L);
+    rd    <- if(m) rd[[c(m, 2L)]] else return(NULL);
+    class(rd) <- class;
+    return(rd);
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @param desc `logical(1L)` \cr
+  #'             Force `rd` to be a `description`.
+  #' @returns
+  #' `character()` containing the converted HTML.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  toHTML <- \(rd = this$rd, desc = TRUE)
+  {
+    if(desc)
+    {
+      attr(rd, "Rd_tag") <- "\\description";
+    }
+    verb <- list(`attr<-`("A", "Rd_tag", "VERB"));
+    verb <- lapply(c("\\name", "\\title"), \(x) `attr<-`(verb, "Rd_tag", x));
+    rd   <- c(verb, list(rd));
+    tmp  <- tempfile();
+    on.exit(unlink(tmp));
+    tools::Rd2HTML(rd, tmp, standalone = FALSE);
+    out  <- readLines(tmp);
+    out  <- out[nzchar(out)];
+    if(desc)
+    {
+      out <- out[out != "<h3>Description</h3>"];
+    }
+    return(out[-1L]);
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  static:wrapNames <- OoprRoxyClass@encl$this$wrapNames;
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+}) ## OoprRd
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @rdname OoprCompletion
 #'
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 OoprCompletionHelp <- NULL;
@@ -549,12 +791,14 @@ OoprCompletionHelp <- \(topic, source, class, package)
     if(!is.ooprC(oopr, class)) return(NULL);
     oopr <- oopr@encl$this;
   }
+  package <- environmentName(topenv(oopr));
 
   this$tpc_  <- topic;
   this$src_  <- source;
   this$cls_  <- class;
   this$pkg_  <- package;
   this$oopr_ <- oopr;
+  this$rd(class, package);
   this$fail_ <- FALSE;
 }
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -605,6 +849,9 @@ public:
     );
   }
 
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  rd <- OoprRd;
+
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 private:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -628,9 +875,9 @@ private:
   );
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  makeCompletion <- \(topic = this$tpc_, class = this$cls_, oopr = this$oopr_)
+  makeCompletion <- \(topic = this$tpc_, oopr = this$oopr_)
   {
-    description <- sprintf("A description of `%s$%s`", class, topic);
+    description <- paste(this$rd$getDescription(topic), collapse = "");
     OoprCompletion$isGettingNames <- TRUE;
     on.exit(OoprCompletion$isGettingNames <- FALSE);
     obj         <- tryCatch(.subset2(oopr, topic), error = identity);
@@ -641,6 +888,10 @@ private:
     }
     else if(is.function(obj))
     {
+      if(topic != make.names(topic))
+      {
+        topic <- sprintf("`%s`", topic);
+      }
       signature <- deparse(args(obj), width.cutoff = 500L, nlines = 1);
       signature <- sub("function ", topic, signature);
     }
@@ -656,25 +907,28 @@ private:
         signature <- sprintf("%s(%iL)", signature, length(obj));
       }
     }
-    this$out_$description <- description;
-    this$out_$signature   <- signature;
+    this$out_$description  <- description;
+    this$out_$signature    <- signature;
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  makeParameter  <- \(topic = this$tpc_, class = this$cls_, oopr = this$oopr_)
+  makeParameter  <- \(topic = this$tpc_)
   {
-    args  <- names(formals(.subset2(oopr, topic)));
-    arg_descriptions <- sprintf(
-      "a description of `%s$%s(%s)`", class, topic, args
-    );
-    this$out_$args <- args;
+    topic <- deparse1(str2lang(topic));
+    arg_descriptions <- this$rd$getArguments(topic);
+    this$out_$args <- names(arg_descriptions);
     this$out_$arg_descriptions <- arg_descriptions;
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  makeUrl <- \( )
+  makeUrl <- \(topic = this$cls_, package = this$pkg_)
   {
-
+    call <- substitute(
+      help(topic = topic, package = package)
+     ,list(topic = topic, package = package)
+    );
+    print(eval(call, globalenv()));
+    return(NULL);
   }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -689,6 +943,7 @@ help_formals_handler.oopr <- \(topic, source)
     comp   <- OoprCompletion();
     source <- if(comp$isCompletion()) comp$obj() %||% stop() else stop();
   }
+  topic   <- deparse1(str2lang(topic));
   formals <- sprintf("%s = ", names(formals(.subset2(source, topic))));
   help    <- OoprCompletionHelp@encl$.this$makeHelpHandler(source);
   return(list(formals = formals, helpHandler = help))

@@ -1,6 +1,6 @@
 Package: oopr
 Title: Classes for Object Oriented Programming
-Version: 0.0.0.9000
+Version: 0.0.1
 Authors@R: 
     person("Nathan", "Bachetti", , "nathanbachetti@gmail.com", role = c("aut", "cre"))
 Description: Create classes to implement object oriented programming principles
@@ -43,10 +43,10 @@ Collate:
     'source.R'
     'container.R'
     'breakpoint.R'
+    'roxy.R'
     'completion.R'
     'covr.R'
     'install.R'
-    'roxy.R'
     'zzz.R'
 VignetteBuilder: knitr
 URL: https://bochotti.github.io/oopr/

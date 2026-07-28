@@ -128,7 +128,7 @@ private:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   static:findFileFromClass <- \(ooprC)
   {
-    src <- attr(attr(OoprVec, "srcref"), "srcfile")$filename;
+    src <- attr(attr(ooprC, "srcref"), "srcfile")$filename;
     if(is.null(src))                return(NA_character_);
     tst <- sprintf("test-%s", basename(src));
     return(file.path(".", "tests", "testthat", tst));

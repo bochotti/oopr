@@ -7,9 +7,15 @@
 \usage{
 OoprCovr()
 }
-\description{
-\newcommand{\br}{\if{html}{\out{<br>}}\if{latex}{\out{\newline}}}
-\newcommand{\hr}{\if{html}{\out{<hr>}}\if{latex}{\out{\hrule}}}
+\value{
+
+\newcommand{\br}{\if{html}{\out{<br>}}\if{latex}{\out{\newline{}}}}
+\newcommand{\lbr}{\if{latex}{\out{\hspace{0em}\newline{}}}}
+\newcommand{\hr}{\if{html}{\out{<hr>}}\if{latex}{\out{\hrule\vspace{0.5em}}}}
+\newcommand{\rc}{\if{html}{\out{<pre><code class="language-R">}}#1\if{html}{\out{</code></pre>}}}
+\newcommand{\ht}{\if{html}{\out{<a id="#1" style="display:block;position:relative;top:-40px;"></a>}}\if{latex}{\out{\belowpdfbookmark{#2}{#1}\hypertarget{#1}{}}}}
+\newcommand{\hl}{\if{html}{\out{<a href="##1">#2</a>}}\if{latex}{\out{\hyperlink{#1}{#2}}}}
+\newcommand{\ar}{\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}}
 \if{latex}{\out{
 \ExplSyntaxOn
 \cs_gset:Npn \Tabularr #1 #2
@@ -30,6 +36,14 @@ OoprCovr()
 }
 \ExplSyntaxOff
 }}
+
+\describe{
+\item{\code{\hl{oopr_covr-OoprCovr}{OoprCovr}}}{
+\emph{\verb{[0 fields]}} \emph{\verb{[1 method]}}}
+}
+
+}
+\description{
 Include \code{oopr} classes in package coverage, or test the coverage of a
 single class.
 }
@@ -37,48 +51,44 @@ single class.
 For package coverage, write code to initialize this class inside
 \code{./tests/testthat/setup.R}
 }
-\section{\hr\hr OoprCovr}{
+\section{\ht{oopr_covr-OoprCovr}{OoprCovr}\hr\hr{}OoprCovr}{
 
 \subsection{Methods}{
 \describe{
-
-\item{\code{class}}{Test a single class.}
-
+\item{\code{\hl{oopr_covr-OoprCovr-class}{class}}}{
+\emph{\verb{[static]}} \cr
+Test a single class.}
 }
 }
 
-\subsection{\hr class}{
+\subsection{\code{\ht{oopr_covr-OoprCovr-class}{class}}\hr{}class}{
 \subsection{Description}{
-Test a single class.
+\lbr{}Test a single class.
 }
 
 \subsection{Usage}{
-\if{html}{\out{<pre><code class="language-R">}}\preformatted{
-class(ooprC, file = NULL, report = TRUE)
-}\if{html}{\out{</code></pre>}}
+\rc{\preformatted{class(ooprC, file = NULL, report = TRUE)}}
 }
 
 \subsection{Arguments}{
-\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}
-\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}
-\tabular{ll}{
+\ar{#1}{#2}\tabular{ll}{
 \code{ooprC} \tab \code{ooprC} \br
 \code{ooprC} object. \cr
 \code{file} \tab \code{character(1L)} \br
 The path to a test file. If \code{NULL}, then it is guessed. \cr
 \code{report} \tab \code{logical(1L)} \br
-Whether to run \code{\link[covr:report]{covr::report}}. \cr
-}
+Whether to run \code{\link[covr:report]{covr::report}}.}
 }
 
 \subsection{Details}{
-\code{file} guessing assumes \code{testhat} is being used in a "local" package.
+\lbr{}\code{file} guessing assumes \code{testhat} is being used in a "local" package.
 }
 
 \subsection{Returns}{
-An object of class \code{coverage}.
+\lbr{}An object of class \code{coverage}.
 }
 }
+\lbr\hr\hr
 }
 
 \examples{
