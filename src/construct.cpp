@@ -39,9 +39,9 @@ public:
   SEXP     calr;   // ENVSXP
   SEXP     envr;   // ENVSXP
   bool     isInhr = false;
-  pSEXP    inst;
-  pSEXP    thiz;
-  pSEXP    intf;
+  PSEXP    inst;
+  PSEXP    thiz;
+  PSEXP    intf;
 
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
    * Creates environment that holds `this` and base classes. Base classes
@@ -125,7 +125,7 @@ public:
     SEXP fun  = R_getVar(name, thiz, FALSE);
     SEXP args = R_ClosureFormals(fun);
 
-    pSEXP expr = Rf_allocVector(LANGSXP, Rf_length(args) + 1);
+    PSEXP expr = Rf_allocVector(LANGSXP, Rf_length(args) + 1);
     SETCAR(expr, name);
     for(SEXP e = CDR(expr); e != R_NilValue; e = CDR(e), args = CDR(args))
     {
@@ -199,7 +199,7 @@ public:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
   void makeInterface()
   {
-    pSEXP names;
+    PSEXP names;
     if(isInhr)
     {
       names = meta.subName("private", true);
@@ -222,7 +222,7 @@ public:
       {
         if(!meta.isVirtual(i)) continue;
         SEXP  nm = meta.name(i);
-        pSEXP fun;
+        PSEXP fun;
         if(meta.isInherit(i))
         {
           SEXP inhr = R_getVar(meta.inherit(i), inst, FALSE);
@@ -266,7 +266,7 @@ private:
   SEXP dupeFun(SEXP fun, bool keep_env)
   {
     SEXP env = keep_env ? R_ClosureEnv(fun) : (SEXP)inst;
-    pSEXP out = R_mkClosure(R_ClosureFormals(fun), R_ClosureExpr(fun), env);
+    PSEXP out = R_mkClosure(R_ClosureFormals(fun), R_ClosureExpr(fun), env);
     DUPLICATE_ATTRIB(out, fun);
     return out;
   }

@@ -51,7 +51,7 @@ SEXP recurseExpr(SEXP expr, Args... args)
   if(!(type == ENVSXP || type == VECSXP)) return R_NilValue;
 
   const R_xlen_t len = Rf_xlength(expr);
-  pSEXP out = Rf_allocVector(VECSXP, len);
+  PSEXP out = Rf_allocVector(VECSXP, len);
   SEXP names, x;
   switch(type)
   {
@@ -104,19 +104,19 @@ public:
   {
     R_xlen_t n = (R_xlen_t)matches.size();
 
-    pSEXP at   = Rf_allocVector(VECSXP, n);
-    pSEXP type = Rf_allocVector(STRSXP, n);
-    pSEXP oper = Rf_allocVector(STRSXP, n);
-    pSEXP encl = Rf_allocVector(STRSXP, n);
-    pSEXP memb = Rf_allocVector(STRSXP, n);
-    pSEXP expr = Rf_allocVector(VECSXP, n);
-    pSEXP src  = Rf_allocVector(VECSXP, n);
+    PSEXP at   = Rf_allocVector(VECSXP, n);
+    PSEXP type = Rf_allocVector(STRSXP, n);
+    PSEXP oper = Rf_allocVector(STRSXP, n);
+    PSEXP encl = Rf_allocVector(STRSXP, n);
+    PSEXP memb = Rf_allocVector(STRSXP, n);
+    PSEXP expr = Rf_allocVector(VECSXP, n);
+    PSEXP src  = Rf_allocVector(VECSXP, n);
 
     for(R_xlen_t i = 0; i < n; ++i)
     {
       const Match& m = matches[(std::size_t)i];
 
-      pSEXP iv = Rf_allocVector(INTSXP, (R_xlen_t)m.at.size());
+      PSEXP iv = Rf_allocVector(INTSXP, (R_xlen_t)m.at.size());
       for(R_xlen_t j = 0; j < (R_xlen_t)m.at.size(); ++j)
       {
         INTEGER(iv)[j] = m.at[(std::size_t)j];
@@ -130,7 +130,7 @@ public:
       SET_VECTOR_ELT(src,  i, m.src);
     }
 
-    pSEXP out = Rf_allocVector(VECSXP, 7);
+    PSEXP out = Rf_allocVector(VECSXP, 7);
     SET_VECTOR_ELT(out, 0, at);
     SET_VECTOR_ELT(out, 1, type);
     SET_VECTOR_ELT(out, 2, oper);
@@ -139,7 +139,7 @@ public:
     SET_VECTOR_ELT(out, 5, expr);
     SET_VECTOR_ELT(out, 6, src);
 
-    pSEXP names = Rf_allocVector(STRSXP, 7);
+    PSEXP names = Rf_allocVector(STRSXP, 7);
     SET_STRING_ELT(names, 0, Rf_mkChar("at"));
     SET_STRING_ELT(names, 1, Rf_mkChar("type"));
     SET_STRING_ELT(names, 2, Rf_mkChar("oper"));
@@ -341,18 +341,18 @@ public:
   SEXP toList() override
   {
     const R_xlen_t len = (R_xlen_t)missings.size();
-    pSEXP var = Rf_allocVector(STRSXP, len);
-    pSEXP src = Rf_allocVector(VECSXP, len);
+    PSEXP var = Rf_allocVector(STRSXP, len);
+    PSEXP src = Rf_allocVector(VECSXP, len);
     for(R_xlen_t i = 0; i < len; ++i)
     {
       Missing& m = missings[i];
       SET_STRING_ELT(var, i, Rf_asChar(m.var));
       SET_VECTOR_ELT(src, i, m.src);
     }
-    pSEXP out = Rf_allocVector(VECSXP, 2);
+    PSEXP out = Rf_allocVector(VECSXP, 2);
     SET_VECTOR_ELT(out, 0, var);
     SET_VECTOR_ELT(out, 1, src);
-    pSEXP nms = Rf_allocVector(STRSXP, 2);
+    PSEXP nms = Rf_allocVector(STRSXP, 2);
     SET_STRING_ELT(nms, 0, Rf_mkChar("var"));
     SET_STRING_ELT(nms, 1, Rf_mkChar("src"));
     Rf_setAttrib(out, R_NamesSymbol, nms);
@@ -436,7 +436,7 @@ private:
       }
       else if(pkg.is(CAR(e)))
       {
-        pSEXP expr = Rf_lang2(quo.get("quote"), CADR(e));
+        PSEXP expr = Rf_lang2(quo.get("quote"), CADR(e));
         expr = Rf_lang2(Rf_install("getNamespace"), expr);
         int err;
         R_tryEval(expr, R_GlobalEnv, &err);

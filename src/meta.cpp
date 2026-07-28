@@ -115,7 +115,7 @@ SEXP OoprMeta::subName(const std::string& access, const bool& inverse)
     if(inverse)  match = !match;
     if(match)    names.push_back(getStr("names", i));
   }
-  pSEXP out = Rf_allocVector(STRSXP, names.size());
+  PSEXP out = Rf_allocVector(STRSXP, names.size());
   for(int i = 0; i < (int)names.size(); ++i)
   {
     SET_STRING_ELT(out, i, Rf_mkChar(names[i].c_str()));

@@ -26,9 +26,9 @@ public:
   class exception : public std::runtime_error
   {
   public:
-    exception(pSEXP& cont);
+    exception(PSEXP& cont);
     ~exception();
-    pSEXP cont;
+    PSEXP cont;
     const char* what() const noexcept;
   };
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //

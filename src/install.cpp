@@ -126,7 +126,7 @@ private:
     SEXP name  = meta.name(i);
     SEXP thiz  = R_getVar(sym["this"], encl, FALSE);
     SEXP thizI = R_getVar(sym["this"], enclI, FALSE);
-    pSEXP fun;
+    PSEXP fun;
     if(!Rf_isEnvironment(thiz)) return;
     if(!Rf_isEnvironment(thizI)) return;
     if(meta.isMethod(i))

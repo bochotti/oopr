@@ -14,7 +14,7 @@ void RUnWind::clean(void* data, Rboolean jump)
 {
   if(jump)
   {
-    pSEXP cont = std::move(*static_cast<pSEXP*>(data));
+    PSEXP cont = std::move(*static_cast<PSEXP*>(data));
     throw exception(cont);
   }
 }
@@ -23,13 +23,13 @@ void RUnWind::clean(void* data, Rboolean jump)
 SEXP RUnWind::eval(SEXP expr, SEXP envir)
 {
   Data data{expr, envir};
-  pSEXP cont = R_MakeUnwindCont();
+  PSEXP cont = R_MakeUnwindCont();
   return R_UnwindProtect(fun, &data, clean, &cont, cont);
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-RUnWind::exception::exception(pSEXP& cont)
+RUnWind::exception::exception(PSEXP& cont)
   : runtime_error("")
   , cont(std::move(cont))
 { }

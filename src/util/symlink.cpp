@@ -36,14 +36,14 @@ SEXP symlinkR(SEXP tenv, SEXP tname, SEXP env, SEXP name, bool check)
     Rf_error("`name` already exists in `env`");
   }
 
-  pSEXP x   = Rf_install("x");
-  pSEXP arg = Rf_allocList(1); SET_TAG(arg, x); SETCAR(arg, R_MissingArg);
-  pSEXP bdy = Rf_lang4(
+  PSEXP x   = Rf_install("x");
+  PSEXP arg = Rf_allocList(1); SET_TAG(arg, x); SETCAR(arg, R_MissingArg);
+  PSEXP bdy = Rf_lang4(
     Rf_install("if"), Rf_lang2(Rf_install("missing"), x)
    ,Rf_lang3(Rf_install("$"), tname, name)
    ,Rf_lang3(Rf_install("<-"), Rf_lang3(Rf_install("$"), tname, name), x)
   );
-  pSEXP fun = R_mkClosure(arg, bdy, R_ParentEnv(tenv));
+  PSEXP fun = R_mkClosure(arg, bdy, R_ParentEnv(tenv));
   R_MakeActiveBinding(name, fun, env);
   return Rf_ScalarLogical(1);
 }

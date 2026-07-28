@@ -48,7 +48,7 @@ public:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   SEXP toList()
   {
-    pSEXP out = Rf_allocVector(VECSXP, (R_xlen_t)instances_.size());
+    PSEXP out = Rf_allocVector(VECSXP, (R_xlen_t)instances_.size());
     for(std::size_t i = 0; i < instances_.size(); ++i)
     {
       SET_VECTOR_ELT(out, (R_xlen_t)i, instances_[i]);
@@ -70,7 +70,7 @@ private:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   std::string getEnvName(SEXP x)
   {
-    pSEXP call = Rf_lang2(sym["format.default"], x);
+    PSEXP call = Rf_lang2(sym["format.default"], x);
     return CHAR(STRING_ELT(Rf_eval(call, R_BaseEnv), 0));
   }
 

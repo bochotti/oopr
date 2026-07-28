@@ -447,12 +447,12 @@ stop:
   SEXP toList()
   {
     const R_xlen_t len = matches.size();
-    pSEXP out = Rf_allocVector(VECSXP, len);
+    PSEXP out = Rf_allocVector(VECSXP, len);
 
     for(R_xlen_t i = 0; i < len; ++i)
     {
       Match m = matches[i];
-      pSEXP v;
+      PSEXP v;
       if(m.stt >= 0 && m.end >= 0)
       {
         v = Rf_allocVector(VECSXP, 3);

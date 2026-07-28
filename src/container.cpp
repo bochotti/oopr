@@ -17,8 +17,8 @@ public:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   SEXP makeArgs()
   {
-    pSEXP a= map_ ? R_MissingArg : Rf_lang3(sym["$"], sym["this"], sym["size"]);
-    pSEXP args = Rf_cons(a, args_);
+    PSEXP a= map_ ? R_MissingArg : Rf_lang3(sym["$"], sym["this"], sym["size"]);
+    PSEXP args = Rf_cons(a, args_);
     SET_TAG(args, sym["."]);
     return args;
   }
@@ -26,21 +26,21 @@ public:
   SEXP makeBody()
   {
     const R_xlen_t len = Rf_xlength(args_);
-    pSEXP sub = Rf_allocVector(VECSXP, len);
+    PSEXP sub = Rf_allocVector(VECSXP, len);
     R_xlen_t i = 0;
     for(SEXP e = args_; e != R_NilValue; e = CDR(e), ++i)
     {
       SET_VECTOR_ELT(sub, i, TAG(e));
     }
-    pSEXP env = R_NewEnv(R_EmptyEnv, 1, 1);
+    PSEXP env = R_NewEnv(R_EmptyEnv, 1, 1);
     Rf_defineVar(sym["args"], sub, env);
-    pSEXP expr = Rf_lang3(sym["substitute"], R_ClosureExpr(fun_), env);
+    PSEXP expr = Rf_lang3(sym["substitute"], R_ClosureExpr(fun_), env);
     return Rf_eval(expr, R_BaseEnv);
   }
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   SEXP replace()
   {
-    pSEXP fun = R_mkClosure(makeArgs(), makeBody(), R_ClosureEnv(fun_));
+    PSEXP fun = R_mkClosure(makeArgs(), makeBody(), R_ClosureEnv(fun_));
     bool lock = R_BindingIsLocked(sym["emplace"], thiz_);
     R_unLockBinding(sym["emplace"], thiz_);
     Rf_defineVar(sym["emplace"], fun, thiz_);
