@@ -759,3 +759,4 @@ being removed.
 }
 
 \keyword{.Rbuildignore}
+\keyword{internal}

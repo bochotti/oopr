@@ -77,7 +77,7 @@ class(this) <- c("oopr_this", "oopr");
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @name OoprCompletion
 #' @title Completion for oopr internals
-#' @keywords .Rbuildignore
+#' @keywords internal .Rbuildignore
 #' @aliases NULL
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 NULL
