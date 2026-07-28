@@ -13,6 +13,8 @@ OoprCovr()
 \newcommand{\lbr}{\if{latex}{\out{\hspace{0em}\newline{}}}}
 \newcommand{\hr}{\if{html}{\out{<hr>}}\if{latex}{\out{\hrule\vspace{0.5em}}}}
 \newcommand{\rc}{\if{html}{\out{<pre><code class="language-R">}}#1\if{html}{\out{</code></pre>}}}
+\newcommand{\ht}{\if{html}{\out{<a id="#1" style="display:block;position:relative;top:-40px;"></a>}}\if{latex}{\out{\belowpdfbookmark{#2}{#1}\hypertarget{#1}{}}}}
+\newcommand{\hl}{\if{html}{\out{<a href="##1">#2</a>}}\if{latex}{\out{\hyperlink{#1}{#2}}}}
 \newcommand{\ar}{\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}}
 \if{latex}{\out{
 \ExplSyntaxOn
@@ -36,7 +38,7 @@ OoprCovr()
 }}
 
 \describe{
-\item{\code{OoprCovr}}{
+\item{\code{\hl{oopr_covr-OoprCovr}{OoprCovr}}}{
 \emph{\verb{[0 fields]}} \emph{\verb{[1 method]}}}
 }
 
@@ -49,17 +51,17 @@ single class.
 For package coverage, write code to initialize this class inside
 \code{./tests/testthat/setup.R}
 }
-\section{\hr\hr{}OoprCovr}{
+\section{\ht{oopr_covr-OoprCovr}{OoprCovr}\hr\hr{}OoprCovr}{
 
 \subsection{Methods}{
 \describe{
-\item{\code{class}}{
+\item{\code{\hl{oopr_covr-OoprCovr-class}{class}}}{
 \emph{\verb{[static]}} \cr
 Test a single class.}
 }
 }
 
-\subsection{\hr{}\code{class}}{
+\subsection{\code{\ht{oopr_covr-OoprCovr-class}{class}}\hr{}class}{
 \subsection{Description}{
 \lbr{}Test a single class.
 }

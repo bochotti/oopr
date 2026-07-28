@@ -15,6 +15,8 @@ OoprSourceTry(file = NULL, text = NULL, row = NULL, col = NULL)
 \newcommand{\lbr}{\if{latex}{\out{\hspace{0em}\newline{}}}}
 \newcommand{\hr}{\if{html}{\out{<hr>}}\if{latex}{\out{\hrule\vspace{0.5em}}}}
 \newcommand{\rc}{\if{html}{\out{<pre><code class="language-R">}}#1\if{html}{\out{</code></pre>}}}
+\newcommand{\ht}{\if{html}{\out{<a id="#1" style="display:block;position:relative;top:-40px;"></a>}}\if{latex}{\out{\belowpdfbookmark{#2}{#1}\hypertarget{#1}{}}}}
+\newcommand{\hl}{\if{html}{\out{<a href="##1">#2</a>}}\if{latex}{\out{\hyperlink{#1}{#2}}}}
 \newcommand{\ar}{\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}}
 \if{latex}{\out{
 \ExplSyntaxOn
@@ -38,11 +40,11 @@ OoprSourceTry(file = NULL, text = NULL, row = NULL, col = NULL)
 }}
 
 \describe{
-\item{\code{OoprSource}}{
+\item{\code{\hl{OoprSource-OoprSource}{OoprSource}}}{
 \emph{\verb{[8 fields]}} \emph{\verb{[2 methods]}}\cr
 Takes a file and parses the oopr definitions inside it.}
 
-\item{\code{OoprSourceTry}}{
+\item{\code{\hl{OoprSource-OoprSourceTry}{OoprSourceTry}}}{
 \emph{\verb{[9 fields]}} \emph{\verb{[2 methods]}}\cr
 Tries to parse and evaluate a file containing ooprs, intended for
 completion.}
@@ -52,7 +54,7 @@ completion.}
 \description{
 Source files for oopr
 }
-\section{\hr\hr{}OoprSource}{
+\section{\ht{OoprSource-OoprSource}{OoprSource}\hr\hr{}OoprSource}{
 
 \subsection{Description}{
 \lbr{}Takes a file and parses the oopr definitions inside it.
@@ -101,15 +103,15 @@ is at that location.}
 
 \subsection{Methods}{
 \describe{
-\item{\code{parse}}{
+\item{\code{\hl{OoprSource-OoprSource-parse}{parse}}}{
 \lbr{}Parse \verb{$file} or \verb{$text}.}
 
-\item{\code{eval}}{
+\item{\code{\hl{OoprSource-OoprSource-eval}{eval}}}{
 \lbr{}Evaluate the \code{oopr}s in \verb{$defs}.}
 }
 }
 
-\subsection{\hr{}\code{parse}}{
+\subsection{\code{\ht{OoprSource-OoprSource-parse}{parse}}\hr{}parse}{
 \subsection{Description}{
 \lbr{}Parse \verb{$file} or \verb{$text}.
 }
@@ -128,7 +130,7 @@ object.
 }
 }
 
-\subsection{\hr{}\code{eval}}{
+\subsection{\code{\ht{OoprSource-OoprSource-eval}{eval}}\hr{}eval}{
 \subsection{Description}{
 \lbr{}Evaluate the \code{oopr}s in \verb{$defs}.
 }
@@ -153,7 +155,7 @@ An environment to be the top-level of the \code{oopr} objects.}
 }
 }
 
-\section{\hr\hr{}OoprSourceTry}{
+\section{\ht{OoprSource-OoprSourceTry}{OoprSourceTry}\hr\hr{}OoprSourceTry}{
 
 \subsection{Description}{
 \lbr{}Tries to parse and evaluate a file containing ooprs, intended for
@@ -208,15 +210,15 @@ is at that location.}
 
 \subsection{Methods}{
 \describe{
-\item{\code{parse}}{
+\item{\code{\hl{OoprSource-OoprSourceTry-parse}{parse}}}{
 \lbr{}Try to parse the file.}
 
-\item{\code{eval}}{
+\item{\code{\hl{OoprSource-OoprSourceTry-eval}{eval}}}{
 \lbr{}Evaluate the \code{oopr}s in \verb{$defs}.}
 }
 }
 
-\subsection{\hr{}\code{parse}}{
+\subsection{\code{\ht{OoprSource-OoprSourceTry-parse}{parse}}\hr{}parse}{
 \subsection{Description}{
 \lbr{}Try to parse the file.
 }
@@ -248,7 +250,7 @@ class members are not reference checked.
 }
 }
 
-\subsection{\hr{}\code{eval}}{
+\subsection{\code{\ht{OoprSource-OoprSourceTry-eval}{eval}}\hr{}eval}{
 \subsection{Description}{
 \lbr{}Evaluate the \code{oopr}s in \verb{$defs}.
 }

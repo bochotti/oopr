@@ -9,6 +9,8 @@
   
 * Lists of members in roxygen documentation include some specifiers.
 
+* Hyperlinks to jump to class sections and their methods.
+
 * Non-documented fields are now be copied from constructor `@param`.
 
 * Ability to document protected members.

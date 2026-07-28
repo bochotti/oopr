@@ -31,6 +31,8 @@ The package that the class lives in.}
 \newcommand{\lbr}{\if{latex}{\out{\hspace{0em}\newline{}}}}
 \newcommand{\hr}{\if{html}{\out{<hr>}}\if{latex}{\out{\hrule\vspace{0.5em}}}}
 \newcommand{\rc}{\if{html}{\out{<pre><code class="language-R">}}#1\if{html}{\out{</code></pre>}}}
+\newcommand{\ht}{\if{html}{\out{<a id="#1" style="display:block;position:relative;top:-40px;"></a>}}\if{latex}{\out{\belowpdfbookmark{#2}{#1}\hypertarget{#1}{}}}}
+\newcommand{\hl}{\if{html}{\out{<a href="##1">#2</a>}}\if{latex}{\out{\hyperlink{#1}{#2}}}}
 \newcommand{\ar}{\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}}
 \if{latex}{\out{
 \ExplSyntaxOn
@@ -54,19 +56,19 @@ The package that the class lives in.}
 }}
 
 \describe{
-\item{\code{OoprCompletionSource}}{
+\item{\code{\hl{OoprCompletion-OoprCompletionSource}{OoprCompletionSource}}}{
 \emph{\verb{[10 fields]}} \emph{\verb{[5 methods]}}\cr
 A virtual class that can be inherited to use as a completion identifier.}
 
-\item{\code{OoprCompletionRStudio}}{
+\item{\code{\hl{OoprCompletion-OoprCompletionRStudio}{OoprCompletionRStudio}}}{
 \emph{\verb{[10 fields]}} \emph{\verb{[5 methods]}}\cr
 Use completion in RStudio.}
 
-\item{\code{OoprCompletion}}{
+\item{\code{\hl{OoprCompletion-OoprCompletion}{OoprCompletion}}}{
 \emph{\verb{[3 fields]}} \emph{\verb{[3 methods]}}\cr
 Use completion.}
 
-\item{\code{OoprRd}}{
+\item{\code{\hl{OoprCompletion-OoprRd}{OoprRd}}}{
 \emph{\verb{[4 fields]}} \emph{\verb{[3 methods]}}\cr
 Read the Rd (documentation) of an \code{oopr} class.}
 }
@@ -75,7 +77,7 @@ Read the Rd (documentation) of an \code{oopr} class.}
 \description{
 Completion for oopr internals
 }
-\section{\hr\hr{}OoprCompletionSource}{
+\section{\ht{OoprCompletion-OoprCompletionSource}{OoprCompletionSource}\hr\hr{}OoprCompletionSource}{
 
 \subsection{Description}{
 \lbr{}A virtual class that can be inherited to use as a completion identifier.
@@ -134,27 +136,27 @@ is at that location.}
 
 \subsection{Methods}{
 \describe{
-\item{\code{isAvailable}}{
+\item{\code{\hl{OoprCompletion-OoprCompletionSource-isAvailable}{isAvailable}}}{
 \emph{\verb{[virtual]}} \cr
 Check if the call is currently a completion.}
 
-\item{\code{load}}{
+\item{\code{\hl{OoprCompletion-OoprCompletionSource-load}{load}}}{
 \emph{\verb{[final]}} \cr
 Load the completion context into the class.}
 
-\item{\code{source}}{
+\item{\code{\hl{OoprCompletion-OoprCompletionSource-source}{source}}}{
 \emph{\verb{[final]}} \cr
 Source the file being completed.}
 
-\item{\code{parse}}{
+\item{\code{\hl{OoprCompletion-OoprCompletionSource-parse}{parse}}}{
 \lbr{}Try to parse the file.}
 
-\item{\code{eval}}{
+\item{\code{\hl{OoprCompletion-OoprCompletionSource-eval}{eval}}}{
 \lbr{}Evaluate the \code{oopr}s in \verb{$defs}.}
 }
 }
 
-\subsection{\hr{}\code{isAvailable}}{
+\subsection{\code{\ht{OoprCompletion-OoprCompletionSource-isAvailable}{isAvailable}}\hr{}isAvailable}{
 \subsection{Description}{
 \lbr{}Check if the call is currently a completion.
 }
@@ -174,7 +176,7 @@ method.
 }
 }
 
-\subsection{\hr{}\code{load}}{
+\subsection{\code{\ht{OoprCompletion-OoprCompletionSource-load}{load}}\hr{}load}{
 \subsection{Description}{
 \lbr{}Load the completion context into the class.
 }
@@ -214,7 +216,7 @@ Text cursor position of column on the line, indexed by 1.}
 }
 }
 
-\subsection{\hr{}\code{source}}{
+\subsection{\code{\ht{OoprCompletion-OoprCompletionSource-source}{source}}\hr{}source}{
 \subsection{Description}{
 \lbr{}Source the file being completed.
 }
@@ -232,7 +234,7 @@ Text cursor position of column on the line, indexed by 1.}
 }
 }
 
-\subsection{\hr{}\code{parse}}{
+\subsection{\code{\ht{OoprCompletion-OoprCompletionSource-parse}{parse}}\hr{}parse}{
 \subsection{Description}{
 \lbr{}Try to parse the file.
 }
@@ -264,7 +266,7 @@ class members are not reference checked.
 }
 }
 
-\subsection{\hr{}\code{eval}}{
+\subsection{\code{\ht{OoprCompletion-OoprCompletionSource-eval}{eval}}\hr{}eval}{
 \subsection{Description}{
 \lbr{}Evaluate the \code{oopr}s in \verb{$defs}.
 }
@@ -289,7 +291,7 @@ An environment to be the top-level of the \code{oopr} objects.}
 }
 }
 
-\section{\hr\hr{}OoprCompletionRStudio}{
+\section{\ht{OoprCompletion-OoprCompletionRStudio}{OoprCompletionRStudio}\hr\hr{}OoprCompletionRStudio}{
 
 \subsection{Description}{
 \lbr{}Use completion in RStudio.
@@ -348,27 +350,27 @@ is at that location.}
 
 \subsection{Methods}{
 \describe{
-\item{\code{isAvailable}}{
+\item{\code{\hl{OoprCompletion-OoprCompletionRStudio-isAvailable}{isAvailable}}}{
 \emph{\verb{[virtual]}} \cr
 Pull information from the \code{.rs.rpc_get_completions} call.}
 
-\item{\code{load}}{
+\item{\code{\hl{OoprCompletion-OoprCompletionRStudio-load}{load}}}{
 \emph{\verb{[final]}} \cr
 Load the completion context into the class.}
 
-\item{\code{source}}{
+\item{\code{\hl{OoprCompletion-OoprCompletionRStudio-source}{source}}}{
 \emph{\verb{[final]}} \cr
 Source the file being completed.}
 
-\item{\code{parse}}{
+\item{\code{\hl{OoprCompletion-OoprCompletionRStudio-parse}{parse}}}{
 \lbr{}Try to parse the file.}
 
-\item{\code{eval}}{
+\item{\code{\hl{OoprCompletion-OoprCompletionRStudio-eval}{eval}}}{
 \lbr{}Evaluate the \code{oopr}s in \verb{$defs}.}
 }
 }
 
-\subsection{\hr{}\code{isAvailable}}{
+\subsection{\code{\ht{OoprCompletion-OoprCompletionRStudio-isAvailable}{isAvailable}}\hr{}isAvailable}{
 \subsection{Description}{
 \lbr{}Pull information from the \code{.rs.rpc_get_completions} call.
 }
@@ -387,7 +389,7 @@ the file path, row and column.
 }
 }
 
-\subsection{\hr{}\code{load}}{
+\subsection{\code{\ht{OoprCompletion-OoprCompletionRStudio-load}{load}}\hr{}load}{
 \subsection{Description}{
 \lbr{}Load the completion context into the class.
 }
@@ -427,7 +429,7 @@ Text cursor position of column on the line, indexed by 1.}
 }
 }
 
-\subsection{\hr{}\code{source}}{
+\subsection{\code{\ht{OoprCompletion-OoprCompletionRStudio-source}{source}}\hr{}source}{
 \subsection{Description}{
 \lbr{}Source the file being completed.
 }
@@ -445,7 +447,7 @@ Text cursor position of column on the line, indexed by 1.}
 }
 }
 
-\subsection{\hr{}\code{parse}}{
+\subsection{\code{\ht{OoprCompletion-OoprCompletionRStudio-parse}{parse}}\hr{}parse}{
 \subsection{Description}{
 \lbr{}Try to parse the file.
 }
@@ -477,7 +479,7 @@ class members are not reference checked.
 }
 }
 
-\subsection{\hr{}\code{eval}}{
+\subsection{\code{\ht{OoprCompletion-OoprCompletionRStudio-eval}{eval}}\hr{}eval}{
 \subsection{Description}{
 \lbr{}Evaluate the \code{oopr}s in \verb{$defs}.
 }
@@ -502,7 +504,7 @@ An environment to be the top-level of the \code{oopr} objects.}
 }
 }
 
-\section{\hr\hr{}OoprCompletion}{
+\section{\ht{OoprCompletion-OoprCompletion}{OoprCompletion}\hr\hr{}OoprCompletion}{
 
 \subsection{Description}{
 \lbr{}Use completion.
@@ -544,18 +546,18 @@ sought.}
 
 \subsection{Methods}{
 \describe{
-\item{\code{isCompletion}}{
+\item{\code{\hl{OoprCompletion-OoprCompletion-isCompletion}{isCompletion}}}{
 \lbr{}Is completion being sought?}
 
-\item{\code{names}}{
+\item{\code{\hl{OoprCompletion-OoprCompletion-names}{names}}}{
 \lbr{}Get the dollar names of the completion context.}
 
-\item{\code{obj}}{
+\item{\code{\hl{OoprCompletion-OoprCompletion-obj}{obj}}}{
 \lbr{}Get the object of the completion context.}
 }
 }
 
-\subsection{\hr{}\code{isCompletion}}{
+\subsection{\code{\ht{OoprCompletion-OoprCompletion-isCompletion}{isCompletion}}\hr{}isCompletion}{
 \subsection{Description}{
 \lbr{}Is completion being sought?
 }
@@ -575,7 +577,7 @@ are within a completion context. If so, then the file is parsed,
 }
 }
 
-\subsection{\hr{}\code{names}}{
+\subsection{\code{\ht{OoprCompletion-OoprCompletion-names}{names}}\hr{}names}{
 \subsection{Description}{
 \lbr{}Get the dollar names of the completion context.
 }
@@ -589,7 +591,7 @@ are within a completion context. If so, then the file is parsed,
 }
 }
 
-\subsection{\hr{}\code{obj}}{
+\subsection{\code{\ht{OoprCompletion-OoprCompletion-obj}{obj}}\hr{}obj}{
 \subsection{Description}{
 \lbr{}Get the object of the completion context.
 }
@@ -608,7 +610,7 @@ are within a completion context. If so, then the file is parsed,
 }
 }
 
-\section{\hr\hr{}OoprRd}{
+\section{\ht{OoprCompletion-OoprRd}{OoprRd}\hr\hr{}OoprRd}{
 
 \subsection{Description}{
 \lbr{}Read the Rd (documentation) of an \code{oopr} class.
@@ -643,18 +645,18 @@ Whether the Rd was found and parsed at construction.}
 
 \subsection{Methods}{
 \describe{
-\item{\code{getDescription}}{
+\item{\code{\hl{OoprCompletion-OoprRd-getDescription}{getDescription}}}{
 \lbr{}Get the description of a field or method.}
 
-\item{\code{getMethod}}{
+\item{\code{\hl{OoprCompletion-OoprRd-getMethod}{getMethod}}}{
 \lbr{}Get the subsection of a method.}
 
-\item{\code{getArguments}}{
+\item{\code{\hl{OoprCompletion-OoprRd-getArguments}{getArguments}}}{
 \lbr{}Get the arguments of a method.}
 }
 }
 
-\subsection{\hr{}\code{getDescription}}{
+\subsection{\code{\ht{OoprCompletion-OoprRd-getDescription}{getDescription}}\hr{}getDescription}{
 \subsection{Description}{
 \lbr{}Get the description of a field or method.
 }
@@ -680,7 +682,7 @@ Whether to to output as HTML, otherwise \code{Rd}.}
 }
 }
 
-\subsection{\hr{}\code{getMethod}}{
+\subsection{\code{\ht{OoprCompletion-OoprRd-getMethod}{getMethod}}\hr{}getMethod}{
 \subsection{Description}{
 \lbr{}Get the subsection of a method.
 }
@@ -706,7 +708,7 @@ Whether to to output as HTML, otherwise \code{Rd}.}
 }
 }
 
-\subsection{\hr{}\code{getArguments}}{
+\subsection{\code{\ht{OoprCompletion-OoprRd-getArguments}{getArguments}}\hr{}getArguments}{
 \subsection{Description}{
 \lbr{}Get the arguments of a method.
 }

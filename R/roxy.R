@@ -89,11 +89,6 @@ roclet_output.roclet_oopr <- \(x, results, base_path, ...)
 #'
 #'   1.  `@internal` .Rbuildignore can be used to hide internals.
 #'
-#'   2.  Hyperlinks for each class section, and inside those further links
-#'       for methods.
-#'         - Class hyperlinks can be inside `Format` section.
-#'         - Would be useful to have a ↩ next to each heading.
-#'
 #'   3.  Try to constrain horizontal width for nested sections.
 #'
 #'   4.  Tidy up pdf
@@ -119,8 +114,11 @@ oopr("OoprRoxySection",,
 #'
 #' @param hr      `logical(1L)` \cr
 #'                Whether to add horizontal line to section heading.
+#'
+#' @param pfx     `character(1L)` \cr
+#'                To add a hyperref.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-OoprRoxySection <- \(title = "", content = character(0L), hr = FALSE)
+OoprRoxySection <- \(title = "", content = character(0L), hr = FALSE, pfx = "")
 {
   stopifnot(
     is.character(title)   && length(title) == 1L
@@ -130,6 +128,7 @@ OoprRoxySection <- \(title = "", content = character(0L), hr = FALSE)
   this$title_   <- title;
   this$content_ <- content;
   this$hr_      <- hr;
+  this$pfx_     <- pfx;
 }
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 public:
@@ -209,9 +208,20 @@ public:
       stop("$format must return a non-NA character vector");
     }
     title <- this$title_;
+    if(grepl("^`.*`$", title))
+    {
+      title <- sub("^`(.*?)`$", "\\\\sQuote{\\1}", title);
+    }
     if(this$hr_)
     {
       title <- sprintf("\\hr{}%s", title);
+    }
+    if(nzchar(this$pfx_))
+    {
+      title <- sprintf(
+        "\\code{\\ht{%s-%s}{%s}}%s"
+       ,this$pfx_, this$title_, this$title_, title
+      );
     }
     content <- paste(content, collapse = "\n\n");
     content <- sprintf("\\subsection{%s}{\n%s\n}", title, content);
@@ -238,6 +248,7 @@ private:
   title_   <- character(1L);
   content_ <- character(0L);
   hr_      <- logical(1L);
+  pfx_     <- character(1L);
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 }) ## OoprRoxySection
@@ -456,7 +467,7 @@ oopr("OoprRoxyMethod", public:OoprRoxySection,
 #' @param warn `logical(1L)` \cr
 #'             Whether warnings should display when missing tags.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-OoprRoxyMethod <- \(title, tags, fun, warn = TRUE, hr = TRUE)
+OoprRoxyMethod <- \(title, tags, fun, warn = TRUE, hr = TRUE, pfx = "")
 {
   stopifnot(
     is.list(tags) && all(vapply(tags, inherits, logical(1L), "roxy_tag"))
@@ -468,15 +479,7 @@ OoprRoxyMethod <- \(title, tags, fun, warn = TRUE, hr = TRUE)
   this$title_ <- title;
   this$warn_  <- warn;
 
-  if(grepl("^`.*`$", title))
-  {
-    title <- sprintf("`` %s ``", title);
-  }
-  else
-  {
-    title <- sprintf("`%s`", title);
-  }
-  OoprRoxySection(title, hr = hr);
+  OoprRoxySection(title, hr = hr, pfx = pfx);
 
   this$checkMissingTags(tags);
   this$insertArgsSection(tags);
@@ -696,6 +699,16 @@ public:
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @field rdname `character(1L)` \cr
+  #'               The name of the .Rd.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  get:rdname <- \( )
+  {
+    for(t in this$tags) if(match(t$tag, c("name", "rdname"), 0L)) return(t$val);
+    return(character(1L));
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   #' @field sections `OoprRoxySection` \cr
   #'                 The subsections inside the class section.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -762,12 +775,13 @@ public:
     names <- this$ooprC@meta$subs("names", names = names, method = TRUE);
     names <- this$wrapNames(names);
 
+    pfx <- sprintf("%s-%s", this$rdname, this$title);
     for(name in names)
     {
       tags   <- this$members_[[name]];
       tags   <- this$findInheritsTag(tags, name);
       fun    <- this$ooprC@encl$this[[this$unWrapNames(name)]];
-      method <- OoprRoxyMethod(name, tags, fun, this$warn_);
+      method <- OoprRoxyMethod(name, tags, fun, this$warn_, pfx = pfx);
       this$sections$insert(name, method);
 
       # add to list
@@ -783,6 +797,11 @@ public:
     if(methods$size)
     {
       this$addSpecifiersToDescribe(methods);
+      content <- methods$content;
+      names   <- methods$names;
+      names   <- sprintf("\\hl{%s-%s}{%s}", pfx, names, names);
+      methods$erase();
+      methods$insert(content, names);
     }
     else
     {
@@ -798,7 +817,10 @@ public:
   {
     content <- this$sections$apply(\(k, v) v$toRd());
     content <- paste(content, collapse = "\n\n");
-    content <- sprintf("\\hr\\hr{}%s:\n%s\n", this$title_, content);
+    content <- sprintf(
+      "\\ht{%s-%s}{%s}\\hr\\hr{}%s:\n%s\n"
+     ,this$rdname, this$title_, this$title_, this$title_, content
+    );
     if(!this$sections$exists("Methods"))
     {
       content <- sprintf("%s\\hr", content);
@@ -1171,6 +1193,12 @@ private:
        ,r"{\if{html}{\out{</code></pre>}}}"
       )
      ,newcmd(
+        "ht"
+       ,r"{<a id="#1" style="display:block;position:relative;top:-40px;"></a>}"
+       ,r"{\belowpdfbookmark{#2}{#1}\hypertarget{#1}{}}"
+      )
+     ,newcmd("hl", r"{<a href="##1">#2</a>}", r"{\hyperlink{#1}{#2}}")
+     ,newcmd(
         "ar"
        ,r"{<h3 class="r-arguments-title" style="display:none;"></h3>}"
        ,r"{\def\Tabular#1#2{\Tabularr{#1}{#2}}}"
@@ -1239,7 +1267,7 @@ private:
 
     # toc as a \describe list
     toc <- OoprRoxyDescribe("");
-    toc$insert(items, keys);
+    toc$insert(items, sprintf("\\hl{%s-%s}{%s}", topic$get_name(), keys, keys));
     toc <- toc$toRd();
     toc <- substr(toc, 15L, nchar(toc) - 1L);
 

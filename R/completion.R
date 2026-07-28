@@ -623,7 +623,12 @@ public:
       if(is.null(rd)) next;
       rd    <- rd[[this$whichTag("\\describe", rd)]];
       rd    <- rd[this$whichTag("\\item", rd)];
-      names <- vapply(rd, `[[`, character(1L), c(1L, 1L, 1L));
+      idx   <- c(1L, 1L, 1L);
+      if(type == "Methods")
+      {
+        idx[[length(idx) + 1L]] <- 3L;
+      }
+      names <- vapply(rd, `[[`, character(1L), idx);
       m     <- match(name, names, 0L);
       if(m) break;
     }
@@ -648,7 +653,6 @@ public:
   getMethod <- \(name, html = FALSE)
   {
     if(this$fail) return("");
-    name <- this$wrapNames(name);
     rd <- this$pullSection(name);
     if(is.null(rd)) return("");
     if(html)

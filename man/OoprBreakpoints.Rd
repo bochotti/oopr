@@ -35,6 +35,8 @@ package namespace or the global environment.}
 \newcommand{\lbr}{\if{latex}{\out{\hspace{0em}\newline{}}}}
 \newcommand{\hr}{\if{html}{\out{<hr>}}\if{latex}{\out{\hrule\vspace{0.5em}}}}
 \newcommand{\rc}{\if{html}{\out{<pre><code class="language-R">}}#1\if{html}{\out{</code></pre>}}}
+\newcommand{\ht}{\if{html}{\out{<a id="#1" style="display:block;position:relative;top:-40px;"></a>}}\if{latex}{\out{\belowpdfbookmark{#2}{#1}\hypertarget{#1}{}}}}
+\newcommand{\hl}{\if{html}{\out{<a href="##1">#2</a>}}\if{latex}{\out{\hyperlink{#1}{#2}}}}
 \newcommand{\ar}{\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}}
 \if{latex}{\out{
 \ExplSyntaxOn
@@ -58,19 +60,19 @@ package namespace or the global environment.}
 }}
 
 \describe{
-\item{\code{OoprBreakpointsFunction}}{
+\item{\code{\hl{OoprBreakpoints-OoprBreakpointsFunction}{OoprBreakpointsFunction}}}{
 \emph{\verb{[7 fields]}} \emph{\verb{[4 methods]}}\cr
 Represents a function object inside a class.}
 
-\item{\code{OoprBreakpointsClass}}{
+\item{\code{\hl{OoprBreakpoints-OoprBreakpointsClass}{OoprBreakpointsClass}}}{
 \emph{\verb{[3 fields]}} \emph{\verb{[4 methods]}}\cr
 Represents a class inside a file.}
 
-\item{\code{OoprBreakpointsFile}}{
+\item{\code{\hl{OoprBreakpoints-OoprBreakpointsFile}{OoprBreakpointsFile}}}{
 \emph{\verb{[3 fields]}} \emph{\verb{[5 methods]}}\cr
 Represents a source file that contains \code{oopr} classes.}
 
-\item{\code{OoprBreakpoints}}{
+\item{\code{\hl{OoprBreakpoints-OoprBreakpoints}{OoprBreakpoints}}}{
 \emph{\verb{[1 field]}} \emph{\verb{[5 methods]}}\cr
 The controller of the breakpoints. Process of setting a breakpoint is:
 \enumerate{
@@ -90,7 +92,7 @@ function name.}
 \description{
 Breakpoint Internals
 }
-\section{\hr\hr{}OoprBreakpointsFunction}{
+\section{\ht{OoprBreakpoints-OoprBreakpointsFunction}{OoprBreakpointsFunction}\hr\hr{}OoprBreakpointsFunction}{
 
 \subsection{Description}{
 \lbr{}Represents a function object inside a class.
@@ -137,21 +139,21 @@ Line numbers of each call to \verb{$getSteps}.}
 
 \subsection{Methods}{
 \describe{
-\item{\code{isInSync}}{
+\item{\code{\hl{OoprBreakpoints-OoprBreakpointsFunction-isInSync}{isInSync}}}{
 \lbr{}Check whether \verb{$srcref} matches the source file.}
 
-\item{\code{hasLine}}{
+\item{\code{\hl{OoprBreakpoints-OoprBreakpointsFunction-hasLine}{hasLine}}}{
 \lbr{}Check whether a line number is inside the function.}
 
-\item{\code{getSteps}}{
+\item{\code{\hl{OoprBreakpoints-OoprBreakpointsFunction-getSteps}{getSteps}}}{
 \lbr{}Get the steps of the function required to reach a line number.}
 
-\item{\code{setBreakpoints}}{
+\item{\code{\hl{OoprBreakpoints-OoprBreakpointsFunction-setBreakpoints}{setBreakpoints}}}{
 \lbr{}Set breakpoints inside the class, and any class instances.}
 }
 }
 
-\subsection{\hr{}\code{isInSync}}{
+\subsection{\code{\ht{OoprBreakpoints-OoprBreakpointsFunction-isInSync}{isInSync}}\hr{}isInSync}{
 \subsection{Description}{
 \lbr{}Check whether \verb{$srcref} matches the source file.
 }
@@ -169,7 +171,7 @@ Line numbers of each call to \verb{$getSteps}.}
 }
 }
 
-\subsection{\hr{}\code{hasLine}}{
+\subsection{\code{\ht{OoprBreakpoints-OoprBreakpointsFunction-hasLine}{hasLine}}\hr{}hasLine}{
 \subsection{Description}{
 \lbr{}Check whether a line number is inside the function.
 }
@@ -189,7 +191,7 @@ The line number.}
 }
 }
 
-\subsection{\hr{}\code{getSteps}}{
+\subsection{\code{\ht{OoprBreakpoints-OoprBreakpointsFunction-getSteps}{getSteps}}\hr{}getSteps}{
 \subsection{Description}{
 \lbr{}Get the steps of the function required to reach a line number.
 }
@@ -215,7 +217,7 @@ function, e.g. \code{body(fun)[[steps]]}.
 }
 }
 
-\subsection{\hr{}\code{setBreakpoints}}{
+\subsection{\code{\ht{OoprBreakpoints-OoprBreakpointsFunction-setBreakpoints}{setBreakpoints}}\hr{}setBreakpoints}{
 \subsection{Description}{
 \lbr{}Set breakpoints inside the class, and any class instances.
 }
@@ -243,7 +245,7 @@ their depth of nesting so \code{trace} doesn't overwrite its own breakpoints.
 }
 }
 
-\section{\hr\hr{}OoprBreakpointsClass}{
+\section{\ht{OoprBreakpoints-OoprBreakpointsClass}{OoprBreakpointsClass}\hr\hr{}OoprBreakpointsClass}{
 
 \subsection{Description}{
 \lbr{}Represents a class inside a file.
@@ -269,21 +271,21 @@ An array of each function inside the class.}
 
 \subsection{Methods}{
 \describe{
-\item{\code{has}}{
+\item{\code{\hl{OoprBreakpoints-OoprBreakpointsClass-has}{has}}}{
 \lbr{}Check if the class contains a function and/or a line.}
 
-\item{\code{isInSync}}{
+\item{\code{\hl{OoprBreakpoints-OoprBreakpointsClass-isInSync}{isInSync}}}{
 \lbr{}Check if a function is in sync.}
 
-\item{\code{getSteps}}{
+\item{\code{\hl{OoprBreakpoints-OoprBreakpointsClass-getSteps}{getSteps}}}{
 \lbr{}Get the steps required to get to a line in a function.}
 
-\item{\code{setBreakpoints}}{
+\item{\code{\hl{OoprBreakpoints-OoprBreakpointsClass-setBreakpoints}{setBreakpoints}}}{
 \lbr{}Set breakpoints inside the class, and any class instances.}
 }
 }
 
-\subsection{\hr{}\code{has}}{
+\subsection{\code{\ht{OoprBreakpoints-OoprBreakpointsClass-has}{has}}\hr{}has}{
 \subsection{Description}{
 \lbr{}Check if the class contains a function and/or a line.
 }
@@ -305,7 +307,7 @@ Optionally, a line that the function should contain.}
 }
 }
 
-\subsection{\hr{}\code{isInSync}}{
+\subsection{\code{\ht{OoprBreakpoints-OoprBreakpointsClass-isInSync}{isInSync}}\hr{}isInSync}{
 \subsection{Description}{
 \lbr{}Check if a function is in sync.
 }
@@ -329,7 +331,7 @@ The name of the function.}
 }
 }
 
-\subsection{\hr{}\code{getSteps}}{
+\subsection{\code{\ht{OoprBreakpoints-OoprBreakpointsClass-getSteps}{getSteps}}\hr{}getSteps}{
 \subsection{Description}{
 \lbr{}Get the steps required to get to a line in a function.
 }
@@ -360,7 +362,7 @@ found, then \code{list()} is returned.
 }
 }
 
-\subsection{\hr{}\code{setBreakpoints}}{
+\subsection{\code{\ht{OoprBreakpoints-OoprBreakpointsClass-setBreakpoints}{setBreakpoints}}\hr{}setBreakpoints}{
 \subsection{Description}{
 \lbr{}Set breakpoints inside the class, and any class instances.
 }
@@ -392,7 +394,7 @@ their depth of nesting so \code{trace} doesn't overwrite its own breakpoints.
 }
 }
 
-\section{\hr\hr{}OoprBreakpointsFile}{
+\section{\ht{OoprBreakpoints-OoprBreakpointsFile}{OoprBreakpointsFile}\hr\hr{}OoprBreakpointsFile}{
 
 \subsection{Description}{
 \lbr{}Represents a source file that contains \code{oopr} classes.
@@ -418,24 +420,24 @@ The classes defined inside the source file.}
 
 \subsection{Methods}{
 \describe{
-\item{\code{syncClassesWithFile}}{
+\item{\code{\hl{OoprBreakpoints-OoprBreakpointsFile-syncClassesWithFile}{syncClassesWithFile}}}{
 \lbr{}Check if the source file has been modified, if so reload the classes.}
 
-\item{\code{has}}{
+\item{\code{\hl{OoprBreakpoints-OoprBreakpointsFile-has}{has}}}{
 \lbr{}Check if any class inside the file contains a function and/or a line.}
 
-\item{\code{isInSync}}{
+\item{\code{\hl{OoprBreakpoints-OoprBreakpointsFile-isInSync}{isInSync}}}{
 \lbr{}Check if a function is in sync.}
 
-\item{\code{getSteps}}{
+\item{\code{\hl{OoprBreakpoints-OoprBreakpointsFile-getSteps}{getSteps}}}{
 \lbr{}Get the steps of multiple lines across the file.}
 
-\item{\code{setBreakpoints}}{
+\item{\code{\hl{OoprBreakpoints-OoprBreakpointsFile-setBreakpoints}{setBreakpoints}}}{
 \lbr{}Set breakpoints for a function across classes.}
 }
 }
 
-\subsection{\hr{}\code{syncClassesWithFile}}{
+\subsection{\code{\ht{OoprBreakpoints-OoprBreakpointsFile-syncClassesWithFile}{syncClassesWithFile}}\hr{}syncClassesWithFile}{
 \subsection{Description}{
 \lbr{}Check if the source file has been modified, if so reload the classes.
 }
@@ -456,7 +458,7 @@ package namespace or the global environment.}
 }
 }
 
-\subsection{\hr{}\code{has}}{
+\subsection{\code{\ht{OoprBreakpoints-OoprBreakpointsFile-has}{has}}\hr{}has}{
 \subsection{Description}{
 \lbr{}Check if any class inside the file contains a function and/or a line.
 }
@@ -480,7 +482,7 @@ more than one \code{TRUE}.
 }
 }
 
-\subsection{\hr{}\code{isInSync}}{
+\subsection{\code{\ht{OoprBreakpoints-OoprBreakpointsFile-isInSync}{isInSync}}\hr{}isInSync}{
 \subsection{Description}{
 \lbr{}Check if a function is in sync.
 }
@@ -504,7 +506,7 @@ The name of the function.}
 }
 }
 
-\subsection{\hr{}\code{getSteps}}{
+\subsection{\code{\ht{OoprBreakpoints-OoprBreakpointsFile-getSteps}{getSteps}}\hr{}getSteps}{
 \subsection{Description}{
 \lbr{}Get the steps of multiple lines across the file.
 }
@@ -534,7 +536,7 @@ Lines that cannot be found are returned as \code{list()}.
 }
 }
 
-\subsection{\hr{}\code{setBreakpoints}}{
+\subsection{\code{\ht{OoprBreakpoints-OoprBreakpointsFile-setBreakpoints}{setBreakpoints}}\hr{}setBreakpoints}{
 \subsection{Description}{
 \lbr{}Set breakpoints for a function across classes.
 }
@@ -570,7 +572,7 @@ their depth of nesting so \code{trace} doesn't overwrite its own breakpoints.
 }
 }
 
-\section{\hr\hr{}OoprBreakpoints}{
+\section{\ht{OoprBreakpoints-OoprBreakpoints}{OoprBreakpoints}\hr\hr{}OoprBreakpoints}{
 
 \subsection{Description}{
 \lbr{}The controller of the breakpoints. Process of setting a breakpoint is:
@@ -598,29 +600,29 @@ The source files that have/had breakpoints.}
 
 \subsection{Methods}{
 \describe{
-\item{\code{isFunctionInSync}}{
+\item{\code{\hl{OoprBreakpoints-OoprBreakpoints-isFunctionInSync}{isFunctionInSync}}}{
 \emph{\verb{[static]}} \cr
 Checks whether the srcref matches the file.}
 
-\item{\code{getFunctionSteps}}{
+\item{\code{\hl{OoprBreakpoints-OoprBreakpoints-getFunctionSteps}{getFunctionSteps}}}{
 \emph{\verb{[static]}} \cr
 Gets the steps required for a line.}
 
-\item{\code{getEnvironmentOfFunction}}{
+\item{\code{\hl{OoprBreakpoints-OoprBreakpoints-getEnvironmentOfFunction}{getEnvironmentOfFunction}}}{
 \emph{\verb{[static]}} \cr
 Gets the environment of a function.}
 
-\item{\code{setFunctionBreakpoints}}{
+\item{\code{\hl{OoprBreakpoints-OoprBreakpoints-setFunctionBreakpoints}{setFunctionBreakpoints}}}{
 \emph{\verb{[static]}} \cr
 Sets the breakpoints for a function.}
 
-\item{\code{printBreaks}}{
+\item{\code{\hl{OoprBreakpoints-OoprBreakpoints-printBreaks}{printBreaks}}}{
 \emph{\verb{[static]}} \cr
 Print currently set breakpoints.}
 }
 }
 
-\subsection{\hr{}\code{isFunctionInSync}}{
+\subsection{\code{\ht{OoprBreakpoints-OoprBreakpoints-isFunctionInSync}{isFunctionInSync}}\hr{}isFunctionInSync}{
 \subsection{Description}{
 \lbr{}Checks whether the srcref matches the file.
 }
@@ -648,7 +650,7 @@ The name of the package, or \code{"R_GlobalEnv"}.}
 }
 }
 
-\subsection{\hr{}\code{getFunctionSteps}}{
+\subsection{\code{\ht{OoprBreakpoints-OoprBreakpoints-getFunctionSteps}{getFunctionSteps}}\hr{}getFunctionSteps}{
 \subsection{Description}{
 \lbr{}Gets the steps required for a line.
 }
@@ -678,7 +680,7 @@ A list of \code{integer(1L)} of the line numbers.}
 }
 }
 
-\subsection{\hr{}\code{getEnvironmentOfFunction}}{
+\subsection{\code{\ht{OoprBreakpoints-OoprBreakpoints-getEnvironmentOfFunction}{getEnvironmentOfFunction}}\hr{}getEnvironmentOfFunction}{
 \subsection{Description}{
 \lbr{}Gets the environment of a function.
 }
@@ -713,7 +715,7 @@ be called multiple times, so I only want to do this once.
 }
 }
 
-\subsection{\hr{}\code{setFunctionBreakpoints}}{
+\subsection{\code{\ht{OoprBreakpoints-OoprBreakpoints-setFunctionBreakpoints}{setFunctionBreakpoints}}\hr{}setFunctionBreakpoints}{
 \subsection{Description}{
 \lbr{}Sets the breakpoints for a function.
 }
@@ -744,7 +746,7 @@ being removed.
 }
 }
 
-\subsection{\hr{}\code{printBreaks}}{
+\subsection{\code{\ht{OoprBreakpoints-OoprBreakpoints-printBreaks}{printBreaks}}\hr{}printBreaks}{
 \subsection{Description}{
 \lbr{}Print currently set breakpoints.
 }
