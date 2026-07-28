@@ -80,7 +80,7 @@ oopr_breakpoints <- \(on = NA, force = FALSE)
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @name OoprBreakpoints
-#' @keywords .Rbuildignore
+#' @keywords internal .Rbuildignore
 #' @title Breakpoint Internals
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 NULL
