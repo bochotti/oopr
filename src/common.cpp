@@ -35,5 +35,14 @@ SEXP R_getVarEx(SEXP sym, SEXP rho, Rboolean inherits, SEXP ifnotfound)
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+const SEXP* VECTOR_PTR_RO(SEXP x)
+{
+  if(TYPEOF(x) != VECSXP)
+  Rf_error("%s() can only be applied to a '%s', not a '%s'",
+        __func__, "list", Rf_type2char(TYPEOF(x)));
+  return reinterpret_cast<const SEXP*>(DATAPTR_RO(x));
+}
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #endif
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //

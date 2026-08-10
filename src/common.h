@@ -17,6 +17,7 @@
 SEXP R_mkClosure(SEXP formals, SEXP body, SEXP env);
 SEXP R_getVar(SEXP sym, SEXP rho, Rboolean inherits);
 SEXP R_getVarEx(SEXP sym, SEXP rho, Rboolean inherits, SEXP ifnotfound);
+const SEXP* VECTOR_PTR_RO(SEXP x);
 #endif
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #endif /* OOPR_COMMON_H */

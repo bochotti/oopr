@@ -1,126 +1,139 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #include "meta.h"
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-OoprMeta::OoprMeta(SEXP meta)
+bool OoprMeta::is(const RObj<SEXP, ALLSXP>& x)
 {
-  if(!Rf_inherits(meta, "oopr_meta"))
+  if(!(x.type() == ENVSXP && x.inhr("oopr_meta"))) return false;
+  const REnv<SEXP>  env(x);
+  static RSym data("data");
+  R_xlen_t    i{-1};
+  for(std::pair<const char*, SEXPTYPE> spec : specifiers)
   {
-    Rf_error("`meta` is not of class \"oopr_meta\"");
+    const REnv<SEXP>::Bind bind(env[spec.first]);
+    if(!bind.exists())             return false;
+
+    const RObj<SEXP> mem = bind.get();
+    if(!REnv<>::is(mem))           return false;
+
+    const REnv<SEXP> env2(mem);
+    const auto bind2 = env2[data];
+    if(!bind2.exists())            return false;
+
+    const RObj<SEXP> mem2 = bind2.get();
+    if(mem2.type() != spec.second) return false;
+
+    if(i == -1) { i = mem2.size(); } else if(i != mem2.size()) { return false; }
   }
-  const std::vector<std::string> nms = {
-    "names", "access", "method", "property", "static", "class", "inherit"
-   ,"virtual"
-  };
-  SEXP data = Rf_install("data");
-  for(const std::string& nm : nms)
-  {
-    SEXP x = R_getVar(Rf_install(nm.c_str()), meta, FALSE);
-    x = R_getVar(data, x, FALSE);
-    this->meta.emplace(nm, x);
-  }
+  return true;
 }
 
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-R_xlen_t OoprMeta::size()
+SEXP OoprMeta::get(const REnv<SEXP>& x,  const char* nm)
 {
-  return Rf_xlength(meta["names"]);
+  const REnv<SEXP> y(x[nm].get());
+  static RSym data("data");
+  return y[data].get();
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-SEXP OoprMeta::name(const int& i)
+OoprMeta::OoprMeta(const SEXP x, const bool check)
+  : meta_(check ? (is(x) ? x : (Rf_error("Not an OoprMeta"), R_NilValue)) : x)
+#define SET(X) X##_(get(meta_, #X))
+  , SET(names)
+  , SET(access)
+  , SET(method)
+  , SET(property)
+  , SET(static)
+  , SET(class)
+  , SET(inherit)
+  , SET(virtual)
+#undef SET
+{ }
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+R_xlen_t OoprMeta::size() const
 {
-  return Rf_install(getStr("names", i));
+  return names_.size();
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-SEXP OoprMeta::inherit(const int& i)
+RSym OoprMeta::name(const int i) const
 {
-  const char* out = getStr("inherit", i);
-  if(strlen(out)) { return Rf_install(out); } else { return R_NilValue; }
+  return names_[i];
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-bool OoprMeta::isMethod(const int& i)
+RSym OoprMeta::inherit(const int i) const
 {
-  return getLgl("method", i);
+  const RStr<SEXP> str(inherit_[i]);
+  return str.size() ? str : RSym(" ");
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-bool OoprMeta::isProperty(const int& i)
+bool OoprMeta::isMethod(const int i) const
 {
-  return strlen(getStr("property", i)) > 0;
+  return method_[i];
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-bool OoprMeta::isStatic(const int& i)
+bool OoprMeta::isProperty(const int i) const
 {
-  return getLgl("static", i);
+  return property_[i].size();
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-bool OoprMeta::isClass(const int& i)
+bool OoprMeta::isStatic(const int i) const
 {
-  return getLgl("class", i);
+  return static_[i];
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-bool OoprMeta::isInherit(const int& i)
+bool OoprMeta::isClass(const int i) const
 {
-  return strlen(getStr("inherit", i)) > 0;
+  return class_[i];
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-bool OoprMeta::isVirtual(const int& i)
+bool OoprMeta::isInherit(const int i) const
 {
-  return getLgl("virtual", i);
+  return inherit_[i].size();
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-bool OoprMeta::isAccess(const int& i, const char* access)
+bool OoprMeta::isVirtual(const int i) const
 {
-  return strcmp(getStr("access", i), access) == 0;
+  return virtual_[i];
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-int OoprMeta::which(const std::string &name)
+bool OoprMeta::isAccess(const int i, const char* access) const
+{
+  return access_[i] == access;
+}
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+int OoprMeta::which(const std::string &name) const
 {
   for(R_xlen_t i = 0; i < size(); ++i)
   {
-    if(name == getStr("names", i)) return i;
+    if(names_[i] == name) return i;
   }
   return -1;
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-bool OoprMeta::getLgl(const std::string& x, const int& i)
+RChr<PSEXP> OoprMeta::subName(const std::string& access, const bool inverse)
+  const
 {
-  return LOGICAL_ELT(meta[x], i) == 1;
-}
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-const char* OoprMeta::getStr(const std::string& x, const int& i)
-{
-  return CHAR(STRING_ELT(meta[x], i));
-}
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-SEXP OoprMeta::subName(const std::string& access, const bool& inverse)
-{
-  const int size = Rf_xlength(meta["names"]);
+  const R_xlen_t size{this->size()};
   std::vector<std::string> names;
   names.reserve(size);
   for(int i = 0; i < size; ++i)
   {
-    bool match = (access == getStr("access", i));
+    bool match = (access_[i] == access);
     if(inverse)  match = !match;
-    if(match)    names.push_back(getStr("names", i));
+    if(match)    names.push_back(names_[i].data());
   }
-  PSEXP out = Rf_allocVector(STRSXP, names.size());
-  for(int i = 0; i < (int)names.size(); ++i)
-  {
-    SET_STRING_ELT(out, i, Rf_mkChar(names[i].c_str()));
-  }
-  return out;
+  return names;
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //

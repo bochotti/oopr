@@ -3,48 +3,46 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 SEXP symlinkR(SEXP tenv, SEXP tname, SEXP env, SEXP name, bool check)
 {
-  if(!Rf_isEnvironment(tenv)) Rf_error("`tenv` must be an environment");
-  if(!Rf_isEnvironment(env))  Rf_error("`env` must be an environment");
+  if(!REnv<>::is(tenv)) Rf_error("`tenv` must be an environment");
+  if(!REnv<>::is(env))  Rf_error("`env` must be an environment");
+  const REnv<SEXP> tenvir(tenv);
+  REnv<SEXP>       envir(env);
 
-  if(!Rf_isSymbol(tname))
+  struct make { static RSym sym(SEXP x, const char* nm)
   {
-    if(!(Rf_isString(tname) && Rf_xlength(tname) == 1L))
+    if(RSym::is(x)) return x;
+    if(RChr<>::is(x))
     {
-      Rf_error("`tname` must be a symbol or single character vector");
+      const RChr<SEXP> chr(x);
+      if(chr.size() == 1) return chr[0].sym();
     }
-    tname = Rf_installChar(STRING_ELT(tname, 0));
-  }
-  if(check && !R_existsVarInFrame(R_ParentEnv(tenv), tname))
+    Rf_error("`%s` must be a symbol or single character vector", nm);
+  }};
+  const RSym tsym(make::sym(tname, "tname"));
+  const RSym sym(make::sym(name, "name"));
+
+  if(check && !tenvir.parent()[tsym].exists())
   {
     Rf_error("`tname` does not exist in the parent environment of `tenv`");
   }
-
-  if(!Rf_isSymbol(name))
-  {
-    if(!(Rf_isString(name) && Rf_xlength(name) == 1L))
-    {
-      Rf_error("`name` must be a symbol or single character vector");
-    }
-    name = Rf_installChar(STRING_ELT(name, 0));
-  }
-  if(check && !R_existsVarInFrame(tenv, name))
+  if(check && !tenvir[sym].exists())
   {
     Rf_error("`name` does not exist in `tenv`");
   }
-  if(check && R_existsVarInFrame(env, name))
+  if(check && envir[sym].exists())
   {
     Rf_error("`name` already exists in `env`");
   }
 
-  PSEXP x   = Rf_install("x");
+  RSym x("x");
   PSEXP arg = Rf_allocList(1); SET_TAG(arg, x); SETCAR(arg, R_MissingArg);
   PSEXP bdy = Rf_lang4(
-    Rf_install("if"), Rf_lang2(Rf_install("missing"), x)
-   ,Rf_lang3(Rf_install("$"), tname, name)
-   ,Rf_lang3(Rf_install("<-"), Rf_lang3(Rf_install("$"), tname, name), x)
+    RSym("if"), Rf_lang2(RSym("missing"), x)
+   ,Rf_lang3(RSym("$"), tsym, sym)
+   ,Rf_lang3(RSym("<-"), Rf_lang3(RSym("$"), tsym, sym), x)
   );
-  PSEXP fun = R_mkClosure(arg, bdy, R_ParentEnv(tenv));
-  R_MakeActiveBinding(name, fun, env);
+
+  envir[sym].fun(R_mkClosure(arg, bdy, tenvir.parent()));
   return Rf_ScalarLogical(1);
 }
 

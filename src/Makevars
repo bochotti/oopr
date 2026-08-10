@@ -6,7 +6,7 @@ override DEPS    := $(OBJECTS:.o=.d)
 #$(info SOURCES=$(SOURCES))
 #$(info OBJECTS=$(OBJECTS))
 #$(info DEPS=$(DEPS))
-
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 PKG_CPPFLAGS += -I.
 CXX_STD = CXX17
 
@@ -20,4 +20,4 @@ all: $(SHLIB)
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 clean:
-	rm -f $(OBJECTS) $(DEPS) $(SHLIB)
+	rm -f $(shell find . -name '*.o' -or -name '*.d' -or -name '*.so')

@@ -5,6 +5,7 @@
 #include "common.h"
 #include "./util/psexp.h"
 #include "./util/symlink.h"
+#include "./models/robj.h"
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Creates an interface environment. Which holds references back to the
  * original environment. It will copy methods and active bindings directly,

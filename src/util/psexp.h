@@ -15,7 +15,7 @@ class PSEXP
 public:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   PSEXP( ) = default;
-  PSEXP(SEXP x);
+  PSEXP(const SEXP x);
   ~PSEXP( ) noexcept;
 
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
@@ -39,8 +39,8 @@ public:
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
    * Set the underlying SEXP
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-  void set(SEXP x = R_NilValue);
-  PSEXP& operator=(SEXP x);
+  void set(const SEXP x = R_NilValue);
+  PSEXP& operator=(const SEXP x);
 
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
    * Check if the instance is protecting something

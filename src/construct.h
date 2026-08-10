@@ -4,9 +4,9 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #include "common.h"
 #include "./util/psexp.h"
-#include "./util/symbols.h"
 #include "./util/validate.h"
 #include "./util/unwind.h"
+#include "./models/robj.h"
 #include "meta.h"
 #include "enclosure.h"
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //

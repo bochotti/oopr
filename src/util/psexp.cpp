@@ -5,7 +5,7 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Constructor, destructor
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-PSEXP::PSEXP(SEXP x) : tkn(store(x)) { }
+PSEXP::PSEXP(const SEXP x) : tkn(store(x)) { }
 PSEXP::~PSEXP( ) noexcept { release(tkn); }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
@@ -33,7 +33,7 @@ PSEXP::operator SEXP( ) const noexcept { return get(); }
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Set the underlying SEXP
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-void PSEXP::set(SEXP x)
+void PSEXP::set(const SEXP x)
 {
   if(empty())
   {
@@ -44,7 +44,7 @@ void PSEXP::set(SEXP x)
     SET_TAG(tkn, x);
   }
 }
-PSEXP& PSEXP::operator=(SEXP x)
+PSEXP& PSEXP::operator=(const SEXP x)
 {
   if(x != get()) set(x);
   return *this;
