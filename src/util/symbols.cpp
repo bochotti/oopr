@@ -76,7 +76,7 @@ bool Symbols::is(SEXP x, const std::string& key)
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 SEXP Symbols::get(const std::string& key)
 {
-  if(syms_.find(key) == syms_.end()) Rf_error("`%s` not a key", key.c_str());
+  if(syms_.find(key) == syms_.end()) stop("`%s` not a key", key.c_str());
   return syms_[key];
 }
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //

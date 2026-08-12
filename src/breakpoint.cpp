@@ -165,7 +165,7 @@ private:
 };
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-SEXP find_instances(SEXP ooprC, SEXP frames, SEXP fun)
+SEXP find_instances(SEXP ooprC, SEXP frames, SEXP fun) try
 {
   if(!is_ooprC(ooprC))                              return R_NilValue;
   SEXP name = Rf_getAttrib(ooprC, Rf_install("name"));
@@ -178,3 +178,4 @@ SEXP find_instances(SEXP ooprC, SEXP frames, SEXP fun)
   if(frames != R_NilValue) obj.walk(frames);
   return obj.toList();
 }
+catchR

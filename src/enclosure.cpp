@@ -1,14 +1,14 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #include "enclosure.h"
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-SEXP interface(SEXP env, SEXP nme, SEXP nms, SEXP cls)
+SEXP interface(SEXP env, SEXP nme, SEXP nms, SEXP cls) try
 {
-  if(!REnv<>::is(env)) Rf_error("`env` must be an environment");
+  if(!REnv<>::is(env)) stop("`env` must be an environment");
   const REnv<SEXP> from(env);
 
   if(!(Rf_isNull(nms) || RChr<>::is(nms)))
   {
-    Rf_error("`nms` must be a character vector");
+    stop("`nms` must be a character vector");
   }
   const RChr<SEXP> names(Rf_isNull(nms) ? from.names() : RChr<SEXP>(nms));
 
@@ -17,7 +17,7 @@ SEXP interface(SEXP env, SEXP nme, SEXP nms, SEXP cls)
 
   if(!(Rf_isNull(cls) || RChr<>::is(cls)))
   {
-    Rf_error("`cls` must be a character vector");
+    stop("`cls` must be a character vector");
   }
   out.attr(R_ClassSymbol) = Rf_isNull(cls) ? from.attr(R_ClassSymbol).sexp()
                                            : cls;
@@ -47,3 +47,4 @@ SEXP interface(SEXP env, SEXP nme, SEXP nms, SEXP cls)
   if(from.locked()) out.lock();
   return out;
 }
+catchR

@@ -36,7 +36,7 @@ SEXP OoprMeta::get(const REnv<SEXP>& x,  const char* nm)
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 OoprMeta::OoprMeta(const SEXP x, const bool check)
-  : meta_(check ? (is(x) ? x : (Rf_error("Not an OoprMeta"), R_NilValue)) : x)
+  : meta_(check ? (is(x) ? x : (stop("Not an OoprMeta"), R_NilValue)) : x)
 #define SET(X) X##_(get(meta_, #X))
   , SET(names)
   , SET(access)

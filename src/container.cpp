@@ -6,9 +6,9 @@ class OoprContainer
 public:
   OoprContainer(SEXP ooprC, SEXP thiz, SEXP map)
   {
-    if(!is_ooprC(ooprC))        Rf_error("`ooprC` must be an ooprC object");
-    if(!Rf_isEnvironment(thiz)) Rf_error("`thiz` not an environment");
-    if(!Rf_isLogical(map))      Rf_error("`map` must be logical");
+    if(!is_ooprC(ooprC))        stop("`ooprC` must be an ooprC object");
+    if(!Rf_isEnvironment(thiz)) stop("`thiz` not an environment");
+    if(!Rf_isLogical(map))      stop("`map` must be logical");
     args_ = R_ClosureFormals(ooprC);
     thiz_ = thiz;
     fun_  = R_getVar(sym["emplace"], thiz, FALSE);
@@ -59,8 +59,9 @@ private:
 };
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-SEXP oopr_cont_init(SEXP ooprC, SEXP thiz, SEXP map)
+SEXP oopr_cont_init(SEXP ooprC, SEXP thiz, SEXP map) try
 {
   OoprContainer obj(ooprC, thiz, map);
   return obj.replace();
 }
+catchR

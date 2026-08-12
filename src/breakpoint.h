@@ -4,6 +4,7 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #include "common.h"
 #include <vector>
+#include "util/unwind.h"
 #include "util/psexp.h"
 #include "util/symbols.h"
 #include "util/validate.h"

@@ -167,10 +167,11 @@ private:
 };
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-SEXP on_load(SEXP env, SEXP ns)
+SEXP on_load(SEXP env, SEXP ns) try
 {
   OoprLoad obj(env, ns);
   if(obj.status) return Rf_ScalarLogical(0);
   obj.loadEnv();
   return Rf_ScalarLogical(1);
 }
+catchR

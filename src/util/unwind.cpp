@@ -27,16 +27,39 @@ SEXP RUnWind::eval(SEXP expr, SEXP envir)
   return R_UnwindProtect(fun, &data, clean, &cont, cont);
 }
 
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+SEXP RUnWind::call(void* data, SEXP (*fun)(void* data))
+{
+  PSEXP cont = R_MakeUnwindCont();
+  return R_UnwindProtect(fun, data, clean, &cont, cont);
+}
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+void RUnWind::stop(const char* msg)
+{
+  throw exception(msg);
+}
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-RUnWind::exception::exception(PSEXP& cont)
-  : runtime_error("")
+RUnWind::exception::exception(PSEXP& cont, const char* msg)
+  : runtime_error(msg)
   , cont(std::move(cont))
 { }
+RUnWind::exception::exception(const char* msg)
+  : runtime_error(msg)
+{ }
+
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 RUnWind::exception::~exception()
 {
-  if(cont != R_NilValue) R_ContinueUnwind(cont);
+  if(!cont.empty())
+  {
+    SEXP cont = this->cont;
+    this->cont.release();
+    if(cont != R_NilValue) R_ContinueUnwind(cont);
+  }
+  if(strlen(runtime_error::what())) Rf_error(runtime_error::what());
 }
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 const char* RUnWind::exception::what() const noexcept

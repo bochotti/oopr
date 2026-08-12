@@ -492,13 +492,14 @@ private:
   }
 };
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-SEXP eval_context(SEXP text, SEXP row, SEXP col)
+SEXP eval_context(SEXP text, SEXP row, SEXP col) try
 {
-  if(!Rf_isString(text)) Rf_error("`text` must be a string");
-  if(!Rf_isInteger(row)) Rf_error("`row` must be an integer");
-  if(!Rf_isInteger(col)) Rf_error("`col` must be an integer");
+  if(!Rf_isString(text)) stop("`text` must be a string");
+  if(!Rf_isInteger(row)) stop("`row` must be an integer");
+  if(!Rf_isInteger(col)) stop("`col` must be an integer");
   EvaluationContext obj(text, row, col);
   if(!obj.collect()) return R_NilValue;
   return obj.toList();
 }
+catchR
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //

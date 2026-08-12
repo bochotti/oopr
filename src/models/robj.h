@@ -6,7 +6,8 @@
  * Due to varying underlying types, templates are used here.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 #include "common.h"
-#include "util/psexp.h"
+#include "./util/unwind.h"
+#include "./util/psexp.h"
 #include <iterator>
 #include <cstddef>
 #include <vector>
@@ -134,13 +135,10 @@ private:
   {
     if constexpr(S != ALLSXP)
     {
-      if(TYPEOF(x) != S)
-      {
-        Rf_error(
-          "RObj: SEXPTYPE of incoming object must be `%s`, not `%s`"
-          ,Rf_type2char(S), Rf_type2char(TYPEOF(x))
-        );
-      }
+      if(TYPEOF(x) != S) stop(
+        "RObj: SEXPTYPE of incoming object must be `%s`, not `%s`"
+       ,Rf_type2char(S), Rf_type2char(TYPEOF(x))
+      );
     }
     sexp_ = x;
   }
@@ -246,7 +244,7 @@ public:
   private:
     Elem(const RVec& x, const R_xlen_t i ) : x(x), i(i)
     {
-      if(!(0 <= i && i < x.size())) Rf_error(
+      if(!(0 <= i && i < x.size())) stop(
         "index %ld is out of bounds [%d, %ld)"
        ,i, 0, x.size()
       );
@@ -402,7 +400,7 @@ private:
   }
   static inline void setv(const SEXP x, const R_xlen_t i, const char v)
   {
-    Rf_error("Cannot set an element of a CHARSXP");
+    stop("Cannot set an element of a CHARSXP");
   }
   static inline const char* ptr(const SEXP x)
   {
@@ -497,14 +495,14 @@ typename RVec<D, T, I, P, S>::Elem RVec<D, T, I, P, S>::operator[](
   const RStr<PSEXP>& nm
 )
 {
-  if(!named()) Rf_error("vector is not named");
+  if(!named()) stop("vector is not named");
   R_xlen_t i{0};
   for(const RStr<SEXP>& name : names())
   {
     if(name == nm) return {*this, i};
     ++i;
   }
-  Rf_error("index `%s` is out of bounds", nm.data());
+  stop("index `%s` is out of bounds", nm.data());
 }
 
 template <typename D, typename T, typename I, typename P, SEXPTYPE S>

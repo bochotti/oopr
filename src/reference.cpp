@@ -309,11 +309,11 @@ private:
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Access point to the above class.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-SEXP find_member_refs(SEXP expr)
+SEXP find_member_refs(SEXP expr) try
 {
   return recurseExpr<MemberReferences>(expr);
 }
-
+catchR
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
@@ -332,7 +332,7 @@ public:
       env = R_ClosureEnv(x);
       x   = R_ClosureExpr(x);
     }
-    if(!Rf_isEnvironment(env)) Rf_error("`env` must be an environment");
+    if(!Rf_isEnvironment(env)) stop("`env` must be an environment");
     env_ = env;
     walk(x);
   }
@@ -502,24 +502,24 @@ private:
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Access point to the above class.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-SEXP get_missing_vars(SEXP expr, SEXP env)
+SEXP get_missing_vars(SEXP expr, SEXP env) try
 {
   return recurseExpr<ExprUsage>(expr, env);
 }
-
+catchR
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Find source reference from a path.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-SEXP find_src_ref(SEXP at, SEXP expr)
+SEXP find_src_ref(SEXP at, SEXP expr) try
 {
-  if(!Rf_isInteger(at)) Rf_error("`at` must be an integer");
+  if(!Rf_isInteger(at)) stop("`at` must be an integer");
   switch(TYPEOF(expr))
   {
   case CLOSXP:  expr = R_ClosureExpr(expr);
   case LANGSXP: break;
-  default:      Rf_error("`expr` must be a call object");
+  default:      stop("`expr` must be a call object");
   }
 
   const R_xlen_t len = Rf_xlength(at);
@@ -536,7 +536,7 @@ SEXP find_src_ref(SEXP at, SEXP expr)
     parents[i] = expr;
     for(int j = 1; j < path[i]; expr = CDR(expr), ++j)
     {
-      if(expr == R_NilValue) Rf_error("`at` is out of bounds");
+      if(expr == R_NilValue) stop("`at` is out of bounds");
     }
     expr = CAR(expr);
   }
@@ -551,3 +551,4 @@ SEXP find_src_ref(SEXP at, SEXP expr)
   }
   return R_NilValue;
 }
+catchR

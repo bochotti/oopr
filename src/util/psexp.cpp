@@ -54,6 +54,7 @@ PSEXP& PSEXP::operator=(const SEXP x)
  * Check if the token has been initialized
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 bool PSEXP::empty() const noexcept { return tkn == R_NilValue; }
+void PSEXP::release() { release(tkn); tkn = R_NilValue; }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //

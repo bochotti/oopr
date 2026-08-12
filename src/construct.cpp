@@ -242,26 +242,20 @@ private:
 };
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-SEXP oopr_make(SEXP gen, SEXP name, SEXP frames)
+SEXP oopr_make(SEXP gen, SEXP name, SEXP frames) try
 {
   if(!(is_ooprC(gen, name) && Rf_isPairList(frames)))
   {
-    Rf_error("ooprC not called correctly");
+    stop("ooprC not called correctly");
   }
-  try
-  {
-    OoprInstance obj = OoprInstance(gen, name, frames);
-    obj.makeEnclosure();
-    obj.makeThis();
-    obj.callConstructor();
-    obj.replaceInheritedMembers();
-    obj.registerDestructor();
-    obj.makeInterface();
-    obj.lock();
-    return obj.intf;
-  }
-  catch(const RUnWind::exception& e)
-  {
-  }
-  return R_NilValue;
+  OoprInstance obj = OoprInstance(gen, name, frames);
+  obj.makeEnclosure();
+  obj.makeThis();
+  obj.callConstructor();
+  obj.replaceInheritedMembers();
+  obj.registerDestructor();
+  obj.makeInterface();
+  obj.lock();
+  return obj.intf;
 }
+catchR

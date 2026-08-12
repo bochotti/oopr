@@ -3,6 +3,7 @@
 #define OOPR_ENCLOSURE_H
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #include "common.h"
+#include "./util/unwind.h"
 #include "./util/psexp.h"
 #include "./util/symlink.h"
 #include "./models/robj.h"
