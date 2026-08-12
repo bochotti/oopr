@@ -6,7 +6,7 @@
 #include "./util/unwind.h"
 #include "./util/psexp.h"
 #include "./util/symbols.h"
-#include "./util/validate.h"
+#include "./models/oopr.h"
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Amends the arguments for $emplace method.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

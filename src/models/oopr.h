@@ -1,6 +1,6 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-#ifndef OOPR_UTIL_VALIDATE_H
-#define OOPR_UTIL_VALIDATE_H
+#ifndef OOPR_MODELS_OOPR_H
+#define OOPR_MODELS_OOPR_H
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #include "common.h"
 #include <string>
@@ -18,5 +18,5 @@ bool is_oopr(SEXP obj, const std::string& name = "");
 bool is_oopr(SEXP obj, SEXP name);
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-#endif /* OOPR_UTIL_VALIDATE_H */
+#endif /* OOPR_MODELS_OOPR_H */
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //

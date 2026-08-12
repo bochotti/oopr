@@ -4,10 +4,10 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #include "common.h"
 #include "./util/psexp.h"
-#include "./util/validate.h"
 #include "./util/unwind.h"
 #include "./models/robj.h"
-#include "meta.h"
+#include "./models/oopr.h"
+#include "./models/meta.h"
 #include "enclosure.h"
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * This will create a new enclosure for a class instance. It is basically a
