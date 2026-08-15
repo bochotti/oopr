@@ -8,30 +8,26 @@ class OoprInstance
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 public:
   OoprInstance(SEXP gen, SEXP name, SEXP frames)
-    : gen(gen)
+    : ooprC(gen, false)
     , name(name)
-    , meta(this->gen.attr("meta"))
-    , inhr(this->gen.attr("inhr"))
-    , encl(this->gen.attr("encl"))
+    , meta(ooprC.meta)
     , calr(getCalr(frames))
     , envr(CAR(Rf_lastElt(frames)))
-    , isInhr(is_ooprC(calr[name].get0()))
-    , inst(encl.parent(), true, 2 + inhr.size())
-    , thiz(inst, true, meta.size())
+    , isInhr(OoprC::is(calr[name].get0()))
+    , inst(ooprC.encl.parent(), true, 2 + ooprC.inhr.size())
+    , thiz(inst, true, ooprC.meta.size())
   { }
 
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  const RObj<SEXP, CLOSXP> gen;   // ooprC
-  const RSym               name;
-  const OoprMeta           meta;
-  const RChr<SEXP>         inhr;
-  const REnv<SEXP>         encl;  // ooprC enclosure
-  const REnv<SEXP>         calr;  // caller environment
-  REnv<SEXP>               envr;  // ooprC@.Data environment
-  bool                     isInhr{false};
-  REnv<PSEXP> inst; // new instance enclosure
-  REnv<PSEXP> thiz; // new instance this
-  REnv<PSEXP> intf; // new instance .this
+  const OoprC      ooprC;
+  const RSym       name;
+  const OoprMeta&  meta;
+  const REnv<SEXP> calr;  // caller environment
+  REnv<SEXP>       envr;  // ooprC@.Data environment
+  bool             isInhr{false};
+  REnv<PSEXP>      inst; // new instance enclosure
+  REnv<PSEXP>      thiz; // new instance this
+  REnv<PSEXP>      intf; // new instance .this
 
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
    * Creates environment that holds `this` and base classes. Base classes
@@ -40,7 +36,7 @@ public:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
   void makeEnclosure()
   {
-    for(const RSym nm : inhr) { inst[nm] = encl[nm]; }
+    for(const RSym nm : ooprC.inhr) { inst[nm] = ooprC.encl[nm]; }
     inst[".this"] = R_NilValue;
   }
 
@@ -53,10 +49,10 @@ public:
   void makeThis()
   {
     const R_xlen_t len = meta.size();
-    const REnv<SEXP> from(encl["this"].get());
+    const REnv<SEXP> from(ooprC.oopr.thiz);
     for(R_xlen_t i = 0; i < len; ++i)
     {
-      const RSym  nm = meta.name(i);
+      const RSym nm = meta.name(i);
       const REnv<SEXP>::Bind fr(from[nm]);
       REnv<PSEXP>::Bind      to(thiz[nm]);
       // if virtual, look forward to the caller and take its method
@@ -84,7 +80,7 @@ public:
       }
       else if(meta.isProperty(i))
       {
-        to.fun(dupeFun(fr.fun(), meta.isStatic(i)));
+        to.fun = dupeFun(fr.fun, meta.isStatic(i));
       }
       else if(meta.isStatic(i))
       {
@@ -146,14 +142,14 @@ public:
       else if(meta.isProperty(i) || fr.active())
       {
         to.remove();
-        to.fun(fr.fun());
+        to.fun = fr.fun;
       }
       else
       {
         to.remove();
         if(fr.active())
         {
-          to.fun(fr.fun());
+          to.fun = fr.fun;
         }
         else
         {
@@ -188,13 +184,13 @@ public:
     const RChr<PSEXP> names(
       meta.subName(isInhr ? "private" : "public", isInhr)
     );
-    const RChr<SEXP> clazz(encl[".this"].get().attr(R_ClassSymbol));
+    const RChr<SEXP> clazz(ooprC.oopr.cls());
     intf = interface(thiz, RSym("this"), names, clazz);
 
     // interface can have the actual implementation if override via virtual
     if(isInhr)
     {
-      const REnv<SEXP> thiz(encl["this"]);
+      const REnv<SEXP> thiz(ooprC.oopr.thiz);
       const R_xlen_t len = meta.size();
       for(R_xlen_t i = 0; i < len; ++i)
       {
@@ -219,7 +215,7 @@ public:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
   void lock()
   {
-    for(const RSym sym : inhr) { REnv<SEXP>(inst[sym]).lock(); }
+    for(const RSym sym : ooprC.inhr) { REnv<SEXP>(inst[sym]).lock(); }
     intf.lock();
     thiz.lock();
     inst.lock(true);
@@ -244,11 +240,16 @@ private:
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 SEXP oopr_make(SEXP gen, SEXP name, SEXP frames) try
 {
-  if(!(is_ooprC(gen, name) && Rf_isPairList(frames)))
+  if(!(RSym::is(name) && Rf_isPairList(frames)))
   {
     stop("ooprC not called correctly");
   }
-  OoprInstance obj = OoprInstance(gen, name, frames);
+  const RChr<PSEXP> nm({RStr<>(RSym(name))});
+  if(!OoprC::is(gen, nm.sexp()))
+  {
+    stop("ooprC not called correctly");
+  }
+  OoprInstance obj(gen, name, frames);
   obj.makeEnclosure();
   obj.makeThis();
   obj.callConstructor();

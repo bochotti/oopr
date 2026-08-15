@@ -65,7 +65,7 @@ RSym OoprMeta::name(const int i) const
 RSym OoprMeta::inherit(const int i) const
 {
   const RStr<SEXP> str(inherit_[i]);
-  return str.size() ? str : RSym(" ");
+  return str.size() ? RSym(str) : RSym(" ");
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //

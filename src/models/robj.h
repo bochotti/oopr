@@ -11,6 +11,7 @@
 #include <iterator>
 #include <cstddef>
 #include <vector>
+#include <type_traits>
 class RObjR{};
 class RSym;
 template<typename P> class RStr;
@@ -74,7 +75,7 @@ public:
   RObj(const RObj<U, S>& x) : RObj(x.sexp()) { }
 
   ENABLE_IF(U,     = 0, std::is_same<U, SEXP>)
-  RObj& operator=(const RObj<U, S>& x) { sexp_ = x.sexp(); }
+  RObj& operator=(const RObj<U, S>& x) { sexp_ = x.sexp(); return *this; }
 
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
    * Can assign new SEXP objects.
@@ -85,10 +86,11 @@ public:
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
    * Information.
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-  SEXPTYPE type()            const { return TYPEOF(sexp_); }
-  R_xlen_t size()            const { return Rf_xlength(sexp_); }
-  bool inhr(const char* cls) const { return Rf_inherits(sexp_, cls); }
-  void     print()           const { Rf_PrintValue(sexp_); }
+  SEXPTYPE   type()                const { return TYPEOF(sexp_); }
+  R_xlen_t   size()                const { return Rf_xlength(sexp_); }
+  bool       inhr(const char* cls) const { return Rf_inherits(sexp_, cls); }
+  RChr<SEXP> cls()                 const;
+  void       print()               const { Rf_PrintValue(sexp_); }
 
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
    * Get the underlying SEXP, or duplicate it.
@@ -367,8 +369,8 @@ public:
   using RVec = ::RVec<RStr<P>, const char, const char, P, CHARSXP>;
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   RStr(const SEXP x)  : RVec(x) { }
-  RStr(const char* x) : RVec(Rf_mkChar(x)) { };
-
+  RStr(const char* x) : RVec(Rf_mkChar(x)) { }
+  RStr(const RSym x)  : RVec(PRINTNAME(x)) { }
   ENABLE_IF(U = P, = 0, std::is_same<U, SEXP>)
   RStr(const RStr& x) : RStr(x.sexp()) { }
 
@@ -433,6 +435,7 @@ public:
       setv(this->sexp(), i, Rf_mkChar(x[i]));
     }
   }
+  RChr(const char* x) : RChr(1) { setv(this->sexp(), 0, Rf_mkChar(x)); }
 
   RChr(const std::vector<std::string>& x) : RChr(x.size())
   {
@@ -441,6 +444,7 @@ public:
       setv(this->sexp(), i, Rf_mkChar(x[i].c_str()));
     }
   }
+  RChr(std::string x) : RChr(1) { setv(this->sexp(), 0, Rf_mkChar(x.c_str())); }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 private:
@@ -467,7 +471,14 @@ private:
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * RVec & RVec::Elem reliant on RChr
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-template <typename D, typename T, typename I, typename P, SEXPTYPE S>
+template<typename P, SEXPTYPE S>
+RChr<SEXP> RObj<P, S>::cls() const
+{
+  SEXP cls = attr(R_ClassSymbol);
+  return (cls == R_NilValue) ? RChr<SEXP>() : RChr<SEXP>(cls);
+}
+
+template<typename D, typename T, typename I, typename P, SEXPTYPE S>
 ENABLE_IF(U,, !std::is_same<U, RObj<SEXP, ALLSXP>>)
 RVec<D, T, I, P, S>::RVec(std::initializer_list<std::pair<const char*, T>> x)
   : RVec(x.size())
@@ -483,14 +494,14 @@ RVec<D, T, I, P, S>::RVec(std::initializer_list<std::pair<const char*, T>> x)
   this->attr("names") = keys;
 }
 
-template <typename D, typename T, typename I, typename P, SEXPTYPE S>
+template<typename D, typename T, typename I, typename P, SEXPTYPE S>
 RChr<SEXP> RVec<D, T, I, P, S>::names() const
 {
   SEXP x = RObj<P, S>::attr("names");
   return x == R_NilValue ? RChr<SEXP>() : RChr<SEXP>(x);
 }
 
-template <typename D, typename T, typename I, typename P, SEXPTYPE S>
+template<typename D, typename T, typename I, typename P, SEXPTYPE S>
 typename RVec<D, T, I, P, S>::Elem RVec<D, T, I, P, S>::operator[](
   const RStr<PSEXP>& nm
 )
@@ -505,7 +516,7 @@ typename RVec<D, T, I, P, S>::Elem RVec<D, T, I, P, S>::operator[](
   stop("index `%s` is out of bounds", nm.data());
 }
 
-template <typename D, typename T, typename I, typename P, SEXPTYPE S>
+template<typename D, typename T, typename I, typename P, SEXPTYPE S>
 const T RVec<D, T, I, P, S>::operator[](const RStr<PSEXP>& nm) const
 {
   return static_cast<T>(const_cast<RVec&>(*this)[nm]);
@@ -572,13 +583,12 @@ private:
 }; // RList
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 
-
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * An R Environment
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 template<typename P = PSEXP>
-class REnv final : public RObj<P, ENVSXP>
+class REnv : public RObj<P, ENVSXP>
 {
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 public:
@@ -616,6 +626,7 @@ public:
   }
 
   REnv<SEXP> parent() const { return R_ParentEnv(this->sexp()); }
+  REnv<SEXP> topenv() const { return R_topenv(R_EmptyEnv, this->sexp()); }
 
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
    * Binding information.
@@ -639,20 +650,35 @@ public:
       return R_getVarEx(nm, x, FALSE, ifnotfound);
     }
 
-    operator RObj<SEXP, ALLSXP>()    { return get(); }
-    operator SEXP() const            { return get(); }
-    Bind& operator=(const SEXP   v)  { assign(v); return *this; }
-    Bind& operator=(const Bind& v)   { assign(v); return *this; }
+    operator RObj<SEXP, ALLSXP>()  const { return get(); }
+    operator SEXP()                const { return get(); }
+    Bind& operator=(const SEXP  v)       { assign(v); return *this; }
+    Bind& operator=(const Bind& v)       { assign(v); return *this; }
 
     bool locked() const { return R_BindingIsLocked(nm, x); }
     void lock(bool on) { on ? R_LockBinding(nm, x) : R_unLockBinding(nm, x); }
 
     bool active() const { return R_BindingIsActive(nm, x); }
-    RObj<SEXP, CLOSXP> fun() const { return R_ActiveBindingFunction(nm, x); }
-    void fun(const RObj<SEXP, CLOSXP>& v) { R_MakeActiveBinding(nm, v, x); }
+    class Fun
+    {
+    public:
+      friend class REnv::Bind;
+      SEXP get() const { return R_ActiveBindingFunction(nm, x); }
+      operator SEXP()               const { return get(); }
+      operator RObj<SEXP, CLOSXP>() const { return get(); }
+
+      void set(const RObj<SEXP, CLOSXP> v) { R_MakeActiveBinding(nm, v, x); }
+      Fun& operator=(const RObj<SEXP, CLOSXP> v) { set(v) ; return *this; }
+      Fun& operator=(const Fun&               v) { set(v) ; return *this; }
+
+    private:
+      Fun(const REnv& x, const RSym& nm) : x(x), nm(nm) { }
+      const REnv& x;
+      const RSym  nm;
+    } fun;
 
   private:
-    Bind(const REnv& x, const RSym& nm) : x(x), nm(nm.sexp()) { }
+    Bind(const REnv& x, const RSym& nm) : fun(x, nm), x(x), nm(nm) { }
     const REnv& x;
     const RSym  nm;
   };

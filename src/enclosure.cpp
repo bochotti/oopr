@@ -28,7 +28,7 @@ SEXP interface(SEXP env, SEXP nme, SEXP nms, SEXP cls) try
     REnv<PSEXP>::Bind      to(out[name]);
     if(fr.active())
     {
-      to.fun(fr.fun());
+      to.fun = fr.fun;
     }
     else
     {

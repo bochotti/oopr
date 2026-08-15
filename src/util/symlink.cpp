@@ -43,7 +43,7 @@ SEXP symlinkR(SEXP tenv, SEXP tname, SEXP env, SEXP name, bool check) try
    ,Rf_lang3(RSym("<-"), Rf_lang3(RSym("$"), tsym, sym), x)
   );
 
-  envir[sym].fun(R_mkClosure(arg, bdy, tenvir.parent()));
+  envir[sym].fun = R_mkClosure(arg, bdy, tenvir.parent());
   return Rf_ScalarLogical(1);
 }
 catchR
