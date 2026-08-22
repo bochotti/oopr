@@ -57,9 +57,9 @@ private:
     for(R_xlen_t i = 0; i < meta.size(); ++i)
     {
       if(!meta.isClass(i) || meta.isInherit(i)) continue;
-      SEXP name  = meta.name(i);
-      SEXP ooprM = R_getVar(name, thiz, FALSE);
-      loadClass(i, name, ooprM, thiz, meta);
+      RSym name  = meta.name(i);
+      SEXP ooprM = R_getVar(*name, thiz, FALSE);
+      loadClass(i, *name, ooprM, thiz, meta);
     }
   }
 
@@ -71,7 +71,7 @@ private:
     setLockedBinding(name, encl, ooprI);
     for(R_xlen_t i = 0; i < meta.size(); ++i)
     {
-      if(meta.inherit(i) != name) continue;
+      if(*meta.inherit(i) != name) continue;
       loadMember(i, meta, encl, enclI);
     }
   }
@@ -123,7 +123,7 @@ private:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   void loadMember(R_xlen_t& i, OoprMeta meta, SEXP encl, SEXP enclI)
   {
-    SEXP name  = meta.name(i);
+    SEXP name  = *meta.name(i);
     SEXP thiz  = R_getVar(sym["this"], encl, FALSE);
     SEXP thizI = R_getVar(sym["this"], enclI, FALSE);
     PSEXP fun;

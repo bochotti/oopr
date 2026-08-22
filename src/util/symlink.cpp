@@ -36,14 +36,14 @@ SEXP symlinkR(SEXP tenv, SEXP tname, SEXP env, SEXP name, bool check) try
   }
 
   RSym x("x");
-  PSEXP arg = Rf_allocList(1); SET_TAG(arg, x); SETCAR(arg, R_MissingArg);
+  PSEXP arg = Rf_allocList(1); SET_TAG(arg, *x); SETCAR(arg, R_MissingArg);
   PSEXP bdy = Rf_lang4(
-    RSym("if"), Rf_lang2(RSym("missing"), x)
-   ,Rf_lang3(RSym("$"), tsym, sym)
-   ,Rf_lang3(RSym("<-"), Rf_lang3(RSym("$"), tsym, sym), x)
+    *RSym("if"), Rf_lang2(*RSym("missing"), *x)
+   ,Rf_lang3(*RSym("$"), *tsym, *sym)
+   ,Rf_lang3(*RSym("<-"), Rf_lang3(*RSym("$"), *tsym, *sym), *x)
   );
 
-  envir[sym].fun = R_mkClosure(arg, bdy, tenvir.parent());
+  envir[sym].fun = R_mkClosure(arg, bdy, *tenvir.parent());
   return Rf_ScalarLogical(1);
 }
 catchR

@@ -1,7 +1,7 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #include "meta.h"
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-bool OoprMeta::is(const RObj<SEXP, ALLSXP>& x)
+bool OoprMeta::is(const RObj<SEXP, ALLSXP> x)
 {
   if(!(x.type() == ENVSXP && x.inhr("oopr_meta"))) return false;
   const REnv<SEXP>  env(x);
@@ -13,7 +13,7 @@ bool OoprMeta::is(const RObj<SEXP, ALLSXP>& x)
     if(!bind.exists())             return false;
 
     const RObj<SEXP> mem = bind.get();
-    if(!REnv<>::is(mem))           return false;
+    if(!REnv<>::is(*mem))           return false;
 
     const REnv<SEXP> env2(mem);
     const auto bind2 = env2[data];
@@ -27,15 +27,15 @@ bool OoprMeta::is(const RObj<SEXP, ALLSXP>& x)
   return true;
 }
 
-SEXP OoprMeta::get(const REnv<SEXP>& x,  const char* nm)
+SEXP OoprMeta::get(const REnv<SEXP> x,  const char* nm)
 {
-  const REnv<SEXP> y(x[nm].get());
+  const REnv<SEXP> y(x[nm]);
   static RSym data("data");
-  return y[data].get();
+  return *(y[data]);
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-OoprMeta::OoprMeta(const SEXP x, const bool check)
+OoprMeta::OoprMeta(const RObj<SEXP, ALLSXP> x, const bool check)
   : meta_(check ? (is(x) ? x : (stop("Not an OoprMeta"), R_NilValue)) : x)
 #define SET(X) X##_(get(meta_, #X))
   , SET(names)

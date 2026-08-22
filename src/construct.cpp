@@ -71,20 +71,20 @@ public:
       // inherited members use symlink as their instances not yet initialized
       if(meta.isInherit(i))
       {
-        symlinkR(thiz, meta.inherit(i), thiz, nm, false);
+        symlinkR(*thiz, *meta.inherit(i), *thiz, *nm, false);
       }
       else if(meta.isMethod(i))
       {
-        to = dupeFun(fr, meta.isStatic(i));
+        to = dupeFun(*fr, meta.isStatic(i));
         to.lock(true);
       }
       else if(meta.isProperty(i))
       {
-        to.fun = dupeFun(fr.fun, meta.isStatic(i));
+        to.fun = dupeFun(*fr.fun, meta.isStatic(i));
       }
       else if(meta.isStatic(i))
       {
-        symlinkR(from, RSym("this"), thiz, nm);
+        symlinkR(*from, *RSym("this"), *thiz, *nm);
       }
       else
       {
@@ -100,19 +100,21 @@ public:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
   void callConstructor()
   {
-    SEXP fun  = thiz[name];
+    SEXP fun  = *thiz[name];
     SEXP args = R_ClosureFormals(fun);
 
     PSEXP expr = Rf_allocVector(LANGSXP, Rf_length(args) + 1);
-    SETCAR(expr, name);
+    SETCAR(expr, *name);
     for(SEXP e = CDR(expr); e != R_NilValue; e = CDR(e), args = CDR(args))
     {
       SETCAR(e, TAG(args));
     }
 
     envr[name] = fun;
-    thiz[name].remove();
-    RUnWind::eval(expr, envr);
+    REnv<PSEXP>::Bind bind = thiz[name];
+    bind.lock(false);
+    bind.remove();
+    RUnWind::eval(expr, *envr);
   }
 
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
@@ -153,7 +155,7 @@ public:
         }
         else
         {
-          symlinkR(inhr, RSym("this"), thiz, nm);
+          symlinkR(*inhr, *RSym("this"), *thiz, *nm);
         }
       }
     }
@@ -168,10 +170,12 @@ public:
     name.insert(0, 1, '~');
     RSym nm = name.c_str();
 
-    if(thiz[nm].exists())
+    REnv<PSEXP>::Bind bind = thiz[nm];
+    if(bind.exists())
     {
-      R_RegisterFinalizer(thiz, thiz[nm]);
-      thiz[nm].remove();
+      R_RegisterFinalizer(*thiz, *bind);
+      bind.lock(false);
+      bind.remove();
     }
   }
 
@@ -185,7 +189,7 @@ public:
       meta.subName(isInhr ? "private" : "public", isInhr)
     );
     const RChr<SEXP> clazz(ooprC.oopr.cls());
-    intf = interface(thiz, RSym("this"), names, clazz);
+    intf = interface(*thiz, *RSym("this"), *names, *clazz);
 
     // interface can have the actual implementation if override via virtual
     if(isInhr)
@@ -197,8 +201,8 @@ public:
         if(!meta.isVirtual(i)) continue;
         const RSym nm = meta.name(i);
         const PSEXP fun(
-          meta.isInherit(i) ? REnv<SEXP>(inst[meta.inherit(i)])[nm]
-                            : dupeFun(thiz[nm], false)
+          meta.isInherit(i) ? *REnv<SEXP>(inst[meta.inherit(i)])[nm]
+                            : dupeFun(*thiz[nm], false)
         );
         REnv<PSEXP>::Bind to(intf[nm]);
         to.lock(false);
@@ -231,7 +235,7 @@ private:
   SEXP dupeFun(SEXP fun, bool keep_env)
   {
     const REnv<SEXP> env(keep_env ? R_ClosureEnv(fun) : inst.sexp());
-    PSEXP out = R_mkClosure(R_ClosureFormals(fun), R_ClosureExpr(fun), env);
+    PSEXP out = R_mkClosure(R_ClosureFormals(fun), R_ClosureExpr(fun), *env);
     DUPLICATE_ATTRIB(out, fun);
     return out;
   }
@@ -257,6 +261,6 @@ SEXP oopr_make(SEXP gen, SEXP name, SEXP frames) try
   obj.registerDestructor();
   obj.makeInterface();
   obj.lock();
-  return obj.intf;
+  return *obj.intf;
 }
 catchR

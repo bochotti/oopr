@@ -12,9 +12,9 @@ class Oopr;
 class Oopr : public REnv<SEXP>
 {
 public:
-  static bool is(const RObj<SEXP, ALLSXP>& intf, const RChr<SEXP>& name = { });
+  static bool is(const RObj<SEXP, ALLSXP> intf, const RChr<SEXP> name = { });
 
-  Oopr(const RObj<SEXP, ALLSXP>& intf, const bool check = true);
+  Oopr(const RObj<SEXP, ALLSXP> intf, const bool check = true);
   REnv<SEXP> encl;
   REnv<SEXP> thiz;
 
@@ -26,9 +26,9 @@ public:
 class OoprC : public RObj<SEXP, CLOSXP>
 {
 public:
-  static bool is(const RObj<SEXP, ALLSXP>& gen, const RChr<SEXP>& name = { });
+  static bool is(const RObj<SEXP, ALLSXP> gen, const RChr<SEXP> name = { });
 
-  OoprC(const RObj<SEXP, ALLSXP>& gen, const bool check = true);
+  OoprC(const RObj<SEXP, ALLSXP> gen, const bool check = true);
   const RChr<SEXP>         name;
   const RChr<SEXP>         inhr;
   const OoprMeta           meta;

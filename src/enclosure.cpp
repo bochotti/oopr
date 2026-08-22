@@ -39,12 +39,12 @@ SEXP interface(SEXP env, SEXP nme, SEXP nms, SEXP cls) try
       }
       else
       {
-        symlinkR(from, nme, out, name);
+        symlinkR(*from, nme, *out, *name);
       }
     }
     if(fr.locked()) to.lock(true);
   }
   if(from.locked()) out.lock();
-  return out;
+  return *out;
 }
 catchR

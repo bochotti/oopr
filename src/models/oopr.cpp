@@ -1,9 +1,9 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #include "oopr.h"
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-bool OoprC::is(const RObj<SEXP, ALLSXP>& gen, const RChr<SEXP>& name)
+bool OoprC::is(const RObj<SEXP, ALLSXP> gen, const RChr<SEXP> name)
 {
-  if(!(Rf_isS4(gen) && gen.type() == CLOSXP && gen.inhr("ooprC"))) return false;
+  if(!(Rf_isS4(*gen) && gen.type() == CLOSXP && gen.inhr("ooprC"))) return false;
 
   const RObj<SEXP, ALLSXP> nme(gen.attr("name"));
   if(!(nme.type() == STRSXP && nme.size() == 1))                   return false;
@@ -14,7 +14,7 @@ bool OoprC::is(const RObj<SEXP, ALLSXP>& gen, const RChr<SEXP>& name)
 
   const RObj<SEXP, ALLSXP> encl(gen.attr("encl"));
   if(encl.type() != ENVSXP)                                        return false;
-  if(!Oopr::is(REnv<SEXP>(encl)[".this"], name))                   return false;
+  if(!Oopr::is(REnv<SEXP>(*encl)[".this"], name))                   return false;
 
   if(name.size() == 0) return true;
   const RStr<SEXP> n{RChr<SEXP>(nme)[0]};
@@ -23,7 +23,7 @@ bool OoprC::is(const RObj<SEXP, ALLSXP>& gen, const RChr<SEXP>& name)
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-OoprC::OoprC(const RObj<SEXP, ALLSXP>& gen, const bool check)
+OoprC::OoprC(const RObj<SEXP, ALLSXP> gen, const bool check)
   : RObj(check ? (is(gen) ? gen : (stop("Not an OoprC"), gen)) : gen)
   , name(gen.attr("name"))
   , inhr(gen.attr("inhr"))
@@ -88,7 +88,7 @@ bool is_ooprC(SEXP obj, SEXP name)
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Check the structure of an oopr instance.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-bool Oopr::is(const RObj<SEXP, ALLSXP>& obj, const RChr<SEXP>& name)
+bool Oopr::is(const RObj<SEXP, ALLSXP> obj, const RChr<SEXP> name)
 {
   if(!(obj.type() == ENVSXP && obj.inhr("oopr")))        return false;
   const REnv<SEXP> intf(obj);
@@ -110,7 +110,7 @@ bool Oopr::is(const RObj<SEXP, ALLSXP>& obj, const RChr<SEXP>& name)
   return false;
 }
 
-Oopr::Oopr(const RObj<SEXP, ALLSXP>& intf, const bool check)
+Oopr::Oopr(const RObj<SEXP, ALLSXP> intf, const bool check)
   : REnv(check ? (is(intf) ? intf : (stop("Not an Oopr"), intf)) : intf)
   , encl(parent())
   , thiz(encl["this"])

@@ -120,7 +120,7 @@ private:
     OoprMeta meta(Rf_getAttrib(x, sym["meta"]));
     for(R_xlen_t i = 0; i < meta.size(); ++i)
     {
-      if(meta.isStatic(i)) walk(R_getVar(meta.name(i), thiz, FALSE));
+      if(meta.isStatic(i)) walk(R_getVar(*meta.name(i), thiz, FALSE));
     }
   }
 

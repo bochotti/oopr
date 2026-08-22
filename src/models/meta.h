@@ -17,8 +17,8 @@ class OoprMeta
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 public:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  static bool is(const RObj<SEXP, ALLSXP>& x);
-  OoprMeta(const SEXP x, const bool check = true);
+  static bool is(const RObj<SEXP, ALLSXP> x);
+  OoprMeta(const RObj<SEXP, ALLSXP> x, const bool check = true);
 
   R_xlen_t size()                                const;
   RSym name(const int i)                         const;
@@ -61,7 +61,7 @@ private:
   const RChr<SEXP> inherit_;
   const RLgl<SEXP> virtual_;
 
-  static SEXP get(const REnv<SEXP>& x,  const char* nm);
+  static SEXP get(const REnv<SEXP> x,  const char* nm);
 
 };
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
