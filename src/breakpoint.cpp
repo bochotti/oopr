@@ -63,7 +63,7 @@ private:
   SEXP        clazz_;
   std::string pkg_;
   std::string fun_;
-  static inline Symbols sym{"meta", "encl", "this", ".this", "format.default"};
+  static const Symbols sym;
   std::vector<SEXP> searched_;
   std::vector<SEXP> instances_;
 
@@ -163,7 +163,9 @@ private:
     searchEnv(encl);
   }
 };
-
+const Symbols InstanceFinder::sym{
+  "meta", "encl", "this", ".this", "format.default"
+};
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 SEXP find_instances(SEXP ooprC, SEXP frames, SEXP fun) try
 {

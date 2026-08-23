@@ -54,30 +54,30 @@ Symbols::Symbols(std::initializer_list<std::string> syms)
   }
 }
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-bool Symbols::is(SEXP x)
+bool Symbols::is(SEXP x) const
 {
   if(!Rf_isSymbol(x)) return false;
-  for(const auto& [key, val] : syms_) if(x == val) return true;
+  for(const auto& sym : syms_) { if(x == sym.second) return true; }
   return false;
 }
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-bool Symbols::is(SEXP x, const std::initializer_list<std::string>& keys)
+bool Symbols::is(SEXP x, const std::initializer_list<std::string>& keys) const
 {
   if(!Rf_isSymbol(x)) return false;
   for(const std::string& key : keys) if(x == get(key)) return true;
   return false;
 }
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-bool Symbols::is(SEXP x, const std::string& key)
+bool Symbols::is(SEXP x, const std::string& key) const
 {
   if(!Rf_isSymbol(x)) return false;
   return x == get(key);
 }
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-SEXP Symbols::get(const std::string& key)
+SEXP Symbols::get(const std::string& key) const
 {
   if(syms_.find(key) == syms_.end()) stop("`%s` not a key", key.c_str());
-  return syms_[key];
+  return syms_.at(key);
 }
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Symbols

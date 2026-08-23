@@ -36,7 +36,7 @@ private:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   SEXP env;
   SEXP ns;
-  static inline Symbols sym{"encl", "meta", "inhr", "name", "this", ".this"};
+  static const Symbols sym;
 
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   void loadOopr(SEXP ooprC)
@@ -165,7 +165,7 @@ private:
   }
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 };
-
+const Symbols OoprLoad::sym{"encl", "meta", "inhr", "name", "this", ".this"};
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 SEXP on_load(SEXP env, SEXP ns) try
 {

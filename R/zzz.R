@@ -25,6 +25,10 @@
   {
     OoprBreakpoints@encl$this$loadInGlobal(FALSE, TRUE);
   }
+  if(identical(get0("this", envir = .AutoloadEnv, inherits = FALSE), this))
+  {
+    rm(list = "this", envir = .AutoloadEnv);
+  }
   gc();
   library.dynam.unload("oopr", libpath);
 }

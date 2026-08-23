@@ -75,11 +75,13 @@ struct Traits
  *   3. S      -> ALLSXP
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 template <typename T>
-static constexpr bool IsRObj =
-  std::is_base_of<RObjR, typename std::decay<T>::type>::value;
+constexpr bool IsRObj()
+{
+  return std::is_base_of<RObjR, typename std::decay<T>::type>::value;
+}
 
 template<typename T, typename P, unsigned int S>
-struct Traits<T, P, S, typename std::enable_if<IsRObj<T>>::type>
+struct Traits<T, P, S, typename std::enable_if<IsRObj<T>()>::type>
 {
   using DT = typename std::decay<T>::type;
   using CT = typename std::remove_reference<T>::type;
@@ -127,12 +129,12 @@ public:
    * Copyable if allowed by the traits
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
   template<typename U>
-  RObj(const U& x, EnableCopy<U, int*> = nullptr) { set(static_cast<SEXP>(x)); }
+  RObj(const U& x, EnableCopy<U, int*> = nullptr) { set<U>(static_cast<SEXP>(x)); }
 
   template<typename U, EnableCopy<U, int> = 0>
   RObj& operator=(const U& x)
   {
-    set(static_cast<SEXP>(x));
+    set<U>(static_cast<SEXP>(x));
     return static_cast<RObj&>(*this);
   }
 
@@ -147,7 +149,7 @@ public:
   {
     if(static_cast<const void*>(this) != static_cast<const void*>(&x))
     {
-      set(std::move(x.sexp()));
+      set<U>(std::move(x.sexp()));
     }
     return static_cast<RObj&>(*this);
   }
@@ -197,9 +199,10 @@ public:
     SEXP     sexp()                 const { return **this; }
     explicit operator SEXP()        const { return **this; }
     operator ::RObj<SEXP, ALLSXP>() const { return **this; }
-    operator bool()                 const { return **this == R_NilValue; }
+    operator bool()                 const { return **this != R_NilValue; }
     Attr& operator=(const SEXP v)   { Rf_setAttrib(x, i, v);  return *this; }
-    Attr& operator=(const Attr& v)  { Rf_setAttrib(x, i, *v); return *this; }
+    Attr& operator=(const ::RObj<SEXP, ALLSXP> v) { return *this = *v; }
+    Attr& operator=(const Attr& v)                { return *this = *v; }
   private:
     Attr(const SEXP x, const SEXP i) : x(x), i(i) { }
     const SEXP x;
@@ -211,15 +214,20 @@ public:
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 private:
   P sexp_{R_NilValue};
-  void set(const SEXP x)
+  template<typename U>
+  typename std::enable_if<(S == ALLSXP || Traits<U, P, S>::s == S), void>::type
+  set(const SEXP x)
   {
-    if constexpr(S != ALLSXP)
-    {
-      if(TYPEOF(x) != S) stop(
-        "RObj: SEXPTYPE of incoming object must be `%s`, not `%s`"
-       ,Rf_type2char(S), Rf_type2char(TYPEOF(x))
-      );
-    }
+    sexp_ = x;
+  }
+  template<typename U>
+  typename std::enable_if<(S != ALLSXP && Traits<U, P, S>::s != S), void>::type
+  set(const SEXP x)
+  {
+    if(TYPEOF(x) != S) stop(
+      "RObj: SEXPTYPE of incoming object must be `%s`, not `%s`"
+     ,Rf_type2char(S), Rf_type2char(TYPEOF(x))
+    );
     sexp_ = x;
   }
 
@@ -285,10 +293,13 @@ public:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   using RObj::RObj;
   RSym(const char* x) : RSym(Rf_install(x)) { }
+  template<typename T>
+  RSym(const RStr<T> x);
 
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   const char* c_str() const { return R_CHAR(PRINTNAME(sexp())); }
   RStr<SEXP>  chr()   const;
+  operator RStr<SEXP>() const;
 
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   using RObj::operator==;
@@ -365,7 +376,7 @@ public:
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
    * Get names
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-  bool named()       const { return this->attr("names"); }
+  bool named()       const { return this->attr(R_NamesSymbol) != R_NilValue; }
   RChr<SEXP> names() const;
 
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
@@ -389,7 +400,11 @@ public:
     ENABLE_IF(U = T, = 0, std::is_base_of<RObjR, U>)
     explicit operator SEXP()   const { return **this; }
     operator T()               const { return D::getv(x, i); }
-    Elem& operator=(const T v)       { D::setv(x, i, v); return *this; }
+    Elem& operator=(const T v)
+    {
+      D::setv(x, i, static_cast<SEXP>(v));
+      return *this;
+    }
     Elem& operator=(const Elem& v)   { return *this = static_cast<T>(v); }
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
@@ -588,7 +603,10 @@ private:
 }; // RStr
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 
+template<typename T>
+RSym::RSym(const RStr<T> x) : RSym(x.sym()) { }
 inline RStr<SEXP> RSym::chr()           const { return PRINTNAME(sexp()); }
+inline RSym::operator RStr<SEXP>()      const { return chr(); }
 template<typename T>
 bool RSym::operator==(const RStr<T>& x) const { return x == chr(); }
 template<typename T>
@@ -703,6 +721,7 @@ R_xlen_t RVec<D, T, I, P, S>::idx(const RStr<PSEXP>& nm) const
     R_xlen_t i{0};
     for(const RStr<SEXP>& name : names()) { if(name == nm) return i; ++i; }
     stop("index `%s` is out of bounds", nm.data());
+    return -1;
   }
 template<typename D, typename T, typename I, typename P, SEXPTYPE S>
 typename RVec<D, T, I, P, S>::Elem RVec<D, T, I, P, S>::operator[](
@@ -851,10 +870,11 @@ public:
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
     friend class ::REnv<P>;
     using REnv = ::REnv<P>;
-    Bind(Bind&&)            noexcept = default;
+    Bind(Bind&& x) noexcept : Bind(std::move(x.x), std::move(x.nm)) { }
     Bind& operator=(Bind&&) noexcept = default;
-    Bind(const Bind&)                = delete;
-    Bind& operator=(const Bind&)     = delete;
+    // Bind(const Bind&)                = delete;
+    Bind(const Bind& x) : Bind(x.x, x.nm) { }
+    // Bind& operator=(const Bind&)     = delete;
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
     bool exists() const { return R_existsVarInFrame(*x, *nm); }
@@ -894,7 +914,7 @@ public:
     template <
       typename U,
       typename R = decltype(std::declval<const U&>().get()),
-      EnableIf<IsRObj<R> && Traits<R, P, 0>::s == ALLSXP> = 0
+      EnableIf<IsRObj<R>() && Traits<R, P, 0>::s == ALLSXP> = 0
     >
     Bind& operator=(const U& v)
     {
@@ -906,8 +926,8 @@ public:
   private:
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
     Bind(const REnv& x, const RSym& nm) : x(*x), nm(nm), fun(*this, this->nm){ }
-    const REnv x;
-    const RSym nm;
+    REnv x;
+    RSym nm;
     void chklck( ) const
     {
       if(x.locked()) stop("REnv::RBind: Environment is locked");
@@ -968,7 +988,7 @@ public:
       template <
         typename U,
         typename R = decltype(std::declval<const U&>().get()),
-        EnableIf<IsRObj<R> && Traits<R, P, 0>::s == CLOSXP> = 0
+        EnableIf<IsRObj<R>() && Traits<R, P, 0>::s == CLOSXP> = 0
       >
       Fun& operator=(const U& v)
       {

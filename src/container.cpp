@@ -49,15 +49,16 @@ public:
   }
 
 private:
-  static inline Symbols sym{
-    "emplace", "$", "this", "size", ".", "args", "substitute"
-  };
+  static const Symbols sym;
   SEXP args_;
   SEXP thiz_;
   SEXP fun_;
   bool map_;
 };
 
+const Symbols OoprContainer::sym{
+  "emplace", "$", "this", "size", ".", "args", "substitute"
+};
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 SEXP oopr_cont_init(SEXP ooprC, SEXP thiz, SEXP map) try
 {

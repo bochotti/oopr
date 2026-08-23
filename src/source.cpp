@@ -98,7 +98,7 @@ public:
   }
   bool inside()
   {
-    for(const auto& [key, val] : opens) if(val->count) return true;
+    for(const auto& open : opens) { if(open.second->count) return true; }
     return false;
   }
 };

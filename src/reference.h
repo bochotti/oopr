@@ -12,6 +12,7 @@
 #include "./util/psexp.h"
 #include "./util/unwind.h"
 #include "./util/symbols.h"
+#include "./models/robj.h"
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Provide a function, expression, list/environment of, to get all
  * members references. Outputs:

@@ -1,13 +1,16 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #include "meta.h"
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+constexpr std::array<std::pair<const char*, SEXPTYPE>, 8> OoprMeta::specifiers;
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 bool OoprMeta::is(const RObj<SEXP, ALLSXP> x)
 {
   if(!(x.type() == ENVSXP && x.inhr("oopr_meta"))) return false;
   const REnv<SEXP>  env(x);
-  static RSym data("data");
-  R_xlen_t    i{-1};
-  for(std::pair<const char*, SEXPTYPE> spec : specifiers)
+  static const RSym data("data");
+  R_xlen_t          i{-1};
+
+  for(const std::pair<const char*, SEXPTYPE>& spec : specifiers)
   {
     const REnv<SEXP>::Bind bind(env[spec.first]);
     if(!bind.exists())             return false;
@@ -29,8 +32,8 @@ bool OoprMeta::is(const RObj<SEXP, ALLSXP> x)
 
 SEXP OoprMeta::get(const REnv<SEXP> x,  const char* nm)
 {
-  const REnv<SEXP> y(x[nm]);
-  static RSym data("data");
+  const REnv<SEXP>  y(x[nm]);
+  static const RSym data("data");
   return *(y[data]);
 }
 
