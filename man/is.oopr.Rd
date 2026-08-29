@@ -10,7 +10,8 @@ is.oopr(x, name = character(0L))
 is.ooprC(x, name = character(0L))
 }
 \arguments{
-\item{x}{Any object.}
+\item{x}{\code{varies} \cr
+Any object.}
 
 \item{name}{\code{character()} \cr
 Check for any class name.}
@@ -20,6 +21,9 @@ Check for any class name.}
 }
 \description{
 Check whether an object is \code{oopr} or \code{ooprC}.
+}
+\details{
+Also validates the structure of \code{oopr} and \code{ooprC} objects.
 }
 \examples{
 oopr('a',, {})

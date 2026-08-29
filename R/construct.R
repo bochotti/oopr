@@ -134,8 +134,7 @@ print.ooprC <- \(x, ...) show(x);
 is.ooprC <- \(x, name = character(0L))
 {
   stopifnot(is.character(name));
-  if(!inherits(x, "ooprC")) return(FALSE);
-  return(!length(name) || any(match(name, x@name, 0L) > 0L));
+  return(.Call(Cpp_isooprC, x, name));
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##

@@ -1,5 +1,10 @@
 # oopr 999.999 (development version)
 
+## Changed
+
+* `is.oopr` and `is.ooprC` now also validates the structure of their objects.
+
+
 # oopr 0.0.1 (2026-07-28)
 
 ## Added

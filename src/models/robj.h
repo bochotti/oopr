@@ -473,7 +473,24 @@ public:
 
     const T operator* () const noexcept { return *p; }
     T*      operator->()       noexcept { return  p; }
-    CIter&  operator++()       noexcept { p++; return *this; }
+    CIter&  operator++()       noexcept { p++;  return *this; }
+    CIter&  operator+=(int o)  noexcept { p+=o; return *this; }
+    CIter   operator+(int o) const noexcept
+    {
+      CIter tmp = *this;
+      tmp += o;
+      return tmp;
+    }
+    friend CIter operator+(int o, const CIter& x) { return x + o; }
+    CIter&  operator-=(int o)  noexcept { p-=o; return *this; }
+    CIter   operator-(int o) const noexcept
+    {
+      CIter tmp = *this;
+      tmp -= o;
+      return tmp;
+    }
+    friend CIter operator-(int o, const CIter& x) { return x - o; }
+
 
     bool    operator== (const CIter& x) const noexcept { return p == x.p;}
     bool    operator!= (const CIter& x) const noexcept { return p != x.p;}

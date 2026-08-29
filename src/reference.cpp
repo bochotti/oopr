@@ -17,13 +17,16 @@ protected:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
   SEXP getSrcRef()
   {
-    SEXP srcref           = Rf_install("srcref");
-    const std::size_t len = paths.size();
-    for(std::size_t i = len; i > 0; --i)
+    static RSym srcref("srcref");
+    const R_xlen_t len = paths.size();
+    for(R_xlen_t i = (len - 1); i > 0; --i)
     {
-      SEXP src = Rf_getAttrib(parents[i - 1], srcref);
-      const R_xlen_t j = (R_xlen_t)paths[i - 1] - 1;
-      if(src != R_NilValue && j < Rf_xlength(src)) return VECTOR_ELT(src, j);
+      const RObj<SEXP> parent = parents[i];
+      const RObj<SEXP> src    = parent.attr(srcref);
+      if(*src == R_NilValue) { continue; }
+      const R_xlen_t j = paths[i] - 1;
+      const RList<SEXP> src2 = src;
+      if(j < src2.size()) return *src2[j];
     }
     return R_NilValue;
   }

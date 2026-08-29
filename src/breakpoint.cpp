@@ -23,7 +23,7 @@ public:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   void walk(SEXP x)
   {
-    if(is_oopr(x))
+    if(Oopr::is(x))
     {
       searchOopr(x);
     }
@@ -35,7 +35,7 @@ public:
     {
       searchList(x);
     }
-    else if(is_ooprC(x))
+    else if(OoprC::is(x))
     {
       searchOoprC(x);
     }
@@ -147,10 +147,10 @@ private:
     // check if the instance inherits from the ooprC. must check:
     //   1. That the enclosure holds an instance of the ooprC
     //   2. The instances own ooprC to see if member exists and not overridden
-    else if(is_oopr(R_getVarEx(clazz_, encl, FALSE, R_NilValue)))
+    else if(Oopr::is(R_getVarEx(clazz_, encl, FALSE, R_NilValue)))
     {
       SEXP ooprC = R_getVar(clazz, R_ParentEnv(encl), FALSE);
-      if(is_ooprC(ooprC, clazz))
+      if(OoprC::is(ooprC, { RSym(clazz).chr() }))
       {
         OoprMeta meta(Rf_getAttrib(ooprC, Rf_install("meta")));
         const int i = meta.which(fun_);
@@ -169,7 +169,7 @@ const Symbols InstanceFinder::sym{
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 SEXP find_instances(SEXP ooprC, SEXP frames, SEXP fun) try
 {
-  if(!is_ooprC(ooprC))                              return R_NilValue;
+  if(!OoprC::is(ooprC))                             return R_NilValue;
   SEXP name = Rf_getAttrib(ooprC, Rf_install("name"));
   SEXP encl = Rf_getAttrib(ooprC, Rf_install("encl"));
   SEXP pkg  = R_ParentEnv(encl);

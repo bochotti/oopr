@@ -6,7 +6,7 @@ class OoprContainer
 public:
   OoprContainer(SEXP ooprC, SEXP thiz, SEXP map)
   {
-    if(!is_ooprC(ooprC))        stop("`ooprC` must be an ooprC object");
+    if(!OoprC::is(ooprC))       stop("`ooprC` must be an ooprC object");
     if(!Rf_isEnvironment(thiz)) stop("`thiz` not an environment");
     if(!Rf_isLogical(map))      stop("`map` must be logical");
     args_ = R_ClosureFormals(ooprC);

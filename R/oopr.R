@@ -336,9 +336,13 @@ dollar_attr <- \(x, names)
 #' @description
 #' Check whether an object is `oopr` or `ooprC`.
 #'
-#' @param x    Any object.
+#' @param x    `varies` \cr
+#'             Any object.
 #' @param name `character()` \cr
 #'             Check for any class name.
+#'
+#' @details
+#' Also validates the structure of `oopr` and `ooprC` objects.
 #'
 #' @returns
 #' `logical(1L)`
@@ -360,6 +364,5 @@ dollar_attr <- \(x, names)
 is.oopr <- \(x, name = character(0L))
 {
   stopifnot(is.character(name));
-  test <- inherits(x, c("oopr", name), which = TRUE) > 0L;
-  return(test[1L] && (!length(name) || any(test[-1L])));
+  return(.Call(Cpp_isoopr, x, name));
 }

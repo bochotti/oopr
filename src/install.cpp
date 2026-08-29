@@ -26,7 +26,7 @@ public:
     {
       SEXP name = Rf_installChar(STRING_ELT(names, i));
       SEXP oopr = R_getVar(name, env, FALSE);
-      if(!is_ooprC(oopr, name)) continue;
+      if(!OoprC::is(oopr, { RSym(name).chr() })) continue;
       loadOopr(oopr);
       Rf_defineVar(name, oopr, ns);
     }
@@ -107,15 +107,15 @@ private:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   bool fromAnotherPackage(SEXP& ooprC)
   {
-    if(!is_ooprC(ooprC)) return false;
+    if(!OoprC::is(ooprC)) return false;
     SEXP encl = Rf_getAttrib(ooprC, sym["encl"]);
     SEXP name = Rf_getAttrib(ooprC, sym["name"]);
     name = Rf_installChar(STRING_ELT(name, 0));
     SEXP top = Rf_topenv(R_EmptyEnv, encl);
-    if(!R_IsNamespaceEnv(top))  return false;
-    if(top == ns)               return false;
+    if(!R_IsNamespaceEnv(top))   return false;
+    if(top == ns)                return false;
     SEXP ooprC2 = R_getVar(name, top, FALSE);
-    if(!is_ooprC(ooprC2, name)) return false;
+    if(!OoprC::is(ooprC2, { RSym(name).chr() })) return false;
     ooprC = ooprC2;
     return true;
   }
