@@ -13,11 +13,13 @@
 #include <vector>
 #include <type_traits>
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+constexpr SEXPTYPE ALLSXP = static_cast<SEXPTYPE>(-1);
+namespace ROBJ {
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 class RObjR{};
 class RSym;
 template<typename P> class RStr;
 template<typename P> class RChr;
-constexpr SEXPTYPE ALLSXP = static_cast<SEXPTYPE>(-1);
 #define ENABLE_IF(T, E, ...)                                   \
   template <                                                   \
     typename T                                                 \
@@ -129,7 +131,10 @@ public:
    * Copyable if allowed by the traits
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
   template<typename U>
-  RObj(const U& x, EnableCopy<U, int*> = nullptr) { set<U>(static_cast<SEXP>(x)); }
+  RObj(const U& x, EnableCopy<U, int*> = nullptr)
+  {
+    set<U>(static_cast<SEXP>(x));
+  }
 
   template<typename U, EnableCopy<U, int> = 0>
   RObj& operator=(const U& x)
@@ -189,20 +194,20 @@ public:
   class Attr
   {
   public:
-    friend class ::RObj<P, S>;
-    using RObj = ::RObj<P, S>;
+    friend class ROBJ::RObj<P, S>;
+    using RObj = ROBJ::RObj<P, S>;
     Attr(Attr&& x)             noexcept = default;
     Attr& operator=(Attr&& x)  noexcept = default;
     Attr(const Attr& x)        noexcept = default;
 
-    SEXP     operator *()           const { return Rf_getAttrib(x, i); }
-    SEXP     sexp()                 const { return **this; }
-    explicit operator SEXP()        const { return **this; }
-    operator ::RObj<SEXP, ALLSXP>() const { return **this; }
-    operator bool()                 const { return **this != R_NilValue; }
+    SEXP     operator *()               const { return Rf_getAttrib(x, i); }
+    SEXP     sexp()                     const { return **this; }
+    explicit operator SEXP()            const { return **this; }
+    operator ROBJ::RObj<SEXP, ALLSXP>() const { return **this; }
+    operator bool()                     const { return **this != R_NilValue; }
     Attr& operator=(const SEXP v)   { Rf_setAttrib(x, i, v);  return *this; }
-    Attr& operator=(const ::RObj<SEXP, ALLSXP> v) { return *this = *v; }
-    Attr& operator=(const Attr& v)                { return *this = *v; }
+    Attr& operator=(const ROBJ::RObj<SEXP, ALLSXP> v) { return *this = *v; }
+    Attr& operator=(const Attr& v)                    { return *this = *v; }
   private:
     Attr(const SEXP x, const SEXP i) : x(x), i(i) { }
     const SEXP x;
@@ -387,8 +392,8 @@ public:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   public:
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-    friend class ::RVec<D, T, I, P, S>;
-    using RVec = ::RVec<D, T, I, P, S>;
+    friend class ROBJ::RVec<D, T, I, P, S>;
+    using RVec = ROBJ::RVec<D, T, I, P, S>;
 
     Elem(Elem&& x)                 noexcept = default;
     Elem& operator=(Elem&& x)      noexcept = default;
@@ -518,8 +523,8 @@ private:
   class N final : public RVec<N<P>, T, T, P, S>                                \
   {                                                                            \
   public:                                                                      \
-    friend class ::RVec<N<P>, T, T, P, S>;                                     \
-    using RVec = ::RVec<N<P>, T, T, P, S>;                                     \
+    friend class ROBJ::RVec<N<P>, T, T, P, S>;                                 \
+    using RVec = ROBJ::RVec<N<P>, T, T, P, S>;                                 \
     using RVec::RVec;                                                          \
                                                                                \
     using RVec::operator==;                                                    \
@@ -561,8 +566,8 @@ class RStr final : public RVec<RStr<P>, const char, const char, P, CHARSXP>
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 public:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  friend class ::RVec<RStr<P>, const char, const char, P, CHARSXP>;
-  using RVec = ::RVec<RStr<P>, const char, const char, P, CHARSXP>;
+  friend class ROBJ::RVec<RStr<P>, const char, const char, P, CHARSXP>;
+  using RVec = ROBJ::RVec<RStr<P>, const char, const char, P, CHARSXP>;
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   using RVec::RVec;
   RStr(const char* x) : RVec(Rf_mkChar(x)) { }
@@ -639,8 +644,8 @@ class RChr final : public RVec<RChr<P>, const RStr<SEXP>, SEXP, P, STRSXP>
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 public:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  friend class ::RVec<RChr<P>, const RStr<SEXP>, SEXP, P, STRSXP>;
-  using RVec = ::RVec<RChr<P>, const RStr<SEXP>, SEXP, P, STRSXP>;
+  friend class ROBJ::RVec<RChr<P>, const RStr<SEXP>, SEXP, P, STRSXP>;
+  using RVec = ROBJ::RVec<RChr<P>, const RStr<SEXP>, SEXP, P, STRSXP>;
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   using RVec::RVec;
   RChr(const std::vector<const char*>& x) : RChr(x.size())
@@ -763,8 +768,8 @@ class RList final : public RVec<RList<P>, RObj<SEXP, ALLSXP>, SEXP, P, VECSXP>
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 public:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  friend class ::RVec<RList<P>, RObj<SEXP, ALLSXP>, SEXP, P, VECSXP>;
-  using RVec = ::RVec<RList<P>, RObj<SEXP, ALLSXP>, SEXP, P, VECSXP>;
+  friend class ROBJ::RVec<RList<P>, RObj<SEXP, ALLSXP>, SEXP, P, VECSXP>;
+  using RVec = ROBJ::RVec<RList<P>, RObj<SEXP, ALLSXP>, SEXP, P, VECSXP>;
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   using RVec::RVec;
   RList(std::initializer_list<const SEXP> x) : RList(x.size())
@@ -885,8 +890,8 @@ public:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   public:
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-    friend class ::REnv<P>;
-    using REnv = ::REnv<P>;
+    friend class ROBJ::REnv<P>;
+    using REnv = ROBJ::REnv<P>;
     Bind(Bind&& x) noexcept : Bind(std::move(x.x), std::move(x.nm)) { }
     Bind& operator=(Bind&&) noexcept = default;
     // Bind(const Bind&)                = delete;
@@ -1035,5 +1040,22 @@ public:
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #undef ENABLE_IF
+} /* ROBJ */
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+template<typename P = PSEXP, SEXPTYPE S = ALLSXP>
+using RObj = ROBJ::RObj<P,S>;
+using RSym = ROBJ::RSym;
+template<typename P = SEXP>
+using RStr = ROBJ::RStr<P>;
+#define ROBJEXPORT(NAME) template<typename P = PSEXP> using NAME = ROBJ::NAME<P>
+ROBJEXPORT(RDbl);
+ROBJEXPORT(RInt);
+ROBJEXPORT(RLgl);
+ROBJEXPORT(RChr);
+ROBJEXPORT(RList);
+ROBJEXPORT(REnv);
+#undef ROBJEXPORT
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #endif /* OOPR_MODELS_ROBJECTS_H */
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
