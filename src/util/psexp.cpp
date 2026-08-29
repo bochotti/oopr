@@ -28,7 +28,8 @@ PSEXP& PSEXP::operator=(PSEXP&& x) noexcept
  * If not token not initialized, just return NULL
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 SEXP PSEXP::get( ) const noexcept { return empty() ? R_NilValue : TAG(tkn); }
-PSEXP::operator SEXP( ) const noexcept { return get(); }
+PSEXP::operator SEXP( )  const noexcept { return get(); }
+SEXP PSEXP::operator*( ) const noexcept { return get(); }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Set the underlying SEXP

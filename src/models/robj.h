@@ -14,7 +14,8 @@
 #include <type_traits>
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 constexpr SEXPTYPE ALLSXP = static_cast<SEXPTYPE>(-1);
-namespace ROBJ {
+namespace ROBJ
+{
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 class RObjR{};
 class RSym;

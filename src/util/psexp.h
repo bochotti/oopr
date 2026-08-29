@@ -33,8 +33,9 @@ public:
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
    * Get the underlying SEXP
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-  SEXP get( )      const noexcept;
-  operator SEXP( ) const noexcept;
+  SEXP get( )        const noexcept;
+  operator SEXP( )   const noexcept;
+  SEXP operator *( ) const noexcept;
 
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
    * Set the underlying SEXP
