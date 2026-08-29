@@ -166,8 +166,8 @@ public:
   SEXPTYPE   type()                const { return TYPEOF(sexp_); }
   R_xlen_t   size()                const { return Rf_xlength(sexp_); }
   bool       inhr(const char* cls) const { return Rf_inherits(sexp_, cls); }
-  RChr<SEXP> cls()                 const;
   void       print()               const { Rf_PrintValue(sexp_); }
+  const RChr<SEXP> cls()           const;
 
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
    * Get the underlying SEXP using * operator, or duplicate it.
@@ -704,7 +704,7 @@ private:
  * RVec & RVec::Elem reliant on RChr
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 template<typename P, SEXPTYPE S>
-RChr<SEXP> RObj<P, S>::cls() const
+const RChr<SEXP> RObj<P, S>::cls() const
 {
   SEXP cls = *attr(R_ClassSymbol);
   return (cls == R_NilValue) ? RChr<SEXP>() : RChr<SEXP>(cls);
@@ -861,7 +861,7 @@ public:
     return R_lsInternal3(**this, all ? TRUE : FALSE, sort ? TRUE : FALSE);
   }
   REnv<SEXP> parent() const { return R_ParentEnv(**this); }
-  REnv<SEXP> topenv() const { return R_topenv(R_EmptyEnv, **this); }
+  REnv<SEXP> topenv() const { return Rf_topenv(R_EmptyEnv, **this); }
 
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
    * Locking
@@ -953,8 +953,11 @@ public:
     RSym nm;
     void chklck( ) const
     {
-      if(x.locked()) stop("REnv::RBind: Environment is locked");
-      if(exists() && locked())
+      if(!exists() && x.locked())
+      {
+        stop("REnv::RBind: Environment is locked");
+      }
+      if(exists()  && locked())
       {
         stop("REnv::RBind: `%s` is locked", nm.c_str());
       }

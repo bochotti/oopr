@@ -14,6 +14,12 @@ bool OoprC::is(const RObj<SEXP, ALLSXP> gen)
   if(!REnv<>::is(*gen.attr("encl")))                               return false;
   const REnv<SEXP> encl(gen.attr("encl"));
   if(!Oopr::is(encl[".this"], name))                               return false;
+  const RChr<SEXP> inhr(gen.attr("inhr"));
+  for(const RStr<SEXP>& name : inhr)
+  {
+    REnv<SEXP>::Bind bind = encl[name.sym()];
+    if(!(bind.exists() && OoprC::is(bind, { name })))             return false;
+  }
   return true;
 }
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
