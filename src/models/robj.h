@@ -575,8 +575,9 @@ public:
   RStr(const RSym x)  : RVec(x.chr())      { }
 
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  const RSym sym() const { return Rf_installChar(this->sexp()); }
-  operator RSym()  const { return sym(); }
+  const RSym sym()  const { return Rf_installChar(this->sexp()); }
+  operator RSym()   const { return sym(); }
+  const char* str() const { return R_CHAR(this->sexp()); }
 
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   using RVec::operator==;
