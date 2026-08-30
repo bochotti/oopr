@@ -1,12 +1,23 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #include "container.h"
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+#define LIST(X)                                                \
+  X(emplace)                                                   \
+  X(dollar, "$")                                               \
+  X(thiz, "this")                                              \
+  X(size)                                                      \
+  X(dot, ".")                                                  \
+  X(args)                                                      \
+  X(substitute)
+SYMBOLS(LIST, sym)
+#undef  LIST
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 class OoprContainer
 {
 public:
   OoprContainer(const OoprC gen, REnv<SEXP> thiz, const RLgl<SEXP> map)
     : args_(R_ClosureFormals(*gen))
-    , bind_(thiz[sym["emplace"]])
+    , bind_(thiz[sym.emplace])
     , map_(map[0])
   {
     if(!bind_.exists()) stop("`emplace` is a required binding for thiz");
@@ -25,19 +36,18 @@ public:
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 private:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  static const Symbols sym;
-  const SEXP           args_;
-  REnv<SEXP>::Bind     bind_;
-  const bool           map_;
+  const SEXP       args_;
+  REnv<SEXP>::Bind bind_;
+  const bool       map_;
 
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   SEXP makeArgs()
   {
     PSEXP args = Rf_cons(
-      map_ ? R_MissingArg : Rf_lang3(sym["$"], sym["this"], sym["size"])
+      map_ ? R_MissingArg : Rf_lang3(*sym.dollar, *sym.thiz, *sym.size)
      ,args_
     );
-    SET_TAG(args, sym["."]);
+    SET_TAG(args, *sym.dot);
     return args;
   }
 
@@ -50,18 +60,15 @@ private:
     for(SEXP e = args_; e != R_NilValue; e = CDR(e), ++i) { sub[i] = TAG(e); }
 
     REnv<PSEXP> env(REnv<SEXP>(R_EmptyEnv), false, 1);
-    env[sym["args"]] = sub;
+    env[sym.args] = sub;
 
-    PSEXP expr = Rf_lang3(sym["substitute"], R_ClosureExpr(*bind_), *env);
-    return RUnWind::eval(expr, R_BaseEnv);
+    PSEXP expr = Rf_lang3(*sym.substitute, R_ClosureExpr(*bind_), *env);
+    return Rf_eval(expr, R_BaseEnv);
   }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 }; // OoprContainer
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-const Symbols OoprContainer::sym{
-  "emplace", "$", "this", "size", ".", "args", "substitute"
-};
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //

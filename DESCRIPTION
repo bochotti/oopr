@@ -21,6 +21,8 @@ Imports:
     methods
 Depends:
     R (>= 4.1.0)
+UseLTO: true
+NeedsCompilation: "yes"
 Config/testthat/edition: 3
 RoxygenNote: 7.3.3
 Collate: 

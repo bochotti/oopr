@@ -5,6 +5,7 @@
 #include "common.h"
 #include "./util/psexp.h"
 #include "./util/unwind.h"
+#include "./util/symbols.h"
 #include "./models/robj.h"
 #include "./models/oopr.h"
 #include "./models/meta.h"

@@ -1,46 +1,66 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #include "meta.h"
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-constexpr std::array<std::pair<const char*, SEXPTYPE>, 8> OoprMeta::specifiers;
+#define LIST(X)                                                \
+  X(names_,    "names",    STRSXP)                             \
+  X(access_,   "access",   STRSXP)                             \
+  X(method_,   "method",   LGLSXP)                             \
+  X(property_, "property", STRSXP)                             \
+  X(static_,   "static",   LGLSXP)                             \
+  X(class_,    "class",    LGLSXP)                             \
+  X(inherit_,  "inherit",  STRSXP)                             \
+  X(virtual_,  "virtual",  LGLSXP)
+
+#define ARGS2(arg1, arg2, arg3) SYM_2(arg1, arg2)
+#define LIST2(X)                                               \
+  X(data)                                                      \
+  LIST(ARGS2)
+SYMBOLS(LIST2, sym)
+#undef  LIST2
+#undef  ARGS2
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 bool OoprMeta::is(const RObj<SEXP, ALLSXP> x)
 {
   if(!(x.type() == ENVSXP && x.inhr("oopr_meta"))) return false;
   const REnv<SEXP>  env(x);
-  static const RSym data("data");
   R_xlen_t          i{-1};
 
-  for(const std::pair<const char*, SEXPTYPE>& spec : specifiers)
-  {
-    const REnv<SEXP>::Bind bind(env[spec.first]);
-    if(!bind.exists())             return false;
-
-    const RObj<SEXP> mem = bind.get();
-    if(!REnv<>::is(*mem))           return false;
-
-    const REnv<SEXP> env2(mem);
-    const auto bind2 = env2[data];
-    if(!bind2.exists())            return false;
-
-    const RObj<SEXP> mem2 = bind2.get();
-    if(mem2.type() != spec.second) return false;
-
-    if(i == -1) { i = mem2.size(); } else if(i != mem2.size()) { return false; }
+#define CHECK(SYM, NAME, TYPE)                                      \
+  {                                                                 \
+    const REnv<SEXP>::Bind bind(env[sym.SYM]);                      \
+    if(!bind.exists())                            { return false; } \
+    const RObj<SEXP> mem = bind.get0();                             \
+    if(!REnv<>::is(*mem))                         { return false; } \
+    const REnv<SEXP> env2(mem);                                     \
+    const REnv<SEXP>::Bind bind2(env2[sym.data]);                   \
+    if(!bind2.exists())                           { return false; } \
+    const RObj<SEXP> mem2(bind2.get0());                            \
+    if(mem2.type() != TYPE)                       { return false; } \
+    if(i == -1)                                                     \
+    {                                                               \
+      i = mem2.size();                                              \
+    }                                                               \
+    else if(i != mem2.size())                                       \
+    {                                                               \
+      return false;                                                 \
+    }                                                               \
   }
+  LIST(CHECK)
+#undef CHECK
+#undef LIST
   return true;
 }
 
-SEXP OoprMeta::get(const REnv<SEXP> x,  const char* nm)
+RObj<SEXP> get(const REnv<SEXP> x, const RSym nm)
 {
-  const REnv<SEXP>  y(x[nm]);
-  static const RSym data("data");
-  return *(y[data]);
+  const REnv<SEXP> y(x[nm].get0());
+  return y[sym.data].get0();
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 OoprMeta::OoprMeta(const RObj<SEXP, ALLSXP> x, const bool check)
   : meta_(check ? (is(x) ? x : (stop("Not an OoprMeta"), R_NilValue)) : x)
-#define SET(X) X##_(get(meta_, #X))
+#define SET(X) X##_(get(meta_, sym.X##_))
   , SET(names)
   , SET(access)
   , SET(method)
@@ -124,13 +144,13 @@ int OoprMeta::which(const std::string &name) const
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-RChr<PSEXP> OoprMeta::subName(const std::string& access, const bool inverse)
+RChr<PSEXP> OoprMeta::subName(const char* access, const bool inverse)
   const
 {
   const R_xlen_t size{this->size()};
-  std::vector<std::string> names;
+  std::vector<const char*> names;
   names.reserve(size);
-  for(int i = 0; i < size; ++i)
+  for(R_xlen_t i = 0; i < size; ++i)
   {
     bool match = (access_[i] == access);
     if(inverse)  match = !match;

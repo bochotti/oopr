@@ -48,6 +48,7 @@ SEXP iscall(SEXP x, SEXP names, SEXP package)
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 Symbols::Symbols(std::initializer_list<std::string> syms)
 {
+  syms_.reserve(syms.size());
   for(const std::string& sym : syms)
   {
     syms_.emplace(sym, Rf_install(sym.c_str()));
@@ -76,8 +77,9 @@ bool Symbols::is(SEXP x, const std::string& key) const
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 SEXP Symbols::get(const std::string& key) const
 {
-  if(syms_.find(key) == syms_.end()) stop("`%s` not a key", key.c_str());
-  return syms_.at(key);
+  auto it = syms_.find(key);
+  if(it == syms_.end()) { stop("`%s` not a key", key.c_str()); }
+  return it->second;
 }
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Symbols

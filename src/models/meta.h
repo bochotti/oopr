@@ -4,10 +4,9 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #include "common.h"
 #include <vector>
-#include <array>
 #include <string>
-#include <map>
 #include "./util/psexp.h"
+#include "./util/symbols.h"
 #include "./models/robj.h"
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Data model for the meta object
@@ -32,25 +31,13 @@ public:
   bool isVirtual(const int i)                    const;
   int  which(const std::string& name)            const;
   RChr<PSEXP> subName(
-    const std::string& access
-   ,const bool inverse = false
+    const char* access
+   ,const bool  inverse = false
   )                                              const;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 private:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  static constexpr std::array<std::pair<const char*, SEXPTYPE>, 8> specifiers
-  {{
-    {"names",    STRSXP}
-   ,{"access",   STRSXP}
-   ,{"method",   LGLSXP}
-   ,{"property", STRSXP}
-   ,{"static",   LGLSXP}
-   ,{"class",    LGLSXP}
-   ,{"inherit",  STRSXP}
-   ,{"virtual",  LGLSXP}
-  }};
-
   const REnv<SEXP> meta_;
   const RChr<SEXP> names_;
   const RChr<SEXP> access_;
@@ -60,8 +47,6 @@ private:
   const RLgl<SEXP> class_;
   const RChr<SEXP> inherit_;
   const RLgl<SEXP> virtual_;
-
-  static SEXP get(const REnv<SEXP> x,  const char* nm);
 
 };
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //

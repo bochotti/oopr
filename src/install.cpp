@@ -1,6 +1,13 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #include "install.h"
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+#define LIST(X)                                                \
+  X(thiz, "this")                                              \
+  X(intf, ".this")                                             \
+  X(curl, "{")
+SYMBOLS(LIST, sym)
+#undef  LIST
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 class OoprLoad
 {
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
@@ -26,7 +33,6 @@ private:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   const REnv<SEXP> env;
   REnv<SEXP>       ns;
-  static const Symbols sym;
 
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   void loadOopr(OoprC& ooprC)
@@ -39,7 +45,7 @@ private:
     }
 
     const OoprMeta& meta = ooprC.meta;
-    REnv<SEXP>      thiz = ooprC.encl[sym["this"]];
+    REnv<SEXP>      thiz = ooprC.encl[sym.thiz];
     for(R_xlen_t i = 0; i < meta.size(); ++i)
     {
       if(!meta.isClass(i) || meta.isInherit(i)) continue;
@@ -111,7 +117,7 @@ private:
   )
   {
     const RSym          name  = meta.name(i);
-    REnv<SEXP>          thiz  = encl[sym["this"]];
+    REnv<SEXP>          thiz  = encl[sym.thiz];
     REnv<SEXP>::Bind    bind  = thiz[name];
     RObj<PSEXP, CLOSXP> fun   = meta.isMethod(i) ? *bind : *bind.fun;
 
@@ -119,7 +125,7 @@ private:
     setLockedBinding(bind, fun);
     if(meta.isStatic(i) && meta.isAccess(i, "public"))
     {
-      thiz = encl[sym[".this"]];
+      thiz = encl[sym.intf];
       setLockedBinding(thiz[name], fun);
     }
   }
@@ -129,14 +135,22 @@ private:
   {
     const bool lock = bind.locked();
     bind.lock(false);
-    (bind.active() && value.type() == CLOSXP) ? bind.fun = value : bind = value;
+    if(bind.active() && value.type() == CLOSXP)
+    {
+      bind.fun = value;
+    }
+    else
+    {
+      bind = value;
+    }
     bind.lock(lock);
   }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 }; // OoprLoad
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-const Symbols OoprLoad::sym{"this", ".this"};
+
+
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 SEXP on_load(SEXP env, SEXP ns) try
 {

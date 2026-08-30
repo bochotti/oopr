@@ -1,6 +1,15 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #include "symlink.h"
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+#define LIST(X)                                                \
+  X(x)                                                         \
+  X(iff, "if")                                                 \
+  X(missing)                                                   \
+  X(dollar, "$")                                               \
+  X(assign, "<-")
+SYMBOLS(LIST, s)
+#undef  LIST
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 SEXP symlinkR(SEXP tenv, SEXP tname, SEXP env, SEXP name, bool check) try
 {
   if(!REnv<>::is(tenv)) stop("`tenv` must be an environment");
@@ -35,12 +44,11 @@ SEXP symlinkR(SEXP tenv, SEXP tname, SEXP env, SEXP name, bool check) try
     stop("`name` already exists in `env`");
   }
 
-  RSym x("x");
-  PSEXP arg = Rf_allocList(1); SET_TAG(arg, *x); SETCAR(arg, R_MissingArg);
+  PSEXP arg = Rf_allocList(1); SET_TAG(arg, *s.x); SETCAR(arg, R_MissingArg);
   PSEXP bdy = Rf_lang4(
-    *RSym("if"), Rf_lang2(*RSym("missing"), *x)
-   ,Rf_lang3(*RSym("$"), *tsym, *sym)
-   ,Rf_lang3(*RSym("<-"), Rf_lang3(*RSym("$"), *tsym, *sym), *x)
+    *s.iff, Rf_lang2(*s.missing, *s.x)
+   ,Rf_lang3(*s.dollar, *tsym, *sym)
+   ,Rf_lang3(*s.assign, Rf_lang3(*s.dollar, *tsym, *sym), *s.x)
   );
 
   envir[sym].fun = R_mkClosure(arg, bdy, *tenvir.parent());

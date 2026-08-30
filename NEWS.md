@@ -4,6 +4,8 @@
 
 * `is.oopr` and `is.ooprC` now also validates the structure of their objects.
 
+* Instancing of classes now ~20% quicker.
+
 
 # oopr 0.0.1 (2026-07-28)
 

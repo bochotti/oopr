@@ -1,7 +1,7 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #include "enclosure.h"
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-SEXP interface(SEXP env, SEXP nme, SEXP nms, SEXP cls) try
+SEXP interface(SEXP env, SEXP nme, SEXP nms, SEXP cls, bool chk) try
 {
   if(!REnv<>::is(env)) stop("`env` must be an environment");
   const REnv<SEXP> from(env);
@@ -19,8 +19,7 @@ SEXP interface(SEXP env, SEXP nme, SEXP nms, SEXP cls) try
   {
     stop("`cls` must be a character vector");
   }
-  out.attr(R_ClassSymbol) = Rf_isNull(cls) ? from.attr(R_ClassSymbol).sexp()
-                                           : cls;
+  out.attr(R_ClassSymbol) = Rf_isNull(cls) ? *from.attr(R_ClassSymbol) : cls;
 
   for(const RSym name : names)
   {
@@ -32,14 +31,14 @@ SEXP interface(SEXP env, SEXP nme, SEXP nms, SEXP cls) try
     }
     else
     {
-      const RObj<SEXP, ALLSXP> mem(fr.get());
+      const RObj<SEXP, ALLSXP> mem(fr.get0());
       if(mem.type() == CLOSXP)
       {
         to = mem;
       }
       else
       {
-        symlinkR(*from, nme, *out, *name);
+        symlinkR(*from, nme, *out, *name, chk);
       }
     }
     if(fr.locked()) to.lock(true);

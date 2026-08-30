@@ -4,8 +4,9 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #include "common.h"
 #include "unwind.h"
+#include "./models/robj.h"
 #include <string>
-#include <map>
+#include <unordered_map>
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Checks if R object is a name, and matches anything in `names`.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -52,14 +53,31 @@ public:
   SEXP operator[](const std::string& key) const { return get(key); }
 
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  const std::map<std::string, SEXP>& syms() const { return syms_; };
+  const std::unordered_map<std::string, SEXP>& syms() const { return syms_; };
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 private:
-  std::map<std::string, SEXP> syms_;
+  std::unordered_map<std::string, SEXP> syms_;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 }; // Symbols
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+ * Create an anonymous namespace with a struct inside which holds symbols.
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+#define GET_SYM_MACRO(_1, _2, NAME, ...) NAME
+#define SYM_1(name)      const RSym name{#name};
+#define SYM_2(name, str) const RSym name{str};
+#define SYM_FIELD(...) GET_SYM_MACRO(__VA_ARGS__, SYM_2, SYM_1)(__VA_ARGS__)
+#define SYMBOLS(SYMBOL_LIST, NAME)                                      \
+  namespace                                                             \
+  {                                                                     \
+    struct Syms { SYMBOL_LIST(SYM_FIELD) };                             \
+    inline const Syms& init() noexcept { static Syms sym; return sym; } \
+    const Syms& NAME = init();                                          \
+  }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #endif /* OOPR_UTIL_SYMBOLS_H */

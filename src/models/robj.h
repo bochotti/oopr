@@ -214,8 +214,8 @@ public:
     const SEXP x;
     const SEXP i;
   };
-  Attr attr(const RSym nm);
-  const RObj<SEXP, ALLSXP> attr(const RSym nm) const;
+  Attr attr(const RSym& nm);
+  const RObj<SEXP, ALLSXP> attr(const RSym& nm) const;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 private:
@@ -321,8 +321,8 @@ public:
   bool operator!=(const RStr<T>& x) const;
 
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  Attr attr(const RSym name)             = delete;
-  const Attr attr(const RSym name) const = delete;
+  Attr attr(const RSym& name)             = delete;
+  const Attr attr(const RSym& name) const = delete;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 }; // RSym
@@ -334,13 +334,13 @@ public:
  * RObj::Attr reliant on RSym
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 template<typename P, SEXPTYPE S>
-typename RObj<P, S>::Attr RObj<P, S>::attr(const RSym nm)
+typename RObj<P, S>::Attr RObj<P, S>::attr(const RSym& nm)
 {
   return Attr(**this, *nm);
 }
 
 template<typename P, SEXPTYPE S>
-const RObj<SEXP, ALLSXP> RObj<P, S>::attr(const RSym nm) const
+const RObj<SEXP, ALLSXP> RObj<P, S>::attr(const RSym& nm) const
 {
   return Rf_getAttrib(**this, *nm);
 }
@@ -901,23 +901,23 @@ public:
     // Bind& operator=(const Bind&)     = delete;
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-    bool exists() const { return R_existsVarInFrame(*x, *nm); }
-    void remove()       { chklck(); R_removeVarFromFrame(*nm, *x); }
-    bool locked() const { return R_BindingIsLocked(*nm, *x); }
+    bool exists() const { return R_existsVarInFrame(x, nm); }
+    void remove()       { chklck(); R_removeVarFromFrame(nm, x); }
+    bool locked() const { return R_BindingIsLocked(nm, x); }
     void lock(bool on)
     {
-      on ? R_LockBinding(*nm, *x) : R_unLockBinding(*nm, *x);
+      on ? R_LockBinding(nm, x) : R_unLockBinding(nm, x);
     }
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
     RObj<SEXP, ALLSXP> get() const
     {
-      if(!exists()) stop("REnv::RBind: `%s` not found", nm.c_str());
-      return R_getVar(*nm, *x, FALSE);
+      if(!exists()) stop("REnv::RBind: `%s` not found", nm_str());
+      return R_getVar(nm, x, FALSE);
     };
     RObj<SEXP, ALLSXP> get0(const SEXP ifnotfound = R_NilValue) const
     {
-      return R_getVarEx(*nm, *x, FALSE, ifnotfound);
+      return R_getVarEx(nm, x, FALSE, ifnotfound);
     }
     SEXP operator*()               const        { return *get(); }
     SEXP sexp()                    const        { return **this; }
@@ -926,7 +926,7 @@ public:
     operator bool()                const        { return exists(); }
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-    void assign(const SEXP v)           { chklck(); Rf_defineVar(*nm, v, *x); }
+    void assign(const SEXP v)           { chklck(); Rf_defineVar(nm, v, x); }
     Bind& operator=(const SEXP  v)      { assign(v); return *this; }
     template<typename T, SEXPTYPE S>
     void assign(const RObj<T, S> v)     { assign(*v); }
@@ -949,20 +949,21 @@ public:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   private:
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-    Bind(const REnv& x, const RSym& nm) : x(*x), nm(nm), fun(*this, this->nm){ }
-    REnv x;
-    RSym nm;
+    Bind(const REnv& x, const RSym& nm) : x(*x), nm(*nm), fun(*this) { }
+    SEXP x;
+    SEXP nm;
     void chklck( ) const
     {
-      if(!exists() && x.locked())
+      if(!exists() && R_EnvironmentIsLocked(x))
       {
         stop("REnv::RBind: Environment is locked");
       }
       if(exists()  && locked())
       {
-        stop("REnv::RBind: `%s` is locked", nm.c_str());
+        stop("REnv::RBind: `%s` is locked", nm_str());
       }
     }
+    const char* nm_str( ) const { return CHAR(PRINTNAME(nm)); }
 
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   public:
@@ -971,8 +972,8 @@ public:
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
     bool active() const
     {
-      if(!exists()) stop("REnv::RBind: `%s` not found", nm.c_str());
-      return R_BindingIsActive(*nm, *x);
+      if(!exists()) stop("REnv::RBind: `%s` not found", nm_str());
+      return R_BindingIsActive(nm, x);
     }
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
     class Fun
@@ -989,8 +990,8 @@ public:
       // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
       RObj<SEXP, CLOSXP> get() const
       {
-        if(!x.active()) stop("REnv::RBind: `%s` not active", nm.c_str());
-        return R_ActiveBindingFunction(*nm, *x.x);
+        if(!x.active()) stop("REnv::RBind: `%s` not active", x.nm_str());
+        return R_ActiveBindingFunction(x.nm, x.x);
       }
       SEXP operator*()              const { return *get(); }
       SEXP sexp()                   const { return **this; }
@@ -1005,11 +1006,11 @@ public:
         x.chklck();
         if(x.exists() && !x.active())
         {
-          stop("REnv::RBind: `%s` already exists but not active", nm.c_str());
+          stop("REnv::RBind: `%s` already exists but not active", x.nm_str());
         }
-        R_MakeActiveBinding(*nm, *v, *x.x);
+        R_MakeActiveBinding(x.nm, *v, x.x);
       }
-      Fun& operator=(const RObj< SEXP, CLOSXP> v) { set(v) ; return *this; }
+      Fun& operator=(const RObj<SEXP, CLOSXP> v) { set(v) ; return *this; }
       template<bool B, typename R = int>
       using EnableIf = typename std::enable_if<B, R>::type;
       template <
@@ -1017,18 +1018,13 @@ public:
         typename R = decltype(std::declval<const U&>().get()),
         EnableIf<IsRObj<R>() && Traits<R, P, 0>::s == CLOSXP> = 0
       >
-      Fun& operator=(const U& v)
-      {
-        set(v.get());
-        return *this;
-      }
+      Fun& operator=(const U& v) { set(v.get()); return *this; }
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
     private:
       // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-      Fun(const Bind& x, const RSym& nm) : x(x), nm(nm) { }
+      Fun(const Bind& x) : x(x) { }
       const Bind& x;
-      const RSym& nm;
     } fun;
 
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //

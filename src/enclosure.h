@@ -19,6 +19,7 @@ extern "C" SEXP interface(
  ,SEXP nme              // The name of `env` in its parent environment
  ,SEXP nms = R_NilValue // Names from environment to refer to
  ,SEXP cls = R_NilValue // Class to assign to the output
+ ,bool chk = true       // Check symlinkR assumptions
 );
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #endif

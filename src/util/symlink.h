@@ -5,6 +5,7 @@
 #include "common.h"
 #include "unwind.h"
 #include "psexp.h"
+#include "./util/symbols.h"
 #include "./models/robj.h"
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 extern "C" SEXP symlinkR(
