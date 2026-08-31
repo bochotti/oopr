@@ -23,7 +23,7 @@ definitions <- \(env, err)
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @intern
-#' Handles special methods: constructor, destructor and print.
+#' Handles special methods: constructor & destructor.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 definitions_special <- \(i, name, meta, env, err)
 {

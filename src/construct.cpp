@@ -3,8 +3,7 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #define LIST(X)                                                \
   X(thiz, "this")                                              \
-  X(intf, ".this")                                             \
-  X(curl, "{")
+  X(intf, ".this")
 SYMBOLS(LIST, sym)
 #undef  LIST
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
@@ -20,7 +19,7 @@ public:
     , meta(ooprC.meta)
     , calr(getCalr(frames))
     , envr(CAR(Rf_lastElt(frames)))
-    , isInhr(OoprC::is(calr[name].get0()))
+    , isInhr(OoprC::is(calr[this->name].get0()))
     , inst(ooprC.encl.parent(), true, 2 + ooprC.inhr.size())
     , thiz(inst, true, meta.size())
   { }
@@ -110,7 +109,7 @@ public:
     REnv<PSEXP>::Bind bind = thiz[name];
     SEXP fun               = *bind.get0();
     SEXP body              = R_ClosureExpr(fun);
-    const bool run = !(Rf_xlength(body) == 1 && sym.curl == CAR(body));
+    const bool run         = (Rf_xlength(body) > 1);
     PSEXP expr;
     if(run)
     {

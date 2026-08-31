@@ -6,6 +6,9 @@
 
 * Instancing of classes now ~20% quicker.
 
+* Constructor methods are now forced to be braced, preventing errors when 
+  inheriting or having class members.
+
 
 # oopr 0.0.1 (2026-07-28)
 

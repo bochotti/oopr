@@ -249,7 +249,16 @@ evaluate_rhs <- \(env, expr, parent, err)
     env$meta$push(names = name, method = TRUE);
     env$spec$push(list("private"));
     env$succ$push(TRUE);
-    env$src[[length(env$src) + 1L]] <- env$src[[1L]]
+    env$src[[length(env$src) + 1L]] <- env$src[[1L]];
+  }
+  else if(is.function(env$this[[name]]) && !iscall(body(env$this[[name]]), "{"))
+  {
+    obj <- env$this[[name]];
+    src <- attr(obj, "srcref", TRUE);
+    body(obj) <- call("{", body(obj));
+    attr(body(obj), "srcref") <- rep.int(list(src), 2L);
+    attr(obj, "srcref") <- src;
+    env$this[[name]]    <- obj;
   }
   return();
 }

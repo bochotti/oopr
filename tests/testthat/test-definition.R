@@ -58,6 +58,16 @@ test_that("definitions_special",
 })
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("definitions_init",
+{
+  it("does not error on non-braced constructor",
+  {
+    oopr("A",, { })
+    expect_no_error(oopr("B", A, { B <- \( ) 1L; }))
+  })
+})
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 test_that("definitions_return",
 {
   it("replaces returning this with .this",
