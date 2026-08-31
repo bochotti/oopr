@@ -9,6 +9,13 @@
 * Constructor methods are now forced to be braced, preventing errors when 
   inheriting or having class members.
 
+* Access specifiers are now enforced to be listed first.
+
+## Fixed
+
+* Method source reference no longer covers the access specifier, and no longer
+  includes any comments in between.
+
 
 # oopr 0.0.1 (2026-07-28)
 

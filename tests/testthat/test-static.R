@@ -148,7 +148,7 @@ test_that("static classmem",
       oopr("test",,  { static:c <- memb2; static:z <- \( ) { this$c$b$a; }})
     );
 
-    oopr("memb2",, { static:public:b <- memb; });
+    oopr("memb2",, { public:static:b <- memb; });
     expect_error(
       oopr("test",,  { c <- memb2; static:z <- \( ) { this$c$b$a; }})
      ,class = "ooprRefNotStatic"

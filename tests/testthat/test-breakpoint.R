@@ -49,7 +49,7 @@ test_that("OoprBreakpointsFunction",
   {
     expect_false(obj$hasLine(1L));
     expect_false(obj$hasLine(3L));
-    expect_true(obj$hasLine(4L));
+    expect_true(obj$hasLine(5L));
     expect_false(obj$hasLine(12L));
   })
 

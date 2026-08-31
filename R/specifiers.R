@@ -75,6 +75,15 @@ specifiers_access <- \(i, name, spec, meta, env, err)
   }
   else if(sum(has) == 1L)
   {
+    if(which.min(has) > 1L)
+    {
+      err$push(
+        cls = "ooprAccessSpecifierNotFirst"
+       ,src = env$src[[i]]
+       ,msg = "Member `%s` access specifier %s must be specified first."
+       ,name, deparse1(set[has])
+      );
+    }
     meta$access$set(i, set[has]);
     spec$set(i, list(set[!has]));
   }

@@ -146,10 +146,15 @@ constructor <- \(name, inhr, meta, encl, src = NULL, parent)
 {
   fun  <- construct_fun;
   args <- formals(encl$this[[name]]);
-  formals(fun) <- args;
-  body(fun) <- do.call(substitute, list(body(fun), list(
+  body <- do.call(substitute, list(body(fun), list(
     class = as.name(name), within = parent
   )));
+  if(!is.null(src))
+  {
+    attr(body, "srcref") <- rep(list(src), length(body));
+  }
+  formals(fun) <- args;
+  body(fun)    <- body;
   attr(fun, "srcref") <- src;
   ooprC(.Data = fun, name = name, inhr = inhr, meta = meta, encl = encl);
 }
@@ -160,6 +165,6 @@ constructor <- \(name, inhr, meta, encl, src = NULL, parent)
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 construct_fun <- \(...)
 {
-  .     <- base::evalq(class, within, NULL);
+  . <- base::evalq(class, within, NULL);
   return(.Call(Cpp_oopr_make, ., base::quote(class), base::sys.frames()));
 }

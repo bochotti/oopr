@@ -27,6 +27,14 @@ test_that("specifiers_access",
     );
   })
 
+  it("forces to be listed first",
+  {
+    expect_error(
+      oopr("test",, { static:private:a <- 1L; })
+     ,class = "ooprAccessSpecifierNotFirst"
+    );
+  })
+
   it("will use the last specifier if not provided",
   {
     oopr("test",, { public:a <- 1L; b <- 2L; })

@@ -124,5 +124,28 @@ test_that("evaluate_rhs",
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 test_that("evaluate_src",
 {
-  oopr("test",, { a <- \( ) { } })
+  it("maintains specifiers in srcref",
+  {
+    oopr("test",, { static:a <- \( ) { 1L; } })
+    src <- attr(test@encl$this$a, "srcref");
+    expect_true(startsWith(as.character(src), "static"));
+  })
+
+  it("removes access specifier and any comments inbetween",
+  {
+    oopr("test",,
+    {
+      public:
+        #aaaaa
+        a <- \( ) { 1L; }
+    })
+    src <- attr(test@encl$this$a, "srcref");
+    expect_equal(src[1L], src[3L]);
+    expect_true(startsWith(as.character(src), "a"));
+
+    oopr("test",, { public:a <- \( ) { 1L; } })
+    src <- attr(test@encl$this$a, "srcref");
+    expect_equal(src[1L], src[3L]);
+    expect_true(startsWith(as.character(src), "a"));
+  })
 })
