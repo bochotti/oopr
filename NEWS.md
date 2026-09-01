@@ -1,5 +1,10 @@
 # oopr 999.999 (development version)
 
+## Added
+
+* Constructor methods can now be used with any access specifier, allowing
+  for inherit-only classes and static-only classes.
+
 ## Changed
 
 * `is.oopr` and `is.ooprC` now also validates the structure of their objects.
@@ -11,10 +16,17 @@
 
 * Access specifiers are now enforced to be listed first.
 
+* Generated constructor usage for roxygen documentation will now separate 
+  arguments over multiple lines if too wide.
+
 ## Fixed
 
 * Method source reference no longer covers the access specifier, and no longer
   includes any comments in between.
+  
+* TODO: stop referring to constructor & destructor methods inside other methods
+
+* TODO: stop specifiers on constructor & destructor
 
 
 # oopr 0.0.1 (2026-07-28)

@@ -537,41 +537,41 @@ private:
 oopr("OoprRd",,
 {
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-#' @param topic   `character(1L)` \cr
-#'                The class name.
-#'
-#' @param package `character(1L)` \cr
-#'                The package that the class lives in.
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-OoprRd <- \(topic, package)
-{
-  call <- substitute(
-    help(topic = .T, package = .P)
-   ,list(.T = topic, .P = package)
-  );
-  tryCatch(
-    help <- eval(call, globalenv())
-   ,error = \(e) this$fail <- TRUE
-  )
-  if(this$fail) return();
-
-  if(inherits(help, "dev_topic"))
-  {
-    rd <- tools::parse_Rd(help$path);
-  }
-  else
-  {
-    rd <- tools::Rd_db(package, lib.loc = dirname(dirname(dirname(help))));
-    rd <- rd[[match(sprintf("%s.Rd", basename(help)), names(rd), 0L)]];
-  }
-
-  this$topic   <- topic;
-  this$package <- package;
-  this$rd      <- this$pullSection(topic, rd);
-}
-
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 public:
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @param topic   `character(1L)` \cr
+  #'                The class name.
+  #'
+  #' @param package `character(1L)` \cr
+  #'                The package that the class lives in.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  OoprRd <- \(topic, package)
+  {
+    call <- substitute(
+      help(topic = .T, package = .P)
+     ,list(.T = topic, .P = package)
+    );
+    tryCatch(
+      help <- eval(call, globalenv())
+     ,error = \(e) this$fail <- TRUE
+    )
+    if(this$fail) return();
+
+    if(inherits(help, "dev_topic"))
+    {
+      rd <- tools::parse_Rd(help$path);
+    }
+    else
+    {
+      rd <- tools::Rd_db(package, lib.loc = dirname(dirname(dirname(help))));
+      rd <- rd[[match(sprintf("%s.Rd", basename(help)), names(rd), 0L)]];
+    }
+
+    this$topic   <- topic;
+    this$package <- package;
+    this$rd      <- this$pullSection(topic, rd);
+  }
+
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   #' @field topic `character(1L)` \cr
   #'              The class name.
@@ -772,37 +772,38 @@ OoprCompletionHelp <- NULL;
 oopr("OoprCompletionHelp",,
 {
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-OoprCompletionHelp <- \(topic, source, class, package)
-{
-  ns <- if(package == "R_GlobalEnv") globalenv() else getNamespace(package);
-  if(is.null(topic) && grepl("$", source, fixed = TRUE))
-  {
-    topic  <- sub("^.*\\$", "", source);
-    source <- sub("\\$(?!.*\\$).*?$", "", source, perl = TRUE);
-  }
-
-  oopr <- tryCatch(eval(str2lang(source), ns), error = identity);
-  if(!is.oopr(oopr, class))
-  {
-    if(startsWith(source, "this"))
-    {
-      oopr <- get0(class, ns);
-    }
-    if(!is.ooprC(oopr, class)) return(NULL);
-    oopr <- oopr@encl$this;
-  }
-  package <- environmentName(topenv(oopr));
-
-  this$tpc_  <- topic;
-  this$src_  <- source;
-  this$cls_  <- class;
-  this$pkg_  <- package;
-  this$oopr_ <- oopr;
-  this$rd(class, package);
-  this$fail_ <- FALSE;
-}
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 public:
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  OoprCompletionHelp <- \(topic, source, class, package)
+  {
+    ns <- if(package == "R_GlobalEnv") globalenv() else getNamespace(package);
+    if(is.null(topic) && grepl("$", source, fixed = TRUE))
+    {
+      topic  <- sub("^.*\\$", "", source);
+      source <- sub("\\$(?!.*\\$).*?$", "", source, perl = TRUE);
+    }
+
+    oopr <- tryCatch(eval(str2lang(source), ns), error = identity);
+    if(!is.oopr(oopr, class))
+    {
+      if(startsWith(source, "this"))
+      {
+        oopr <- get0(class, ns);
+      }
+      if(!is.ooprC(oopr, class)) return(NULL);
+      oopr <- oopr@encl$this;
+    }
+    package <- environmentName(topenv(oopr));
+
+    this$tpc_  <- topic;
+    this$src_  <- source;
+    this$cls_  <- class;
+    this$pkg_  <- package;
+    this$oopr_ <- oopr;
+    this$rd(class, package);
+    this$fail_ <- FALSE;
+  }
+
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   static:makeHelpHandler <- \(x)
   {

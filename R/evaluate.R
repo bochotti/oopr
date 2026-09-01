@@ -247,7 +247,7 @@ evaluate_rhs <- \(env, expr, parent, err)
     environment(obj) <- eenv;
     env$this[[name]] <- obj;
     env$meta$push(names = name, method = TRUE);
-    env$spec$push(list("private"));
+    env$spec$push(list("public"));
     env$succ$push(TRUE);
     env$src[[length(env$src) + 1L]] <- env$src[[1L]];
   }

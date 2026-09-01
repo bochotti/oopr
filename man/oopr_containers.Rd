@@ -548,8 +548,9 @@ An \code{oopr} object of class \verb{$class}.}
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 oopr("test",,
 {
-test <- \(x) { this$x <- x; }
-public:x <- 0L;
+public:
+  test <- \(x) { this$x <- x; }
+  x    <- 0L;
 })
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 # create a vector

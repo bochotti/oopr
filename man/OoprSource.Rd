@@ -7,7 +7,12 @@
 \usage{
 OoprSource()
 
-OoprSourceTry(file = NULL, text = NULL, row = NULL, col = NULL)
+OoprSourceTry(
+  file = NULL
+ ,text = NULL
+ ,row  = NULL
+ ,col  = NULL
+)
 }
 \value{
 

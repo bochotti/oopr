@@ -13,7 +13,7 @@ OoprBreakpointsClass(ooprC)
 
 OoprBreakpointsFile(file, env)
 
-OoprBreakpoints()
+OoprBreakpoints
 }
 \arguments{
 \item{name}{\code{character(1L)} \cr

@@ -46,7 +46,7 @@ test_that("specifiers_access",
   it("will default to private",
   {
     oopr("test",, { a <- 1L; })
-    expect_equal(test@meta$access$get(2L), "private");
+    expect_equal(test@meta$access$get(1L), "private");
   })
 })
 

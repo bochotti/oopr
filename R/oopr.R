@@ -49,19 +49,19 @@
 #' oopr("Human",,
 #' {
 #' ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-#' Human <- \(first, last, age)
-#' {
-#'   stopifnot(
-#'     this$isScalar("character", first)
-#'    ,this$isScalar("character", last)
-#'    ,this$isScalar("integer"  , age)
-#'   );
-#'   this$first_ <- first;
-#'   this$last_  <- last;
-#'   this$age_   <- age;
-#' }
-#' ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' public:
+#'   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#'   Human <- \(first, last, age)
+#'   {
+#'     stopifnot(
+#'       this$isScalar("character", first)
+#'      ,this$isScalar("character", last)
+#'      ,this$isScalar("integer"  , age)
+#'     );
+#'     this$first_ <- first;
+#'     this$last_  <- last;
+#'     this$age_   <- age;
+#'   }
 #'   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #'   get:name <- \( )
 #'   {

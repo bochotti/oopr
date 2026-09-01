@@ -59,6 +59,17 @@ public:
     for(R_xlen_t i = 0; i < len; ++i)
     {
       const RSym nm = meta.name(i);
+      if(nm == name && !meta.isAccess(i, "public"))
+      {
+        if(meta.isAccess(i, "private"))
+        {
+          stop("%s constructor is private", nm.c_str());
+        }
+        if(!isInhr)
+        {
+          stop("%s constructor is protected", nm.c_str());
+        }
+      }
       const REnv<SEXP>::Bind fr(from[nm]);
       REnv<PSEXP>::Bind      to(thiz[nm]);
       // if virtual, look forward to the caller and take its method
@@ -122,8 +133,6 @@ public:
       }
       envr[name] = fun;
     }
-    bind.lock(false);
-    bind.remove();
     if(run)
     {
       RUnWind::eval(expr, *envr);
@@ -232,8 +241,16 @@ public:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
   void lock()
   {
-    intf.lock();
-    thiz.lock();
+    for(REnv<PSEXP>* env : { &intf, &thiz })
+    {
+      REnv<PSEXP>::Bind bind((*env)[name]);
+      if(bind.exists())
+      {
+        bind.lock(false);
+        bind.remove();
+      }
+      env->lock();
+    }
     inst.lock(true);
   }
 

@@ -94,25 +94,26 @@ NULL
 oopr("OoprBreakpointsFunction",,
 {
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-#' @param name  `character(1L)` \cr
-#'              The name of the function.
-#'
-#' @param ooprC `ooprC` \cr
-#'              The `ooprC` class that the function resides.
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-OoprBreakpointsFunction <- \(name, ooprC)
-{
-  this$name     <- name;
-  this$ooprC    <- ooprC;
-  this$encl     <- ooprC@encl;
-  this$property <- nzchar(ooprC@meta$subs("property", names = name));
-}
-~OoprBreakpointsFunction <- \( )
-{
-  this$setBreakpoints();
-}
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 public:
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @param name  `character(1L)` \cr
+  #'              The name of the function.
+  #'
+  #' @param ooprC `ooprC` \cr
+  #'              The `ooprC` class that the function resides.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  OoprBreakpointsFunction <- \(name, ooprC)
+  {
+    this$name     <- name;
+    this$ooprC    <- ooprC;
+    this$encl     <- ooprC@encl;
+    this$property <- nzchar(ooprC@meta$subs("property", names = name));
+  }
+  ~OoprBreakpointsFunction <- \( )
+  {
+    this$setBreakpoints();
+  }
+
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   name     <- character();
   ooprC    <- NULL;
@@ -397,22 +398,22 @@ private:
 oopr("OoprBreakpointsClass",,
 {
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-#' @param ooprC `ooprC` \cr
-#'              The `ooprC` object.
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-OoprBreakpointsClass <- \(ooprC)
-{
-  if(!is.ooprC(ooprC))       return();
-  name  <- ooprC@name;
-  # make sure to get the actual class, not a copy of
-  ooprC <- get0(name, parent.env(ooprC@encl), inherits = FALSE);
-  if(!is.ooprC(ooprC, name)) return();
-  this$ooprC <- ooprC;
-  this$loadFunctions();
-}
-
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 public:
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @param ooprC `ooprC` \cr
+  #'              The `ooprC` object.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  OoprBreakpointsClass <- \(ooprC)
+  {
+    if(!is.ooprC(ooprC))       return();
+    name  <- ooprC@name;
+    # make sure to get the actual class, not a copy of
+    ooprC <- get0(name, parent.env(ooprC@encl), inherits = FALSE);
+    if(!is.ooprC(ooprC, name)) return();
+    this$ooprC <- ooprC;
+    this$loadFunctions();
+  }
+
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   ooprC <- NULL;
 
@@ -542,21 +543,21 @@ private:
 oopr("OoprBreakpointsFile", OoprSource,
 {
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-#' @param file `character(1L)` \cr
-#'             The name of the source file.
-#'
-#' @param env  `environment` \cr
-#'             The environment that holds the class definitions. Either a
-#'             package namespace or the global environment.
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-OoprBreakpointsFile <- \(file, env)
-{
-  OoprSource$file <- file;
-  this$loadClassesFromEnvironment(env);
-}
-
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 public:
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @param file `character(1L)` \cr
+  #'             The name of the source file.
+  #'
+  #' @param env  `environment` \cr
+  #'             The environment that holds the class definitions. Either a
+  #'             package namespace or the global environment.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  OoprBreakpointsFile <- \(file, env)
+  {
+    OoprSource$file <- file;
+    this$loadClassesFromEnvironment(env);
+  }
+
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   get:file <- \( )
   {
@@ -975,6 +976,8 @@ public:
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 private:
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  OoprBreakpoints <- \( ) { }
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   static:funs_  <- c(
     isFunctionInSync         = ".rs.isFunctionInSync"

@@ -55,6 +55,16 @@ test_that("ooprC",
     expect_match(out[4L], "^Static Members:$")
     expect_match(out[5L], "\\$b: int 2$")
   })
+
+  it("changes usage depending on constructor access",
+  {
+    oopr("test",, { private:test <- \( ) { }})
+    expect_length(capture.output(print(test)), 1L);
+    oopr("test",, { protected:test <- \( ) { }})
+    expect_match(capture.output(print(test))[2L], "protected");
+    oopr("test",, { public:test <- \( ) { }})
+    expect_match(capture.output(print(test))[2L], "Usage:");
+  })
 })
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -109,6 +119,21 @@ test_that("construct_make",
     expect_env(encl$this$b, encl);
     expect_env(activeBindingFunction('c', encl$this), encl);
   })
+
+  it("does not allow initializing when constructor is private",
+  {
+    oopr("test",, { private:test <- \( ) { 1L; }})
+    expect_error(test())
+  })
+
+  it("only allows initializing protected constructor when inherited",
+  {
+    oopr("test",, { protected:test <- \( ) { 1L; }})
+    expect_error(test());
+    oopr("test2", test, { })
+    expect_no_error(test2());
+  })
+
 })
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -116,9 +141,10 @@ test_that("construct_clean",
 {
   it("removes the constructor method",
   {
-    oopr("test",, { test <- \(a, b) { } } )
+    oopr("test",, { public:test <- \(a, b) { } } )
     obj <- test(1, 2);
     expect_false(hasName(obj, "test"));
+    expect_false(hasName(parent.env(obj)$this, "test"));
   })
 
   it("registers destructor method",
@@ -129,6 +155,7 @@ test_that("construct_clean",
     obj <- test();
     gc();
     expect_false(hasName(obj, "~test"));
+    expect_false(hasName(parent.env(obj)$this, "~test"));
     rm(obj);
     gc();
     expect_equal(env$a, 2L);

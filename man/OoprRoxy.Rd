@@ -12,15 +12,33 @@
 \usage{
 OoprRoxy()
 
-OoprRoxySection(title = "", content = character(0L), hr = FALSE, pfx = "")
+OoprRoxySection(
+  title   = ""
+ ,content = character(0L)
+ ,hr      = FALSE
+ ,pfx     = ""
+)
 
-OoprRoxyDescribe(title = "Fields", hr = FALSE)
+OoprRoxyDescribe(
+  title = "Fields"
+ ,hr    = FALSE
+)
 
-OoprRoxyUsage(content = character(0L), name = "")
+OoprRoxyUsage(
+  content = character(0L)
+ ,name    = ""
+)
 
 OoprRoxyArguments(args = list())
 
-OoprRoxyMethod(title, tags, fun, warn = TRUE, hr = TRUE, pfx = "")
+OoprRoxyMethod(
+  title
+ ,tags 
+ ,fun  
+ ,warn  = TRUE
+ ,hr    = TRUE
+ ,pfx   = ""
+)
 
 OoprRoxyClass(block)
 }
@@ -105,7 +123,7 @@ Create an arguments subsection.}
 Represents a method subsection.}
 
 \item{\code{\hl{OoprRoxy-OoprRoxyClass}{OoprRoxyClass}}}{
-\emph{\verb{[5 fields]}} \emph{\verb{[4 methods]}}\cr
+\emph{\verb{[5 fields]}} \emph{\verb{[5 methods]}}\cr
 Represents a class section.}
 }
 
@@ -694,6 +712,9 @@ The subsections inside the class section.}
 
 \subsection{Methods}{
 \describe{
+\item{\code{\hl{OoprRoxy-OoprRoxyClass-makeUsage}{makeUsage}}}{
+\lbr{}Make usage section}
+
 \item{\code{\hl{OoprRoxy-OoprRoxyClass-makeSections}{makeSections}}}{
 \lbr{}Creates subsections for \verb{@description} and \verb{@details} tags.}
 
@@ -705,6 +726,16 @@ The subsections inside the class section.}
 
 \item{\code{\hl{OoprRoxy-OoprRoxyClass-makeTag}{makeTag}}}{
 \lbr{}Places the class section under the blocks tags list}
+}
+}
+
+\subsection{\code{\ht{OoprRoxy-OoprRoxyClass-makeUsage}{makeUsage}}\hr{}makeUsage}{
+\subsection{Description}{
+\lbr{}Make usage section
+}
+
+\subsection{Usage}{
+\rc{\preformatted{makeUsage()}}
 }
 }
 

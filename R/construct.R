@@ -109,11 +109,16 @@ format.ooprC <- \(x, ...)
 show <- methods::show;
 setMethod("show", c(object = "ooprC"), \(object)
 {
+  cat(sprintf("%s\n", format.ooprC(object)));
+  acs <- object@meta$subs("access", names = object@name);
+  if(acs != "private")
+  {
+    acs <- if(acs == "public") "" else " [protected]";
+    usg <- deparse(object@.Data, getOption("width"), nlines = 1L);
+    usg <- sub("function ", object@name, usg);
+    cat(sprintf("Usage%s:\n  %s\n", acs, usg));
+  }
   bot <- capture.output(str.oopr(object@encl$.this));
-  top <- format(object);
-  usg <- deparse(object@.Data, getOption("width"), nlines = 1L);
-  usg <- sub("function ", object@name, usg);
-  cat(sprintf("%s\nUsage:\n  %s\n", top, usg));
   if(length(bot) > 1L)
   {
     bot[1L] <- "Static Members:";

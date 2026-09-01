@@ -168,9 +168,12 @@ inheritance_set <- \(env, inhr, err)
     {
       spec <- imeta[["access"]][j];
       # private members are not inherited
-      if(spec == "private") next;
+      if(spec == "private") { next; }
 
       name <- imeta[["names"]][j];
+      # do not inherit constructors
+      if(name == iname) { next; }
+
       k    <- which(meta$subs(names = name));
       if(length(k))
       {
@@ -189,7 +192,7 @@ inheritance_set <- \(env, inhr, err)
         }
 
         # defined methods are enforced if derived is virtual
-        if(!imeta$virtual[j] || ispec == "private" || vtl[k]) next;
+        if(!imeta$virtual[j] || ispec == "private" || vtl[k]) { next; }
         vtl[k] <- TRUE;
 
         inheritance_virtual(k, name, iname, meta, imeta, this, ithis, env, err);

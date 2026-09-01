@@ -91,6 +91,7 @@ above its definition:
 ```{r, eval=FALSE}
 oopr("example",,
 {
+public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   #' @field field `integer(1L)` \cr
   #'              A documented field
@@ -107,6 +108,7 @@ Methods can be documented using the `@description`, `@usage`, `@param`,
 ```{r, eval=FALSE}
 oopr("example",,
 {
+public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   #' @description
   #' A documented method

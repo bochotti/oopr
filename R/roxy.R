@@ -105,32 +105,33 @@ OoprRoxy <- NULL;
 oopr("OoprRoxySection",,
 {
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-#' @param title   `character(1L)` \cr
-#'                The title of the section.
-#'
-#' @param content `character()` \cr
-#'                Lines of the content for the section.
-#'
-#' @param hr      `logical(1L)` \cr
-#'                Whether to add horizontal line to section heading.
-#'
-#' @param pfx     `character(1L)` \cr
-#'                To add a hyperref.
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-OoprRoxySection <- \(title = "", content = character(0L), hr = FALSE, pfx = "")
-{
-  stopifnot(
-    is.character(title)   && length(title) == 1L
-   ,is.character(content)
-   ,is.logical(hr) && length(hr) == 1L && !is.na(hr)
-  );
-  this$title_   <- title;
-  this$content_ <- content;
-  this$hr_      <- hr;
-  this$pfx_     <- pfx;
-}
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 public:
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @param title   `character(1L)` \cr
+  #'                The title of the section.
+  #'
+  #' @param content `character()` \cr
+  #'                Lines of the content for the section.
+  #'
+  #' @param hr      `logical(1L)` \cr
+  #'                Whether to add horizontal line to section heading.
+  #'
+  #' @param pfx     `character(1L)` \cr
+  #'                To add a hyperref.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  OoprRoxySection <- \(title = "", content = character(0L), hr = FALSE, pfx = "")
+  {
+    stopifnot(
+      is.character(title)   && length(title) == 1L
+     ,is.character(content)
+     ,is.logical(hr) && length(hr) == 1L && !is.na(hr)
+    );
+    this$title_   <- title;
+    this$content_ <- content;
+    this$hr_      <- hr;
+    this$pfx_     <- pfx;
+  }
+
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   get:title <- \( )
   {
@@ -264,12 +265,13 @@ private:
 oopr("OoprRoxyDescribe", public:OoprRoxySection,
 {
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-OoprRoxyDescribe <- \(title = "Fields", hr = FALSE)
-{
-  OoprRoxySection(title, hr = hr);
-}
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 public:
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  OoprRoxyDescribe <- \(title = "Fields", hr = FALSE)
+  {
+    OoprRoxySection(title, hr = hr);
+  }
+
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   #' @inherit OoprRoxySection$insert
   #'
@@ -328,15 +330,18 @@ protected:
 oopr("OoprRoxyUsage", public:OoprRoxySection,
 {
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-OoprRoxyUsage <- \(content = character(0L), name = "")
-{
-  stopifnot(is.character(name) && length(name) == 1L);
-  if(is.function(content))
+public:
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  OoprRoxyUsage <- \(content = character(0L), name = "")
   {
-    content <- this$makeUsageFromFun(content, name);
+    stopifnot(is.character(name) && length(name) == 1L);
+    if(is.function(content))
+    {
+      content <- this$makeUsageFromFun(content, name);
+    }
+    OoprRoxySection("Usage", content);
   }
-  OoprRoxySection("Usage", content);
-}
+
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 protected:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -392,16 +397,17 @@ private:
 oopr("OoprRoxyArguments", public:OoprRoxyDescribe,
 {
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-#' @param args `list()` \cr
-#'             A list of `roxy_tag_param`s.
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-OoprRoxyArguments <- \(args = list())
-{
-  OoprRoxyDescribe("Arguments");
-  for(arg in args) this$insert(arg);
-}
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 public:
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @param args `list()` \cr
+  #'             A list of `roxy_tag_param`s.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  OoprRoxyArguments <- \(args = list())
+  {
+    OoprRoxyDescribe("Arguments");
+    for(arg in args) this$insert(arg);
+  }
+
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   #' @inherit OoprRoxySection$insert
   #'
@@ -456,55 +462,56 @@ protected:
 oopr("OoprRoxyMethod", public:OoprRoxySection,
 {
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-#' @param tags `list()` \cr
-#'             A list of (potentially optional) tags:
-#'             `@description`, `@usage`, `@param`, `@details` & `@returns`.
-#'
-#' @param fun  `function` \cr
-#'             The function object of the method.
-#'
-#' @param warn `logical(1L)` \cr
-#'             Whether warnings should display when missing tags.
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-OoprRoxyMethod <- \(title, tags, fun, warn = TRUE, hr = TRUE, pfx = "")
-{
-  stopifnot(
-    is.list(tags) && all(vapply(tags, inherits, logical(1L), "roxy_tag"))
-   ,is.function(fun)
-   ,is.logical(warn) && length(warn) == 1L && !is.na(warn)
-  );
-
-  this$fun_   <- fun;
-  this$title_ <- title;
-  this$warn_  <- warn;
-
-  OoprRoxySection(title, hr = hr, pfx = pfx);
-
-  this$checkMissingTags(tags);
-  this$insertArgsSection(tags);
-
-  ord <- c("description", "usage", "arguments", "details", "returns");
-  u   <- \(x) { `substr<-`(x, 1L, 1L, toupper(substr(x, 1L, 1L))); }
-  for(tag in tags)
-  {
-    if(!match(tag$tag, ord[c(1L, 4:5)], 0L)) next;
-    val <- tag$val; nm <- u(tag$tag);
-    val <- sprintf("\\lbr{}%s", val);
-    if(this$sections$exists(nm))
-    {
-      if(is.null(tag$INHR_)) this$sections[nm]$insert(val);
-    }
-    else
-    {
-      this$sections$emplace(nm, nm, val);
-    }
-  }
-  keys <- this$sections$keys;
-  this$sections$resize(keys[match(u(ord), keys, 0L)]);
-  this$warning();
-}
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 public:
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @param tags `list()` \cr
+  #'             A list of (potentially optional) tags:
+  #'             `@description`, `@usage`, `@param`, `@details` & `@returns`.
+  #'
+  #' @param fun  `function` \cr
+  #'             The function object of the method.
+  #'
+  #' @param warn `logical(1L)` \cr
+  #'             Whether warnings should display when missing tags.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  OoprRoxyMethod <- \(title, tags, fun, warn = TRUE, hr = TRUE, pfx = "")
+  {
+    stopifnot(
+      is.list(tags) && all(vapply(tags, inherits, logical(1L), "roxy_tag"))
+     ,is.function(fun)
+     ,is.logical(warn) && length(warn) == 1L && !is.na(warn)
+    );
+
+    this$fun_   <- fun;
+    this$title_ <- title;
+    this$warn_  <- warn;
+
+    OoprRoxySection(title, hr = hr, pfx = pfx);
+
+    this$checkMissingTags(tags);
+    this$insertArgsSection(tags);
+
+    ord <- c("description", "usage", "arguments", "details", "returns");
+    u   <- \(x) { `substr<-`(x, 1L, 1L, toupper(substr(x, 1L, 1L))); }
+    for(tag in tags)
+    {
+      if(!match(tag$tag, ord[c(1L, 4:5)], 0L)) next;
+      val <- tag$val; nm <- u(tag$tag);
+      val <- sprintf("\\lbr{}%s", val);
+      if(this$sections$exists(nm))
+      {
+        if(is.null(tag$INHR_)) this$sections[nm]$insert(val);
+      }
+      else
+      {
+        this$sections$emplace(nm, nm, val);
+      }
+    }
+    keys <- this$sections$keys;
+    this$sections$resize(keys[match(u(ord), keys, 0L)]);
+    this$warning();
+  }
+
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   #' @inherit OoprRoxySection$title
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -657,23 +664,24 @@ private:
 oopr("OoprRoxyClass",,
 {
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-#' @param block `roxy_block` \cr
-#'              A roxy block containing an `oopr` class.
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-OoprRoxyClass <- \(block)
-{
-  stopifnot(
-    inherits(block, "roxy_block")
-   ,is.ooprC(block$object$value)
-  );
-  this$block_   <- block;
-  this$title_   <- block$object$value@name;
-  this$warn_    <- this$roxy$block_has_tags(block, "export");
-  this$members_ <- this$pullMemberTags();
-  this$fillMembers();
-}
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 public:
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @param block `roxy_block` \cr
+  #'              A roxy block containing an `oopr` class.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  OoprRoxyClass <- \(block)
+  {
+    stopifnot(
+      inherits(block, "roxy_block")
+     ,is.ooprC(block$object$value)
+    );
+    this$block_   <- block;
+    this$title_   <- block$object$value@name;
+    this$warn_    <- this$roxy$block_has_tags(block, "export");
+    this$members_ <- this$pullMemberTags();
+    this$fillMembers();
+  }
+
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   #' @inherit OoprRoxySection$title
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -712,6 +720,33 @@ public:
   #'                 The subsections inside the class section.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   sections <- OoprRoxySection[[]];
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @description
+  #' Make usage section
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  makeUsage <- \( )
+  {
+    i   <- match("usage", vapply(this$tags, `[[`, character(1L), "tag"), 0L);
+    tag <- if(i) this$tags[[i]] else this$roxy$roxy_tag("usage", NULL);
+    if(!is.null(tag$raw)) { return(); }
+    acs <- this$ooprC@meta$subs("access", names = this$title);
+    if(acs == "private")
+    {
+      tag$val <- this$title;
+    }
+    else
+    {
+      tag$val <- OoprRoxyUsage(this$ooprC, this$title)$content;
+      if(acs == "protected")
+      {
+        tag$val <- sprintf("# [protected]\n%s", tag$val);
+      }
+    }
+    class(tag$val) <- "rd";
+    this$tags[[i]] <- tag;
+    return();
+  }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   #' @description
@@ -930,6 +965,9 @@ private:
     {
       name <- names[i];
 
+      # skip constructor
+      if(name == this$title) { next; }
+
       # protected members are optional
       if(this$ooprC@meta$subs("access", names = name) == "protected") next;
 
@@ -1099,6 +1137,7 @@ public:
   static:addBlock <- \(block)
   {
     obj <- OoprRoxyClass(block);
+    obj$makeUsage();
     obj$makeSections();
     obj$makeFields();
     obj$makeMethods();
