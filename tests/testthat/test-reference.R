@@ -251,6 +251,28 @@ test_that("references_exist",
      ,class = "ooprRefNotDefined"
     );
   })
+
+  it("doesnt allow referring to constructor inside a method",
+  {
+    expect_error(
+      oopr("test",, { a <- \( ) { this$test(); }})
+     ,class = "ooprRefNotDefined"
+    );
+    expect_error(
+      oopr("test",, { a <- \( ) { this$`~test`(); }})
+     ,class = "ooprRefNotDefined"
+    );
+    oopr("test",, { })
+    expect_error(
+      oopr("test2", test, { b <- \( ) { test$test(); }})
+     ,class = "ooprRefNotDefined"
+    );
+    expect_error(
+      oopr("test2",, { a <- test; b <- \( ) { this$a$test(); } })
+     ,class = "ooprRefNotDefined"
+    );
+  })
+
 })
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##

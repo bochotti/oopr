@@ -259,10 +259,12 @@ references_inheritance <- \(refs, meta, env, err)
     for(j in inhr$along)
     {
       encl  <- inhr$meta$names$get(j);
-      imeta <- inhr$this[[encl]]@meta;
-      this  <- inhr$this[[encl]]@encl$this;
+      oopr  <- inhr$this[[encl]];
+      icls  <- oopr@name;
+      imeta <- oopr@meta;
+      ithis <- oopr@encl$this;
       references_method(
-        i, name, refs[[name]], imeta, access, encl, this, env, err
+        i, name, icls, refs[[name]], imeta, access, encl, ithis, env, err
       );
 
       # check if member used before initialization

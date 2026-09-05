@@ -77,7 +77,7 @@ references <- \(env, err)
     if(!(meta$method$get(i) || nzchar(meta$property$get(i)))) next;
     name <- meta$names$get(i);
     references_method(
-      i, name, refs[[name]], meta, access, encl, env$this, env, err
+      i, name, env$name, refs[[name]], meta, access, encl, env$this, env, err
     );
     references_this(i, name, encl, env, err);
     for(mis in .mapply(list, miss[[name]], NULL))
@@ -98,7 +98,7 @@ references <- \(env, err)
 #' @intern
 #' Check the body of each method/property
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-references_method <- \(i, name, refs, meta, access, encl, this, env, err)
+references_method <- \(i, name, cls, refs, meta, access, encl, this, env, err)
 {
   # skip the first call of a class member in the constructor method.
   refs$skip <- logical(length(refs$at));
@@ -109,9 +109,9 @@ references_method <- \(i, name, refs, meta, access, encl, this, env, err)
   refs <- lapply(refs, `[`, match(refs$encl, encl, 0L) > 0L);
   for(ref in .mapply(list, refs, NULL))
   {
-    if(!match(ref$encl, encl, 0L)) next;
+    if(!match(ref$encl, encl, 0L)) { next; }
     j <- which(meta$subs(names = ref$memb, access = access));
-    if(!references_exist(i, name, j, meta, ref, env, err)) next;
+    if(!references_exist(i, name, cls, j, meta, ref, env, err)) { next; }
     if(nzchar(meta$property$get(j)))
     {
       references_property(i, name, j, meta, ref, env, err);
@@ -152,9 +152,12 @@ references_method <- \(i, name, refs, meta, access, encl, this, env, err)
 #' @intern
 #' Members must be defined.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-references_exist <- \(i, name, j, meta, ref, env, err)
+references_exist <- \(i, name, cls, j, meta, ref, env, err)
 {
-  if(length(j)) return(TRUE);
+  if(length(j) && !match(ref$memb, sprintf("%s%s", c("", "~"), cls), 0L))
+  {
+    return(TRUE);
+  }
   err$push(
     cls = "ooprRefNotDefined"
    ,src = ref$src %||% env$src[[i]]

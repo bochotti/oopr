@@ -103,9 +103,12 @@
 oopr <- \(name, inherits = NULL, definition, parent = parent.frame())
 {
   stopifnot(
-    is.character(name) && length(name) == 1L && !is.na(name) && nzchar(name)
-   ,is.environment(parent)
-   ,!missing(definition)
+    "`name` must be a single character vector" =
+      is.character(name) && length(name) == 1L && !is.na(name) && nzchar(name)
+   ,"`parent` must be an environment" =
+      is.environment(parent)
+   ,"`definition` must be supplied" =
+      !missing(definition)
   );
   if(match(name, c("this", ".this"), 0L))
   {
