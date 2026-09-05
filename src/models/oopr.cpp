@@ -49,7 +49,7 @@ bool OoprC::is(const RObj<SEXP, ALLSXP> gen, const RChr<SEXP> name)
  * Object model for ooprC
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 OoprC::OoprC(const RObj<SEXP, ALLSXP> gen, const bool check)
-  : RObj(check ? (is(gen) ? gen : (stop("Not an OoprC"), gen)) : gen)
+  : RObj(check ? (is(gen) ? gen : (stop("Not an ooprC"), gen)) : gen)
   , name(gen.attr(sym.name))
   , inhr(gen.attr(sym.inhr))
   , meta(gen.attr(sym.meta), false)
@@ -100,7 +100,7 @@ bool Oopr::is(const RObj<SEXP, ALLSXP> obj, const RChr<SEXP> name)
  * Object model for oopr instance
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 Oopr::Oopr(const RObj<SEXP, ALLSXP> intf, const bool check)
-  : REnv(check ? (is(intf) ? intf : (stop("Not an Oopr"), intf)) : intf)
+  : REnv(check ? (is(intf) ? intf : (stop("Not an oopr"), intf)) : intf)
   , encl(parent())
   , thiz(encl[sym.thiz].get0())
 { }

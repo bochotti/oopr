@@ -38,15 +38,15 @@ public:
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 private:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  const REnv<SEXP> meta_;
-  const RChr<SEXP> names_;
-  const RChr<SEXP> access_;
-  const RLgl<SEXP> method_;
-  const RChr<SEXP> property_;
-  const RLgl<SEXP> static_;
-  const RLgl<SEXP> class_;
-  const RChr<SEXP> inherit_;
-  const RLgl<SEXP> virtual_;
+  const REnv<SEXP>               meta_;
+  const std::vector<const char*> names_;
+  const std::vector<const char*> access_;
+  const int*                     method_;
+  const std::vector<const char*> property_;
+  const int*                     static_;
+  const int*                     class_;
+  const std::vector<const char*> inherit_;
+  const int*                     virtual_;
 
 };
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //

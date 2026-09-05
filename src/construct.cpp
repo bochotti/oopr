@@ -14,23 +14,23 @@ class OoprInstance
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 public:
   OoprInstance(SEXP gen, SEXP name, SEXP frames)
-    : ooprC(gen, false)
-    , name(name)
-    , meta(ooprC.meta)
-    , calr(getCalr(frames))
+    : calr(getCalr(frames))
     , envr(CAR(Rf_lastElt(frames)))
+    , name(name)
     , isInhr(OoprC::is(calr[this->name].get0()))
+    , ooprC(gen, !isInhr)
+    , meta(ooprC.meta)
     , inst(ooprC.encl.parent(), true, 2 + ooprC.inhr.size())
     , thiz(inst, true, meta.size())
   { }
 
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  const OoprC      ooprC;
-  const RSym       name;
-  const OoprMeta&  meta;
   const REnv<SEXP> calr;  // caller environment
-  REnv<SEXP>       envr;  // ooprC@.Data environment
+  REnv<SEXP>       envr;  // ooprC@.Data() environment
+  const RSym       name;
   bool             isInhr{false};
+  const OoprC      ooprC;
+  const OoprMeta&  meta;
   REnv<PSEXP>      inst; // new instance enclosure
   REnv<PSEXP>      thiz; // new instance this
   REnv<PSEXP>      intf; // new instance .this
@@ -276,11 +276,7 @@ private:
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 SEXP oopr_make(SEXP gen, SEXP name, SEXP frames) try
 {
-  if(!(RSym::is(name) && Rf_isPairList(frames)))
-  {
-    stop("ooprC not called correctly");
-  }
-  if(!OoprC::is(gen, { RSym(name).chr() }))
+  if(!(Rf_inherits(gen, "ooprC") && RSym::is(name) && Rf_isPairList(frames)))
   {
     stop("ooprC not called correctly");
   }

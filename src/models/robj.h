@@ -679,6 +679,15 @@ public:
   template<typename T>
   bool operator!=(const RChr<T>& x) { return *x != **this; }
 
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+  operator std::vector<const char*>( ) const
+  {
+    std::vector<const char*> out;
+    out.reserve(this->size());
+    for(const RStr<SEXP>& x : *this) { out.emplace_back(x.data()); }
+    return out;
+  }
+
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 private:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
