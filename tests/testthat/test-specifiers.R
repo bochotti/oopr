@@ -51,6 +51,22 @@ test_that("specifiers_access",
 })
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("specifiers_special",
+{
+  it("Does not allow non-access specifiers",
+  {
+    expect_error(
+      oopr("test",, { static:test <- \( ) { }})
+     ,class = "ooprNonAccessSpecifierSpecial"
+    );
+    expect_error(
+      oopr("test",, { static:~test <- \( ) { }})
+     ,class = "ooprNonAccessSpecifierSpecial"
+    );
+  })
+})
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 test_that("specifiers_unknown",
 {
   it("catches any unknown specifiers",
