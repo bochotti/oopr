@@ -1,5 +1,13 @@
 # oopr 999.999 (development version)
 
+* TODO: stop referring to constructor & destructor methods inside other methods
+
+* TODO: stop specifiers on constructor & destructor
+
+* TODO: abstract methods
+
+* TODO: breakpoints interface via console and abstract away RStudio dependency.
+
 ## Added
 
 * Constructor methods can now be used with any access specifier, allowing
@@ -24,9 +32,8 @@
 * Method source reference no longer covers the access specifier, and no longer
   includes any comments in between.
   
-* TODO: stop referring to constructor & destructor methods inside other methods
-
-* TODO: stop specifiers on constructor & destructor
+* Documentation now uses `\command` instead of `\code` macro for escaping
+  roxygen markdown. Using `\if` inside `\code` macro had `R CMD CHECK` warning.
 
 
 # oopr 0.0.1 (2026-07-28)

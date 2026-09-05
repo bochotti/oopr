@@ -38,7 +38,8 @@ OoprCovr()
 }}
 
 \describe{
-\item{\code{\hl{oopr_covr-OoprCovr}{OoprCovr}}}{
+\item{\command{\hl{oopr_covr-OoprCovr}{OoprCovr}}}{
+\emph{\verb{[public]}}\cr
 \emph{\verb{[0 fields]}} \emph{\verb{[1 method]}}}
 }
 
@@ -55,13 +56,13 @@ For package coverage, write code to initialize this class inside
 
 \subsection{Methods}{
 \describe{
-\item{\code{\hl{oopr_covr-OoprCovr-class}{class}}}{
+\item{\command{\hl{oopr_covr-OoprCovr-class}{class}}}{
 \emph{\verb{[static]}} \cr
 Test a single class.}
 }
 }
 
-\subsection{\code{\ht{oopr_covr-OoprCovr-class}{class}}\hr{}class}{
+\subsection{\command{\ht{oopr_covr-OoprCovr-class}{class}}\hr{}class}{
 \subsection{Description}{
 \lbr{}Test a single class.
 }

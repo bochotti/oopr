@@ -45,11 +45,13 @@ OoprSourceTry(
 }}
 
 \describe{
-\item{\code{\hl{OoprSource-OoprSource}{OoprSource}}}{
+\item{\command{\hl{OoprSource-OoprSource}{OoprSource}}}{
+\emph{\verb{[public]}}\cr
 \emph{\verb{[8 fields]}} \emph{\verb{[2 methods]}}\cr
 Takes a file and parses the oopr definitions inside it.}
 
-\item{\code{\hl{OoprSource-OoprSourceTry}{OoprSourceTry}}}{
+\item{\command{\hl{OoprSource-OoprSourceTry}{OoprSourceTry}}}{
+\emph{\verb{[public]}}\cr
 \emph{\verb{[9 fields]}} \emph{\verb{[2 methods]}}\cr
 Tries to parse and evaluate a file containing ooprs, intended for
 completion.}
@@ -67,38 +69,38 @@ Source files for oopr
 
 \subsection{Fields}{
 \describe{
-\item{\code{file}}{
+\item{\command{file}}{
 \lbr{}\code{character(1L)} \cr
 An R source file.}
 
-\item{\code{text}}{
+\item{\command{text}}{
 \lbr{}\code{character()} \cr
 A vector of lines of an R source file.}
 
-\item{\code{row}}{
+\item{\command{row}}{
 \lbr{}\code{integer(1L)} \cr
 Line of a text cursor position.}
 
-\item{\code{col}}{
+\item{\command{col}}{
 \lbr{}\code{integer(1L)} \cr
 Line of a text cursor position.}
 
-\item{\code{expr}}{
+\item{\command{expr}}{
 \emph{\verb{[read-only]}} \cr
 \code{expression} \cr
 A parsed expressed of \verb{$file} or \verb{$text} from \verb{$parse()}.}
 
-\item{\code{defs}}{
+\item{\command{defs}}{
 \emph{\verb{[read-only]}} \cr
 \code{list()} \cr
 A named list of \code{oopr} definitions from \verb{$parse()}.}
 
-\item{\code{objs}}{
+\item{\command{objs}}{
 \emph{\verb{[read-only]}} \cr
 \code{list()} \cr
 A named list of \code{oopr} object from \verb{$eval()}.}
 
-\item{\code{obj}}{
+\item{\command{obj}}{
 \emph{\verb{[read-only]}} \cr
 \code{ooprC}
 If \verb{$row} and \verb{$col} are set, then the \code{oopr} object that
@@ -108,15 +110,15 @@ is at that location.}
 
 \subsection{Methods}{
 \describe{
-\item{\code{\hl{OoprSource-OoprSource-parse}{parse}}}{
+\item{\command{\hl{OoprSource-OoprSource-parse}{parse}}}{
 \lbr{}Parse \verb{$file} or \verb{$text}.}
 
-\item{\code{\hl{OoprSource-OoprSource-eval}{eval}}}{
+\item{\command{\hl{OoprSource-OoprSource-eval}{eval}}}{
 \lbr{}Evaluate the \code{oopr}s in \verb{$defs}.}
 }
 }
 
-\subsection{\code{\ht{OoprSource-OoprSource-parse}{parse}}\hr{}parse}{
+\subsection{\command{\ht{OoprSource-OoprSource-parse}{parse}}\hr{}parse}{
 \subsection{Description}{
 \lbr{}Parse \verb{$file} or \verb{$text}.
 }
@@ -135,7 +137,7 @@ object.
 }
 }
 
-\subsection{\code{\ht{OoprSource-OoprSource-eval}{eval}}\hr{}eval}{
+\subsection{\command{\ht{OoprSource-OoprSource-eval}{eval}}\hr{}eval}{
 \subsection{Description}{
 \lbr{}Evaluate the \code{oopr}s in \verb{$defs}.
 }
@@ -169,43 +171,43 @@ completion.
 
 \subsection{Fields}{
 \describe{
-\item{\code{call}}{
+\item{\command{call}}{
 \lbr{}\code{call} \cr
 The evaluation string/call at the position \code{row} & \code{col} in
 the file, e.g. \code{this$a$b}.}
 
-\item{\code{file}}{
+\item{\command{file}}{
 \lbr{}\code{character(1L)} \cr
 An R source file.}
 
-\item{\code{text}}{
+\item{\command{text}}{
 \lbr{}\code{character()} \cr
 A vector of lines of an R source file.}
 
-\item{\code{row}}{
+\item{\command{row}}{
 \lbr{}\code{integer(1L)} \cr
 Line of a text cursor position.}
 
-\item{\code{col}}{
+\item{\command{col}}{
 \lbr{}\code{integer(1L)} \cr
 Line of a text cursor position.}
 
-\item{\code{expr}}{
+\item{\command{expr}}{
 \emph{\verb{[read-only]}} \cr
 \code{expression} \cr
 A parsed expressed of \verb{$file} or \verb{$text} from \verb{$parse()}.}
 
-\item{\code{defs}}{
+\item{\command{defs}}{
 \emph{\verb{[read-only]}} \cr
 \code{list()} \cr
 A named list of \code{oopr} definitions from \verb{$parse()}.}
 
-\item{\code{objs}}{
+\item{\command{objs}}{
 \emph{\verb{[read-only]}} \cr
 \code{list()} \cr
 A named list of \code{oopr} object from \verb{$eval()}.}
 
-\item{\code{obj}}{
+\item{\command{obj}}{
 \emph{\verb{[read-only]}} \cr
 \code{ooprC}
 If \verb{$row} and \verb{$col} are set, then the \code{oopr} object that
@@ -215,15 +217,15 @@ is at that location.}
 
 \subsection{Methods}{
 \describe{
-\item{\code{\hl{OoprSource-OoprSourceTry-parse}{parse}}}{
+\item{\command{\hl{OoprSource-OoprSourceTry-parse}{parse}}}{
 \lbr{}Try to parse the file.}
 
-\item{\code{\hl{OoprSource-OoprSourceTry-eval}{eval}}}{
+\item{\command{\hl{OoprSource-OoprSourceTry-eval}{eval}}}{
 \lbr{}Evaluate the \code{oopr}s in \verb{$defs}.}
 }
 }
 
-\subsection{\code{\ht{OoprSource-OoprSourceTry-parse}{parse}}\hr{}parse}{
+\subsection{\command{\ht{OoprSource-OoprSourceTry-parse}{parse}}\hr{}parse}{
 \subsection{Description}{
 \lbr{}Try to parse the file.
 }
@@ -255,7 +257,7 @@ class members are not reference checked.
 }
 }
 
-\subsection{\code{\ht{OoprSource-OoprSourceTry-eval}{eval}}\hr{}eval}{
+\subsection{\command{\ht{OoprSource-OoprSourceTry-eval}{eval}}\hr{}eval}{
 \subsection{Description}{
 \lbr{}Evaluate the \code{oopr}s in \verb{$defs}.
 }

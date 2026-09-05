@@ -116,20 +116,21 @@ public:
   #' @param hr      `logical(1L)` \cr
   #'                Whether to add horizontal line to section heading.
   #'
-  #' @param pfx     `character(1L)` \cr
+  #' @param rf      `character(1L)` \cr
   #'                To add a hyperref.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  OoprRoxySection <- \(title = "", content = character(0L), hr = FALSE, pfx = "")
+  OoprRoxySection <- \(title = "", content = character(0L), hr = FALSE, rf = "")
   {
     stopifnot(
-      is.character(title)   && length(title) == 1L
+      is.character(title) && length(title) == 1L && !is.na(title)
      ,is.character(content)
-     ,is.logical(hr) && length(hr) == 1L && !is.na(hr)
+     ,is.logical(hr)      && length(hr) == 1L    && !is.na(hr)
+     ,is.character(rf)    && length(rf) == 1L    && !is.na(rf)
     );
     this$title_   <- title;
     this$content_ <- content;
     this$hr_      <- hr;
-    this$pfx_     <- pfx;
+    this$rf_     <- rf;
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -216,11 +217,11 @@ public:
     {
       title <- sprintf("\\hr{}%s", title);
     }
-    if(nzchar(this$pfx_))
+    if(nzchar(this$rf_))
     {
       title <- sprintf(
-        "\\code{\\ht{%s-%s}{%s}}%s"
-       ,this$pfx_, this$title_, this$title_, title
+        "\\command{\\ht{%s-%s}{%s}}%s"
+       ,this$rf_, this$title_, this$title_, title
       );
     }
     content <- paste(content, collapse = "\n\n");
@@ -248,7 +249,7 @@ private:
   title_   <- character(1L);
   content_ <- character(0L);
   hr_      <- logical(1L);
-  pfx_     <- character(1L);
+  rf_      <- character(1L);
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 }) ## OoprRoxySection
@@ -309,7 +310,7 @@ protected:
   format <- \( )
   {
     content <- trimws(this$content);
-    content <- sprintf("\\item{\\code{%s}}{\n%s}", this$names, content);
+    content <- sprintf("\\item{\\command{%s}}{\n%s}", this$names, content);
     content <- paste0(content, collapse = "\n\n");
     content <- sprintf("\\describe{\n%s\n}", content);
     return(content);
@@ -474,7 +475,7 @@ public:
   #' @param warn `logical(1L)` \cr
   #'             Whether warnings should display when missing tags.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  OoprRoxyMethod <- \(title, tags, fun, warn = TRUE, hr = TRUE, pfx = "")
+  OoprRoxyMethod <- \(title, tags, fun, warn = TRUE, hr = TRUE, rf = "")
   {
     stopifnot(
       is.list(tags) && all(vapply(tags, inherits, logical(1L), "roxy_tag"))
@@ -486,7 +487,7 @@ public:
     this$title_ <- title;
     this$warn_  <- warn;
 
-    OoprRoxySection(title, hr = hr, pfx = pfx);
+    OoprRoxySection(title, hr = hr, rf = rf);
 
     this$checkMissingTags(tags);
     this$insertArgsSection(tags);
@@ -697,6 +698,15 @@ public:
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @field access `character(1L)` \cr
+  #'               Access specifier of the constructor method.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  get:access <- \( )
+  {
+    return(this$ooprC@meta$subs("access", names = this$title));
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   #' @field members `list()` \cr
   #'                A (nested) list of tags for each member.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -730,18 +740,13 @@ public:
     i   <- match("usage", vapply(this$tags, `[[`, character(1L), "tag"), 0L);
     tag <- if(i) this$tags[[i]] else this$roxy$roxy_tag("usage", NULL);
     if(!is.null(tag$raw)) { return(); }
-    acs <- this$ooprC@meta$subs("access", names = this$title);
-    if(acs == "private")
+    if(this$access == "private")
     {
       tag$val <- this$title;
     }
     else
     {
       tag$val <- OoprRoxyUsage(this$ooprC, this$title)$content;
-      if(acs == "protected")
-      {
-        tag$val <- sprintf("# [protected]\n%s", tag$val);
-      }
     }
     class(tag$val) <- "rd";
     this$tags[[i]] <- tag;
@@ -809,13 +814,13 @@ public:
     names <- this$ooprC@meta$subs("names", names = names, method = TRUE);
     names <- this$wrapNames(names);
 
-    pfx <- sprintf("%s-%s", this$rdname, this$title);
+    rf <- sprintf("%s-%s", this$rdname, this$title);
     for(name in names)
     {
       tags   <- this$members_[[name]];
       tags   <- this$findInheritsTag(tags, name);
       fun    <- this$ooprC@encl$this[[this$unWrapNames(name)]];
-      method <- OoprRoxyMethod(name, tags, fun, this$warn_, pfx = pfx);
+      method <- OoprRoxyMethod(name, tags, fun, this$warn_, rf = rf);
       this$sections$insert(name, method);
 
       # add to list
@@ -833,7 +838,7 @@ public:
       this$addSpecifiersToDescribe(methods);
       content <- methods$content;
       names   <- methods$names;
-      names   <- sprintf("\\hl{%s-%s}{%s}", pfx, names, names);
+      names   <- sprintf("\\hl{%s-%s}{%s}", rf, names, names);
       methods$erase();
       methods$insert(content, names);
     }
@@ -879,7 +884,7 @@ private:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   static:wrapNames <- \(x)
   {
-    i    <- x != make.names(x);
+    i    <- x != make.names(x) & !grepl("^`.*`$", x);
     x[i] <- sprintf("`%s`", x[i]);
     return(x);
   }
@@ -1284,9 +1289,11 @@ private:
   {
     # describe contents, no. members and a description.
     items <- character(length(keys));
+    ev <- \(fmt, ...) { sprintf("\\emph{\\verb{[%s]}}", sprintf(fmt, ...)); }
     for(i in seq_along(keys))
     {
-      sections <- this$classes[keys[i]]$sections;
+      class    <- this$classes[keys[i]];
+      sections <- class$sections;
       nf <- if(sections$exists("Fields"))  sections["Fields"]$size  else 0L;
       nm <- if(sections$exists("Methods")) sections["Methods"]$size else 0L;
       dc <- "";
@@ -1296,9 +1303,10 @@ private:
         dc <- sprintf("\\cr\n%s", dc);
       }
       items[i] <- sprintf(
-        "\n\\emph{\\verb{[%i field%s]}} \\emph{\\verb{[%i method%s]}}%s"
-       ,nf, if(nf == 1) "" else "s"
-       ,nm, if(nm == 1) "" else "s"
+        "%s\\cr\n%s %s%s"
+       ,ev(class$access)
+       ,ev("%i field%s" , nf, if(nf == 1) "" else "s")
+       ,ev("%i method%s", nm, if(nm == 1) "" else "s")
        ,dc
       );
     }

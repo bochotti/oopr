@@ -16,7 +16,7 @@ OoprRoxySection(
   title   = ""
  ,content = character(0L)
  ,hr      = FALSE
- ,pfx     = ""
+ ,rf      = ""
 )
 
 OoprRoxyDescribe(
@@ -37,7 +37,7 @@ OoprRoxyMethod(
  ,fun  
  ,warn  = TRUE
  ,hr    = TRUE
- ,pfx   = ""
+ ,rf    = ""
 )
 
 OoprRoxyClass(block)
@@ -52,7 +52,7 @@ Lines of the content for the section.}
 \item{hr}{\code{logical(1L)} \cr
 Whether to add horizontal line to section heading.}
 
-\item{pfx}{\code{character(1L)} \cr
+\item{rf}{\code{character(1L)} \cr
 To add a hyperref.}
 
 \item{args}{\code{list()} \cr
@@ -102,28 +102,34 @@ A roxy block containing an \code{oopr} class.}
 }}
 
 \describe{
-\item{\code{\hl{OoprRoxy-OoprRoxySection}{OoprRoxySection}}}{
+\item{\command{\hl{OoprRoxy-OoprRoxySection}{OoprRoxySection}}}{
+\emph{\verb{[public]}}\cr
 \emph{\verb{[3 fields]}} \emph{\verb{[4 methods]}}\cr
 Create a subsection.}
 
-\item{\code{\hl{OoprRoxy-OoprRoxyDescribe}{OoprRoxyDescribe}}}{
+\item{\command{\hl{OoprRoxy-OoprRoxyDescribe}{OoprRoxyDescribe}}}{
+\emph{\verb{[public]}}\cr
 \emph{\verb{[4 fields]}} \emph{\verb{[3 methods]}}\cr
 Represents a describe subsection.}
 
-\item{\code{\hl{OoprRoxy-OoprRoxyUsage}{OoprRoxyUsage}}}{
+\item{\command{\hl{OoprRoxy-OoprRoxyUsage}{OoprRoxyUsage}}}{
+\emph{\verb{[public]}}\cr
 \emph{\verb{[3 fields]}} \emph{\verb{[3 methods]}}\cr
 Represents a usage subsection.}
 
-\item{\code{\hl{OoprRoxy-OoprRoxyArguments}{OoprRoxyArguments}}}{
+\item{\command{\hl{OoprRoxy-OoprRoxyArguments}{OoprRoxyArguments}}}{
+\emph{\verb{[public]}}\cr
 \emph{\verb{[4 fields]}} \emph{\verb{[3 methods]}}\cr
 Create an arguments subsection.}
 
-\item{\code{\hl{OoprRoxy-OoprRoxyMethod}{OoprRoxyMethod}}}{
+\item{\command{\hl{OoprRoxy-OoprRoxyMethod}{OoprRoxyMethod}}}{
+\emph{\verb{[public]}}\cr
 \emph{\verb{[6 fields]}} \emph{\verb{[3 methods]}}\cr
 Represents a method subsection.}
 
-\item{\code{\hl{OoprRoxy-OoprRoxyClass}{OoprRoxyClass}}}{
-\emph{\verb{[5 fields]}} \emph{\verb{[5 methods]}}\cr
+\item{\command{\hl{OoprRoxy-OoprRoxyClass}{OoprRoxyClass}}}{
+\emph{\verb{[public]}}\cr
+\emph{\verb{[6 fields]}} \emph{\verb{[5 methods]}}\cr
 Represents a class section.}
 }
 
@@ -146,17 +152,17 @@ which creates a roxy block containing sections for each class.
 
 \subsection{Fields}{
 \describe{
-\item{\code{title}}{
+\item{\command{title}}{
 \emph{\verb{[read-only]}} \cr
 \code{character(1L)} \cr
 The title of the section.}
 
-\item{\code{content}}{
+\item{\command{content}}{
 \emph{\verb{[read-only]}} \cr
 \code{character()} \cr
 Lines of the content for the section.}
 
-\item{\code{size}}{
+\item{\command{size}}{
 \emph{\verb{[read-only]}} \cr
 \code{integer(1L)} \cr
 The number of lines.}
@@ -165,25 +171,25 @@ The number of lines.}
 
 \subsection{Methods}{
 \describe{
-\item{\code{\hl{OoprRoxy-OoprRoxySection-insert}{insert}}}{
+\item{\command{\hl{OoprRoxy-OoprRoxySection-insert}{insert}}}{
 \emph{\verb{[virtual]}} \cr
 Insert a line into the section.}
 
-\item{\code{\hl{OoprRoxy-OoprRoxySection-erase}{erase}}}{
+\item{\command{\hl{OoprRoxy-OoprRoxySection-erase}{erase}}}{
 \emph{\verb{[final]}} \cr
 Remove all lines from the section.}
 
-\item{\code{\hl{OoprRoxy-OoprRoxySection-toRd}{toRd}}}{
+\item{\command{\hl{OoprRoxy-OoprRoxySection-toRd}{toRd}}}{
 \emph{\verb{[final]}} \cr
 Convert the section into Rd formatted text.}
 
-\item{\code{\hl{OoprRoxy-OoprRoxySection-format}{format}}}{
+\item{\command{\hl{OoprRoxy-OoprRoxySection-format}{format}}}{
 \emph{\verb{[protected]}} \emph{\verb{[virtual]}} \cr
 Convert \verb{$content} into a format for use in \verb{$toRd()}.}
 }
 }
 
-\subsection{\code{\ht{OoprRoxy-OoprRoxySection-insert}{insert}}\hr{}insert}{
+\subsection{\command{\ht{OoprRoxy-OoprRoxySection-insert}{insert}}\hr{}insert}{
 \subsection{Description}{
 \lbr{}Insert a line into the section.
 }
@@ -205,7 +211,7 @@ The position to insert, must be the same length as \code{x}.}
 }
 }
 
-\subsection{\code{\ht{OoprRoxy-OoprRoxySection-erase}{erase}}\hr{}erase}{
+\subsection{\command{\ht{OoprRoxy-OoprRoxySection-erase}{erase}}\hr{}erase}{
 \subsection{Description}{
 \lbr{}Remove all lines from the section.
 }
@@ -219,7 +225,7 @@ The position to insert, must be the same length as \code{x}.}
 }
 }
 
-\subsection{\code{\ht{OoprRoxy-OoprRoxySection-toRd}{toRd}}\hr{}toRd}{
+\subsection{\command{\ht{OoprRoxy-OoprRoxySection-toRd}{toRd}}\hr{}toRd}{
 \subsection{Description}{
 \lbr{}Convert the section into Rd formatted text.
 }
@@ -237,7 +243,7 @@ The position to insert, must be the same length as \code{x}.}
 }
 }
 
-\subsection{\code{\ht{OoprRoxy-OoprRoxySection-format}{format}}\hr{}format}{
+\subsection{\command{\ht{OoprRoxy-OoprRoxySection-format}{format}}\hr{}format}{
 \subsection{Description}{
 \lbr{}Convert \verb{$content} into a format for use in \verb{$toRd()}.
 }
@@ -260,22 +266,22 @@ The position to insert, must be the same length as \code{x}.}
 
 \subsection{Fields}{
 \describe{
-\item{\code{names}}{
+\item{\command{names}}{
 \emph{\verb{[read-only]}} \cr
 \code{character(0L)} \cr
 Name of each item.}
 
-\item{\code{title}}{
+\item{\command{title}}{
 \emph{\verb{[read-only]}} \cr
 \code{character(1L)} \cr
 The title of the section.}
 
-\item{\code{content}}{
+\item{\command{content}}{
 \emph{\verb{[read-only]}} \cr
 \code{character()} \cr
 Lines of the content for the section.}
 
-\item{\code{size}}{
+\item{\command{size}}{
 \emph{\verb{[read-only]}} \cr
 \code{integer(1L)} \cr
 The number of lines.}
@@ -284,21 +290,21 @@ The number of lines.}
 
 \subsection{Methods}{
 \describe{
-\item{\code{\hl{OoprRoxy-OoprRoxyDescribe-insert}{insert}}}{
+\item{\command{\hl{OoprRoxy-OoprRoxyDescribe-insert}{insert}}}{
 \emph{\verb{[virtual]}} \cr
 Insert a line into the section.}
 
-\item{\code{\hl{OoprRoxy-OoprRoxyDescribe-erase}{erase}}}{
+\item{\command{\hl{OoprRoxy-OoprRoxyDescribe-erase}{erase}}}{
 \emph{\verb{[final]}} \cr
 Remove all lines from the section.}
 
-\item{\code{\hl{OoprRoxy-OoprRoxyDescribe-toRd}{toRd}}}{
+\item{\command{\hl{OoprRoxy-OoprRoxyDescribe-toRd}{toRd}}}{
 \emph{\verb{[final]}} \cr
 Convert the section into Rd formatted text.}
 }
 }
 
-\subsection{\code{\ht{OoprRoxy-OoprRoxyDescribe-insert}{insert}}\hr{}insert}{
+\subsection{\command{\ht{OoprRoxy-OoprRoxyDescribe-insert}{insert}}\hr{}insert}{
 \subsection{Description}{
 \lbr{}Insert a line into the section.
 }
@@ -321,7 +327,7 @@ The name of the item.}
 }
 }
 
-\subsection{\code{\ht{OoprRoxy-OoprRoxyDescribe-erase}{erase}}\hr{}erase}{
+\subsection{\command{\ht{OoprRoxy-OoprRoxyDescribe-erase}{erase}}\hr{}erase}{
 \subsection{Description}{
 \lbr{}Remove all lines from the section.
 }
@@ -335,7 +341,7 @@ The name of the item.}
 }
 }
 
-\subsection{\code{\ht{OoprRoxy-OoprRoxyDescribe-toRd}{toRd}}\hr{}toRd}{
+\subsection{\command{\ht{OoprRoxy-OoprRoxyDescribe-toRd}{toRd}}\hr{}toRd}{
 \subsection{Description}{
 \lbr{}Convert the section into Rd formatted text.
 }
@@ -362,17 +368,17 @@ The name of the item.}
 
 \subsection{Fields}{
 \describe{
-\item{\code{title}}{
+\item{\command{title}}{
 \emph{\verb{[read-only]}} \cr
 \code{character(1L)} \cr
 The title of the section.}
 
-\item{\code{content}}{
+\item{\command{content}}{
 \emph{\verb{[read-only]}} \cr
 \code{character()} \cr
 Lines of the content for the section.}
 
-\item{\code{size}}{
+\item{\command{size}}{
 \emph{\verb{[read-only]}} \cr
 \code{integer(1L)} \cr
 The number of lines.}
@@ -381,21 +387,21 @@ The number of lines.}
 
 \subsection{Methods}{
 \describe{
-\item{\code{\hl{OoprRoxy-OoprRoxyUsage-insert}{insert}}}{
+\item{\command{\hl{OoprRoxy-OoprRoxyUsage-insert}{insert}}}{
 \emph{\verb{[virtual]}} \cr
 Insert a line into the section.}
 
-\item{\code{\hl{OoprRoxy-OoprRoxyUsage-erase}{erase}}}{
+\item{\command{\hl{OoprRoxy-OoprRoxyUsage-erase}{erase}}}{
 \emph{\verb{[final]}} \cr
 Remove all lines from the section.}
 
-\item{\code{\hl{OoprRoxy-OoprRoxyUsage-toRd}{toRd}}}{
+\item{\command{\hl{OoprRoxy-OoprRoxyUsage-toRd}{toRd}}}{
 \emph{\verb{[final]}} \cr
 Convert the section into Rd formatted text.}
 }
 }
 
-\subsection{\code{\ht{OoprRoxy-OoprRoxyUsage-insert}{insert}}\hr{}insert}{
+\subsection{\command{\ht{OoprRoxy-OoprRoxyUsage-insert}{insert}}\hr{}insert}{
 \subsection{Description}{
 \lbr{}Insert a line into the section.
 }
@@ -417,7 +423,7 @@ The position to insert, must be the same length as \code{x}.}
 }
 }
 
-\subsection{\code{\ht{OoprRoxy-OoprRoxyUsage-erase}{erase}}\hr{}erase}{
+\subsection{\command{\ht{OoprRoxy-OoprRoxyUsage-erase}{erase}}\hr{}erase}{
 \subsection{Description}{
 \lbr{}Remove all lines from the section.
 }
@@ -431,7 +437,7 @@ The position to insert, must be the same length as \code{x}.}
 }
 }
 
-\subsection{\code{\ht{OoprRoxy-OoprRoxyUsage-toRd}{toRd}}\hr{}toRd}{
+\subsection{\command{\ht{OoprRoxy-OoprRoxyUsage-toRd}{toRd}}\hr{}toRd}{
 \subsection{Description}{
 \lbr{}Convert the section into Rd formatted text.
 }
@@ -458,22 +464,22 @@ The position to insert, must be the same length as \code{x}.}
 
 \subsection{Fields}{
 \describe{
-\item{\code{names}}{
+\item{\command{names}}{
 \emph{\verb{[read-only]}} \cr
 \code{character(0L)} \cr
 Name of each item.}
 
-\item{\code{title}}{
+\item{\command{title}}{
 \emph{\verb{[read-only]}} \cr
 \code{character(1L)} \cr
 The title of the section.}
 
-\item{\code{content}}{
+\item{\command{content}}{
 \emph{\verb{[read-only]}} \cr
 \code{character()} \cr
 Lines of the content for the section.}
 
-\item{\code{size}}{
+\item{\command{size}}{
 \emph{\verb{[read-only]}} \cr
 \code{integer(1L)} \cr
 The number of lines.}
@@ -482,21 +488,21 @@ The number of lines.}
 
 \subsection{Methods}{
 \describe{
-\item{\code{\hl{OoprRoxy-OoprRoxyArguments-insert}{insert}}}{
+\item{\command{\hl{OoprRoxy-OoprRoxyArguments-insert}{insert}}}{
 \emph{\verb{[virtual]}} \cr
 Insert a line into the section.}
 
-\item{\code{\hl{OoprRoxy-OoprRoxyArguments-erase}{erase}}}{
+\item{\command{\hl{OoprRoxy-OoprRoxyArguments-erase}{erase}}}{
 \emph{\verb{[final]}} \cr
 Remove all lines from the section.}
 
-\item{\code{\hl{OoprRoxy-OoprRoxyArguments-toRd}{toRd}}}{
+\item{\command{\hl{OoprRoxy-OoprRoxyArguments-toRd}{toRd}}}{
 \emph{\verb{[final]}} \cr
 Convert the section into Rd formatted text.}
 }
 }
 
-\subsection{\code{\ht{OoprRoxy-OoprRoxyArguments-insert}{insert}}\hr{}insert}{
+\subsection{\command{\ht{OoprRoxy-OoprRoxyArguments-insert}{insert}}\hr{}insert}{
 \subsection{Description}{
 \lbr{}Insert a line into the section.
 }
@@ -519,7 +525,7 @@ The name of the argument.}
 }
 }
 
-\subsection{\code{\ht{OoprRoxy-OoprRoxyArguments-erase}{erase}}\hr{}erase}{
+\subsection{\command{\ht{OoprRoxy-OoprRoxyArguments-erase}{erase}}\hr{}erase}{
 \subsection{Description}{
 \lbr{}Remove all lines from the section.
 }
@@ -533,7 +539,7 @@ The name of the argument.}
 }
 }
 
-\subsection{\code{\ht{OoprRoxy-OoprRoxyArguments-toRd}{toRd}}\hr{}toRd}{
+\subsection{\command{\ht{OoprRoxy-OoprRoxyArguments-toRd}{toRd}}\hr{}toRd}{
 \subsection{Description}{
 \lbr{}Convert the section into Rd formatted text.
 }
@@ -566,32 +572,32 @@ display.
 
 \subsection{Fields}{
 \describe{
-\item{\code{title}}{
+\item{\command{title}}{
 \emph{\verb{[read-only]}} \cr
 \code{character(1L)} \cr
 The title of the section.}
 
-\item{\code{fun}}{
+\item{\command{fun}}{
 \emph{\verb{[read-only]}} \cr
 \code{function} \cr
 The function object of the method.}
 
-\item{\code{warn}}{
+\item{\command{warn}}{
 \emph{\verb{[read-only]}} \cr
 \code{logical(1L)} \cr
 Whether warnings should display when missing tags.}
 
-\item{\code{sections}}{
+\item{\command{sections}}{
 \emph{\verb{[container]}} \cr
 \code{OoprRoxySection} \cr
 A container of the subsections.}
 
-\item{\code{content}}{
+\item{\command{content}}{
 \emph{\verb{[read-only]}} \cr
 \code{character()} \cr
 Lines of the content for the section.}
 
-\item{\code{size}}{
+\item{\command{size}}{
 \emph{\verb{[read-only]}} \cr
 \code{integer(1L)} \cr
 The number of lines.}
@@ -600,21 +606,21 @@ The number of lines.}
 
 \subsection{Methods}{
 \describe{
-\item{\code{\hl{OoprRoxy-OoprRoxyMethod-insert}{insert}}}{
+\item{\command{\hl{OoprRoxy-OoprRoxyMethod-insert}{insert}}}{
 \emph{\verb{[virtual]}} \cr
 Insert a line into the section.}
 
-\item{\code{\hl{OoprRoxy-OoprRoxyMethod-erase}{erase}}}{
+\item{\command{\hl{OoprRoxy-OoprRoxyMethod-erase}{erase}}}{
 \emph{\verb{[final]}} \cr
 Remove all lines from the section.}
 
-\item{\code{\hl{OoprRoxy-OoprRoxyMethod-toRd}{toRd}}}{
+\item{\command{\hl{OoprRoxy-OoprRoxyMethod-toRd}{toRd}}}{
 \emph{\verb{[final]}} \cr
 Convert the section into Rd formatted text.}
 }
 }
 
-\subsection{\code{\ht{OoprRoxy-OoprRoxyMethod-insert}{insert}}\hr{}insert}{
+\subsection{\command{\ht{OoprRoxy-OoprRoxyMethod-insert}{insert}}\hr{}insert}{
 \subsection{Description}{
 \lbr{}Insert a line into the section.
 }
@@ -636,7 +642,7 @@ The position to insert, must be the same length as \code{x}.}
 }
 }
 
-\subsection{\code{\ht{OoprRoxy-OoprRoxyMethod-erase}{erase}}\hr{}erase}{
+\subsection{\command{\ht{OoprRoxy-OoprRoxyMethod-erase}{erase}}\hr{}erase}{
 \subsection{Description}{
 \lbr{}Remove all lines from the section.
 }
@@ -650,7 +656,7 @@ The position to insert, must be the same length as \code{x}.}
 }
 }
 
-\subsection{\code{\ht{OoprRoxy-OoprRoxyMethod-toRd}{toRd}}\hr{}toRd}{
+\subsection{\command{\ht{OoprRoxy-OoprRoxyMethod-toRd}{toRd}}\hr{}toRd}{
 \subsection{Description}{
 \lbr{}Convert the section into Rd formatted text.
 }
@@ -683,27 +689,32 @@ Methods need to be called in order.
 
 \subsection{Fields}{
 \describe{
-\item{\code{title}}{
+\item{\command{title}}{
 \emph{\verb{[read-only]}} \cr
 \code{character(1L)} \cr
 The title of the section.}
 
-\item{\code{block}}{
+\item{\command{block}}{
 \emph{\verb{[read-only]}} \cr
 \code{roxy_block} \cr
 A roxy block containing an \code{oopr} class.}
 
-\item{\code{members}}{
+\item{\command{access}}{
+\emph{\verb{[read-only]}} \cr
+\code{character(1L)} \cr
+Access specifier of the constructor method.}
+
+\item{\command{members}}{
 \emph{\verb{[read-only]}} \cr
 \code{list()} \cr
 A (nested) list of tags for each member.}
 
-\item{\code{rdname}}{
+\item{\command{rdname}}{
 \emph{\verb{[read-only]}} \cr
 \code{character(1L)} \cr
 The name of the .Rd.}
 
-\item{\code{sections}}{
+\item{\command{sections}}{
 \emph{\verb{[container]}} \cr
 \code{OoprRoxySection} \cr
 The subsections inside the class section.}
@@ -712,24 +723,24 @@ The subsections inside the class section.}
 
 \subsection{Methods}{
 \describe{
-\item{\code{\hl{OoprRoxy-OoprRoxyClass-makeUsage}{makeUsage}}}{
+\item{\command{\hl{OoprRoxy-OoprRoxyClass-makeUsage}{makeUsage}}}{
 \lbr{}Make usage section}
 
-\item{\code{\hl{OoprRoxy-OoprRoxyClass-makeSections}{makeSections}}}{
+\item{\command{\hl{OoprRoxy-OoprRoxyClass-makeSections}{makeSections}}}{
 \lbr{}Creates subsections for \verb{@description} and \verb{@details} tags.}
 
-\item{\code{\hl{OoprRoxy-OoprRoxyClass-makeFields}{makeFields}}}{
+\item{\command{\hl{OoprRoxy-OoprRoxyClass-makeFields}{makeFields}}}{
 \lbr{}Creates a subsection for a list of fields/properties.}
 
-\item{\code{\hl{OoprRoxy-OoprRoxyClass-makeMethods}{makeMethods}}}{
+\item{\command{\hl{OoprRoxy-OoprRoxyClass-makeMethods}{makeMethods}}}{
 \lbr{}Creates a subsection for a list of methods and inserts method sections.}
 
-\item{\code{\hl{OoprRoxy-OoprRoxyClass-makeTag}{makeTag}}}{
+\item{\command{\hl{OoprRoxy-OoprRoxyClass-makeTag}{makeTag}}}{
 \lbr{}Places the class section under the blocks tags list}
 }
 }
 
-\subsection{\code{\ht{OoprRoxy-OoprRoxyClass-makeUsage}{makeUsage}}\hr{}makeUsage}{
+\subsection{\command{\ht{OoprRoxy-OoprRoxyClass-makeUsage}{makeUsage}}\hr{}makeUsage}{
 \subsection{Description}{
 \lbr{}Make usage section
 }
@@ -739,7 +750,7 @@ The subsections inside the class section.}
 }
 }
 
-\subsection{\code{\ht{OoprRoxy-OoprRoxyClass-makeSections}{makeSections}}\hr{}makeSections}{
+\subsection{\command{\ht{OoprRoxy-OoprRoxyClass-makeSections}{makeSections}}\hr{}makeSections}{
 \subsection{Description}{
 \lbr{}Creates subsections for \verb{@description} and \verb{@details} tags.
 }
@@ -749,7 +760,7 @@ The subsections inside the class section.}
 }
 }
 
-\subsection{\code{\ht{OoprRoxy-OoprRoxyClass-makeFields}{makeFields}}\hr{}makeFields}{
+\subsection{\command{\ht{OoprRoxy-OoprRoxyClass-makeFields}{makeFields}}\hr{}makeFields}{
 \subsection{Description}{
 \lbr{}Creates a subsection for a list of fields/properties.
 }
@@ -759,7 +770,7 @@ The subsections inside the class section.}
 }
 }
 
-\subsection{\code{\ht{OoprRoxy-OoprRoxyClass-makeMethods}{makeMethods}}\hr{}makeMethods}{
+\subsection{\command{\ht{OoprRoxy-OoprRoxyClass-makeMethods}{makeMethods}}\hr{}makeMethods}{
 \subsection{Description}{
 \lbr{}Creates a subsection for a list of methods and inserts method sections.
 }
@@ -769,7 +780,7 @@ The subsections inside the class section.}
 }
 }
 
-\subsection{\code{\ht{OoprRoxy-OoprRoxyClass-makeTag}{makeTag}}\hr{}makeTag}{
+\subsection{\command{\ht{OoprRoxy-OoprRoxyClass-makeTag}{makeTag}}\hr{}makeTag}{
 \subsection{Description}{
 \lbr{}Places the class section under the blocks tags list
 }
