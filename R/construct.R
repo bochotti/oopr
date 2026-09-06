@@ -90,7 +90,7 @@ names.ooprC <- \(x) { return(names(x@encl$.this)); }
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @exportS3Method utils::.DollarNames ooprC
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-.DollarNames.ooprC <- \(x, pattern)
+.DollarNames.ooprC <- \(x, pattern = "")
 {
   comp <- OoprCompletion();
   if(comp$isCompletion()) return(comp$names());

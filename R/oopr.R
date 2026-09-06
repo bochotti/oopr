@@ -268,9 +268,9 @@ print.oopr <- \(x, max.level = 5L, ...)
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @exportS3Method utils::.DollarNames
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-.DollarNames.oopr <- \(x, pattern = "", names = NULL)
+.DollarNames.oopr <- \(x, pattern = "")
 {
-  names <- names %||% names(x);
+  names <- attr(pattern, ".names", exact = TRUE) %||% names(x);
   names <- grep(pattern, names, value = TRUE);
   if(match("tools:rstudio", search(), 0L))
   {

@@ -29,7 +29,12 @@ local_packageInstall <- \(
   # install recent development version of oopr
   libs <- withr::local_tempdir(.local_envir = envir);
   withr::local_libpaths(libs, "prefix", .local_envir = envir);
-  o <- callr::rcmd("INSTALL", c(ns, sprintf("--library=%s", libs)));
+  o <- callr::rcmd("INSTALL", c(
+    ns
+   ,sprintf("--library=%s", libs)
+   ,"--no-multiarch"
+   ,"--type=source"
+  ));
   if(o$status)
   {
     print(o);
@@ -64,7 +69,12 @@ local_packageInstall <- \(
   }
 
   # install simulated package
-  o <- callr::rcmd("INSTALL", c(dir, sprintf("--library=%s", libs)));
+  o <- callr::rcmd("INSTALL", c(
+    dir
+   ,sprintf("--library=%s", libs)
+   ,"--no-multiarch"
+   ,"--type=source"
+  ));
   if(o$status)
   {
     print(o);

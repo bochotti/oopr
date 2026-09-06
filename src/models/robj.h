@@ -414,8 +414,8 @@ public:
     Elem& operator=(const Elem& v)   { return *this = static_cast<T>(v); }
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-    bool operator==(const T x) { return x == static_cast<T>(*this); }
-    bool operator!=(const T x) { return x != static_cast<T>(*this); }
+    bool operator==(const T x) const { return x == static_cast<T>(*this); }
+    bool operator!=(const T x) const { return x != static_cast<T>(*this); }
 
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   private:
@@ -674,10 +674,10 @@ public:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   using RVec::operator==;
   template<typename T>
-  bool operator==(const RChr<T>& x) { return *x == **this; }
+  bool operator==(const RChr<T>& x) const { return *x == **this; }
   using RVec::operator!=;
   template<typename T>
-  bool operator!=(const RChr<T>& x) { return *x != **this; }
+  bool operator!=(const RChr<T>& x) const { return *x != **this; }
 
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   operator std::vector<const char*>( ) const
@@ -814,10 +814,10 @@ public:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   using RVec::operator==;
   template<typename T>
-  bool operator==(const RList<T>& x) { return *x == **this; }
+  bool operator==(const RList<T>& x) const { return *x == **this; }
   using RVec::operator!=;
   template<typename T>
-  bool operator!=(const RList<T>& x) { return *x != **this; }
+  bool operator!=(const RList<T>& x) const { return *x != **this; }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 private:
@@ -888,10 +888,10 @@ public:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   using RObj<P, ENVSXP>::operator==;
   template<typename T>
-  bool operator==(const REnv<T>& x) { return *x == **this; }
+  bool operator==(const REnv<T>& x) const { return *x == **this; }
   using RObj<P, ENVSXP>::operator!=;
   template<typename T>
-  bool operator!=(const REnv<T>& x) { return *x != **this; }
+  bool operator!=(const REnv<T>& x) const { return *x != **this; }
 
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
    * Binding information.

@@ -82,7 +82,7 @@ test_that("symlink",
       symlink(target, "target", link, "a")
      ,"`name` already exists in `env`"
     );
-    rm(a, envir = link)
+    rm("a", envir = link)
   })
 
   it("creates a reference to another environment",

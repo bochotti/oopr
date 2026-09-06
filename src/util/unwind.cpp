@@ -59,7 +59,7 @@ RUnWind::exception::~exception()
     this->cont.release();
     if(cont != R_NilValue) R_ContinueUnwind(cont);
   }
-  if(strlen(runtime_error::what())) Rf_error(runtime_error::what());
+  if(strlen(runtime_error::what())) Rf_error("%s", runtime_error::what());
 }
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 const char* RUnWind::exception::what() const noexcept

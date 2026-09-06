@@ -45,7 +45,7 @@ class(this) <- c("oopr_this", "oopr");
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @exportS3Method utils::.DollarNames oopr_this
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-.DollarNames.oopr_this <- \(x, pattern)
+.DollarNames.oopr_this <- \(x, pattern = "")
 {
   comp <- OoprCompletion();
   if(comp$isCompletion()) return(comp$names());
@@ -515,7 +515,7 @@ private:
     }
     names <- obj@meta$subs("names", access = access);
     names <- grep(sprintf("^~?%s$", class), names, value = TRUE, invert = TRUE);
-    return(.DollarNames.oopr(thiz, names = names));
+    return(.DollarNames.oopr(thiz, structure("", .names = names)));
   }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
