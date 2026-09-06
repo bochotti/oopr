@@ -64,9 +64,9 @@ private:
 template<typename... Args>
 inline void stop(const char* fmt, Args&&... args)
 {
-  int sz = std::snprintf(nullptr, 0, fmt, std::forward<Args>(args)...);
+  const int sz = std::snprintf(nullptr, 0, fmt, std::forward<Args>(args)...);
   std::vector<char> msg(sz + 1, '\0');
-  std::sprintf(msg.data(), fmt, std::forward<Args>(args)...);
+  std::snprintf(msg.data(), sz + 1, fmt, std::forward<Args>(args)...);
   RUnWind::stop(const_cast<const char*>(msg.data()));
 }
 inline void stop(const char* msg) { RUnWind::stop(msg); }

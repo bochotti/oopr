@@ -35,10 +35,10 @@ test_that("iscall",
 
   it("can do packages",
   {
-    expect_false(iscall(quote(a::b())), "b");
-    expect_false(iscall(quote(a::b())), "b", "b");
-    expect_true(iscall(quote(a::b()), "b", "a"));
-    expect_true(iscall(quote(a:::b()), "b", "a"));
+    expect_false(iscall(str2lang("a::b()")), "b");
+    expect_false(iscall(str2lang("a::b()")), "b", "b");
+    expect_true(iscall(str2lang("a::b()"), "b", "a"));
+    expect_true(iscall(str2lang("a::b()"), "b", "a"));
   })
 })
 

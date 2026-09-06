@@ -1,26 +1,33 @@
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-override SOURCES := $(shell find . -name '*.cpp' -or -name '*.c')
-override OBJECTS := $(SOURCES:.cpp=.o)
-override OBJECTS := $(OBJECTS:.c=.o)
-override DEPS    := $(OBJECTS:.o=.d)
-#$(info SOURCES=$(SOURCES))
-#$(info OBJECTS=$(OBJECTS))
-#$(info DEPS=$(DEPS))
+OBJECTS.models = models/meta.o \
+								 models/oopr.o
+
+OBJECTS.util	 = util/psexp.o \
+								 util/symbols.o \
+								 util/symlink.o \
+								 util/unwind.o
+
+OBJECTS.root	 = breakpoint.o \
+								 common.o \
+								 construct.o \
+								 container.o \
+								 enclosure.o \
+								 init.o \
+								 install.o \
+								 reference.o \
+								 source.o
+
+OBJECTS = $(OBJECTS.models) $(OBJECTS.util) $(OBJECTS.root)
+
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+CXX_STD = CXX14
 PKG_CPPFLAGS = -I.
 #PKG_CXXFLAGS = -fno-inline -fno-omit-frame-pointer
 #STRIP =
 
-CXX_STD = CXX11
-
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 all: $(SHLIB)
 
-%.o: %.cpp
-	$(CXX) $(ALL_CPPFLAGS) $(ALL_CXXFLAGS) -MMD -MP -c $< -o $@
-
--include $(DEPS)
-
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 clean:
-	rm -f $(shell find . -name '*.o' -or -name '*.d' -or -name '*.so')
+	rm -f $(OBJECTS) oopr.so

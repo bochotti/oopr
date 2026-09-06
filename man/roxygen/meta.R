@@ -1,6 +1,6 @@
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 list(
-  roclets  = c("collate", "namespace", "rd", "oopr_roclet")
+  roclets  = c("collate", "namespace", "rd", "oopr::oopr_roclet")
  ,markdown = TRUE
 );
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
