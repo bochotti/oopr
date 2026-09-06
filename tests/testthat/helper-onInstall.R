@@ -11,6 +11,10 @@ local_packageInstall <- \(
 )
 {
   ns <- getNamespaceInfo(pkg, "path");
+  if(.Platform$OS.type == "windows")
+  {
+    ns <- normalizePath(ns, winslash = "/");
+  }
   # eval on.exit in envir
   on.exit <- \(expr, envir = envir)
   {
@@ -28,12 +32,15 @@ local_packageInstall <- \(
 
   # install recent development version of oopr
   libs <- withr::local_tempdir(.local_envir = envir);
+  if(.Platform$OS.type == "windows")
+  {
+    libs <- normalizePath(libs, winslash = "/");
+  }
   withr::local_libpaths(libs, "prefix", .local_envir = envir);
   o <- callr::rcmd("INSTALL", c(
     ns
    ,sprintf("--library=%s", libs)
    ,"--no-multiarch"
-   ,"--type=source"
   ));
   if(o$status)
   {
@@ -69,11 +76,14 @@ local_packageInstall <- \(
   }
 
   # install simulated package
+  if(.Platform$OS.type == "windows")
+  {
+    dir <- normalizePath(dir, winslash = "/");
+  }
   o <- callr::rcmd("INSTALL", c(
     dir
    ,sprintf("--library=%s", libs)
    ,"--no-multiarch"
-   ,"--type=source"
   ));
   if(o$status)
   {
