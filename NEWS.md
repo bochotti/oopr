@@ -1,8 +1,4 @@
-# oopr 999.999 (development version)
-
-* TODO: abstract methods
-
-* TODO: breakpoints interface via console and abstract away RStudio dependency.
+# oopr 0.2.0 (2026-09-06)
 
 ## Added
 
