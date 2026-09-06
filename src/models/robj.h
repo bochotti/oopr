@@ -735,14 +735,14 @@ RVec<D, T, I, P, S>::RVec(std::initializer_list<std::pair<const char*, T>> x)
     D::setv(s, i, v.second);
     ++i;
   }
-  this->attr("names") = keys;
+  this->attr(R_NamesSymbol) = keys;
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 template<typename D, typename T, typename I, typename P, SEXPTYPE S>
 RChr<SEXP> RVec<D, T, I, P, S>::names() const
 {
-  SEXP x = *RObj<P, S>::attr("names");
+  SEXP x = *RObj<P, S>::attr(R_NamesSymbol);
   return x == R_NilValue ? RChr<SEXP>() : RChr<SEXP>(x);
 }
 
@@ -808,7 +808,7 @@ public:
       setv(s, i, v.second);
       ++i;
     }
-    this->attr("names") = names;
+    this->attr(R_NamesSymbol) = names;
   }
 
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
@@ -866,7 +866,7 @@ public:
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
    * Get info
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-  RChr<SEXP> names(bool all = true, bool sort = false) const
+  RChr<PSEXP> names(bool all = true, bool sort = false) const
   {
     return R_lsInternal3(**this, all ? TRUE : FALSE, sort ? TRUE : FALSE);
   }

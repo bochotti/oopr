@@ -65,6 +65,8 @@ test_that("symlink",
       symlink(target, 1L, link, "a")
      ,"`tname` must be a symbol or single character vector"
     );
+    print(ls.str(parent));
+    print(ls.str(parent.env(target)));
     expect_error(
       symlink(target, "a", link, "a")
      ,"`tname` does not exist in the parent environment of `tenv`"

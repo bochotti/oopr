@@ -57,35 +57,35 @@ SEXP recurseExpr(SEXP expr, Args... args)
 
   const R_xlen_t len = Rf_xlength(expr);
   RList<PSEXP> out(len);
-  RChr<SEXP>   names;
   switch(type)
   {
   case ENVSXP:
   {
     REnv<SEXP> obj(expr);
-    names = obj.names();
+    RChr<PSEXP> names = obj.names();
     for(R_xlen_t i = 0; i < len; ++i)
     {
       const RStr<SEXP> name(names[i]);
       out[i] = recurseExpr<T>(*obj[name], args...);
     }
+    out.attr(R_NamesSymbol) = names;
     break;
   }
   case VECSXP:
   {
     RList<SEXP> obj(expr);
-    names = obj.names();
+    RChr<SEXP> names = obj.names();
     for(R_xlen_t i = 0; i < len; ++i)
     {
       const RStr<SEXP> name(names[i]);
       out[i] = recurseExpr<T>(*obj[name], args...);
     }
+    out.attr(R_NamesSymbol) = names;
     break;
   }
   default:
     break;
   }
-  out.attr(R_NamesSymbol) = names;
   return *out;
 }
 

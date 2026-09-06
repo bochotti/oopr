@@ -10,7 +10,7 @@ SEXP interface(SEXP env, SEXP nme, SEXP nms, SEXP cls, bool chk) try
   {
     stop("`nms` must be a character vector");
   }
-  const RChr<SEXP> names(Rf_isNull(nms) ? from.names() : RChr<SEXP>(nms));
+  const RChr<PSEXP> names(Rf_isNull(nms) ? from.names() : RChr<PSEXP>(nms));
 
   const R_xlen_t len = names.size();
   REnv<PSEXP> out(from.parent(), true, len);

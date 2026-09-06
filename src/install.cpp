@@ -17,8 +17,7 @@ public:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   void loadEnv()
   {
-    const RChr<SEXP> names = env.names();
-    for(const RStr<SEXP>& name : names)
+    for(const RStr<SEXP>& name : env.names())
     {
       const RSym sym(name.sym());
       SEXP x = *env[sym];
