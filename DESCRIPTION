@@ -20,7 +20,7 @@ Suggests:
 Imports:
     methods
 Depends:
-    R (>= 4.1.0)
+    R (>= 4.2.0)
 UseLTO: true
 NeedsCompilation: "yes"
 SystemRequirements: C++14

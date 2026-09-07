@@ -19,6 +19,8 @@
 * Generated constructor usage for roxygen documentation will now separate 
   arguments over multiple lines if too wide.
 
+* R 4.1.x is no longer supported.
+
 ## Fixed
 
 * Method source reference no longer covers the access specifier, and no longer

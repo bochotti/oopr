@@ -19,11 +19,6 @@ SEXP R_getVar(SEXP sym, SEXP rho, Rboolean inherits);
 SEXP R_getVarEx(SEXP sym, SEXP rho, Rboolean inherits, SEXP ifnotfound);
 const SEXP* VECTOR_PTR_RO(SEXP x);
 #endif
-
-#if R_VERSION < R_Version(4, 2, 0)
-Rboolean R_existsVarInFrame(SEXP env, SEXP name);
-#endif
-
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #endif /* OOPR_COMMON_H */
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //

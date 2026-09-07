@@ -10,7 +10,13 @@
 SYMBOLS(LIST, s)
 #undef  LIST
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-SEXP symlinkR(SEXP tenv, SEXP tname, SEXP env, SEXP name, bool check) try
+SEXP symlinkR(SEXP tenv, SEXP tname, SEXP env, SEXP name) try
+{
+  return symlinkR(tenv, tname, env, name, true);
+}
+catchR
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+SEXP symlinkR(SEXP tenv, SEXP tname, SEXP env, SEXP name, bool check)
 {
   if(!REnv<>::is(tenv)) stop("`tenv` must be an environment");
   if(!REnv<>::is(env))  stop("`env` must be an environment");
@@ -31,24 +37,10 @@ SEXP symlinkR(SEXP tenv, SEXP tname, SEXP env, SEXP name, bool check) try
   const RSym tsym(make::sym(tname, "tname"));
   const RSym sym(make::sym(name, "name"));
 
-  Rprintf(
-    "check=%s; exists=%s; tsym=%s;\n"
-   ,check ? "true" : "false"
-   ,tenvir.parent()[tsym].exists() ? "true" : "false"
-   ,tsym.c_str()
-  );
-  Rf_PrintValue(*tenvir.parent().names());
   if(check && !tenvir.parent()[tsym].exists())
   {
     stop("`tname` does not exist in the parent environment of `tenv`");
   }
-  Rprintf(
-    "check=%s; exists=%s; sym=%s;\n"
-   ,check ? "true" : "false"
-   ,tenvir[sym].exists() ? "true" : "false"
-   ,sym.c_str()
-  );
-  Rf_PrintValue(*tenvir.names());
   if(check && !tenvir[sym].exists())
   {
     stop("`name` does not exist in `tenv`");
@@ -68,4 +60,3 @@ SEXP symlinkR(SEXP tenv, SEXP tname, SEXP env, SEXP name, bool check) try
   envir[sym].fun = R_mkClosure(arg, bdy, *tenvir.parent());
   return Rf_ScalarLogical(1);
 }
-catchR

@@ -14,7 +14,8 @@
  * Can provide names and class, the defaults copy `env`.
  * Locking bindings are carried over, as is the locked status of `env`.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-extern "C" SEXP interface(
+extern "C" SEXP interface(SEXP env, SEXP nme, SEXP nms, SEXP cls);
+SEXP interface(
   SEXP env              // The environment to refer to
  ,SEXP nme              // The name of `env` in its parent environment
  ,SEXP nms = R_NilValue // Names from environment to refer to

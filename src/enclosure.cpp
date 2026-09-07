@@ -1,7 +1,13 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #include "enclosure.h"
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-SEXP interface(SEXP env, SEXP nme, SEXP nms, SEXP cls, bool chk) try
+SEXP interface(SEXP env, SEXP nme, SEXP nms, SEXP cls) try
+{
+  return interface(env, nme, nms, cls, true);
+}
+catchR
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+SEXP interface(SEXP env, SEXP nme, SEXP nms, SEXP cls, bool chk)
 {
   if(!REnv<>::is(env)) stop("`env` must be an environment");
   const REnv<SEXP> from(env);
@@ -46,4 +52,3 @@ SEXP interface(SEXP env, SEXP nme, SEXP nms, SEXP cls, bool chk) try
   if(from.locked()) out.lock();
   return *out;
 }
-catchR
