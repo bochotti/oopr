@@ -29,6 +29,7 @@ test_that("oopr_onLoad",
 {
   testthat::skip_on_cran();
   testthat::skip_if_not_installed(c("withr", "callr"));
+  testthat::skip_on_os("windows");
   local_packageInstall(files = c(code = r"{
   oopr::oopr("test",,  { public:get:a    <- \( ) { } })
   oopr::oopr("test2",, { public:static:a <- 1L; })

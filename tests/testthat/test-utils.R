@@ -45,30 +45,28 @@ test_that("iscall",
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 test_that("symlink",
 {
-  parent <- new.env();
-  target <- new.env(parent = parent);
-  assign("target", target, envir = parent);
-  assign("a", 1L, envir = target);
-  link <- new.env();
-
   it("asserts",
   {
+    parent <- new.env();
+    target <- new.env(parent = parent);
+    assign("target", target, envir = parent);
+    assign("afield", 1L, envir = target);
+    link <- new.env();
+
     expect_error(
-      symlink(1L, "target", link, "a")
+      symlink(1L, "target", link, "afield")
      ,"`tenv` must be an environment"
     );
     expect_error(
-      symlink(target, "target", 1L, "a")
+      symlink(target, "target", 1L, "afield")
      ,"`env` must be an environment"
     );
     expect_error(
-      symlink(target, 1L, link, "a")
+      symlink(target, 1L, link, "afield")
      ,"`tname` must be a symbol or single character vector"
     );
-    print(ls.str(parent));
-    print(ls.str(parent.env(target)));
     expect_error(
-      symlink(target, "a", link, "a")
+      symlink(target, "afield", link, "afield")
      ,"`tname` does not exist in the parent environment of `tenv`"
     );
     expect_error(
@@ -76,25 +74,31 @@ test_that("symlink",
      ,"`name` must be a symbol or single character vector"
     );
     expect_error(
-      symlink(target, "target", link, "b")
+      symlink(target, "target", link, "bfield")
      ,"`name` does not exist in `tenv`"
     );
-    assign("a", "a", envir = link);
+    assign("afield", "a", envir = link);
     expect_error(
-      symlink(target, "target", link, "a")
+      symlink(target, "target", link, "afield")
      ,"`name` already exists in `env`"
     );
-    rm(list = "a", envir = link)
+    rm(list = "afield", envir = link)
   })
 
   it("creates a reference to another environment",
   {
-    symlink(target, "target", link, "a");
-    expect_equal(link$a, target$a);
-    link$a <- 2L;
-    expect_equal(link$a, target$a);
+    parent <- new.env();
+    target <- new.env(parent = parent);
+    assign("target", target, envir = parent);
+    assign("cfield", 1L, envir = target);
+    link <- new.env();
+
+    symlink(target, "target", link, "cfield");
+    expect_equal(link$cfield, target$cfield);
+    link$cfield <- 2L;
+    expect_equal(link$cfield, target$cfield);
     expect_identical(
-      environment(activeBindingFunction("a", link))
+      environment(activeBindingFunction("cfield", link))
      ,parent.env(target)
     );
   })

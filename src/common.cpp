@@ -48,7 +48,7 @@ const SEXP* VECTOR_PTR_RO(SEXP x)
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 
 #if R_VERSION < R_Version(4, 2, 0)
-Rboolean R_existsVarInFrame(SEXP env, SEXP, name)
+Rboolean R_existsVarInFrame(SEXP env, SEXP name)
 {
   return Rf_findVarInFrame3(env, name, TRUE) != R_UnboundValue;
 }

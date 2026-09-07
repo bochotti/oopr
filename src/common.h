@@ -21,7 +21,7 @@ const SEXP* VECTOR_PTR_RO(SEXP x);
 #endif
 
 #if R_VERSION < R_Version(4, 2, 0)
-Rboolean R_existsVarInFrame(SEXP env, SEXP, name);
+Rboolean R_existsVarInFrame(SEXP env, SEXP name);
 #endif
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
