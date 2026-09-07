@@ -2,12 +2,12 @@
 #ifndef OOPR_MODELS_META_H
 #define OOPR_MODELS_META_H
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-#include "common.h"
+#include "../common.h"
 #include <vector>
 #include <string>
-#include "./util/psexp.h"
-#include "./util/symbols.h"
-#include "./models/robj.h"
+#include "../util/psexp.h"
+#include "../util/symbols.h"
+#include "../models/robj.h"
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Data model for the meta object
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

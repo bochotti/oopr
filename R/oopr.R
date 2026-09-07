@@ -42,6 +42,9 @@
 #'
 #' **DO NOT** use an assignment operator.
 #'
+#' @seealso
+#' `browseVignettes("oopr")`
+#'
 #' @examples
 #' ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' #  human as a class

@@ -10,8 +10,7 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment  = "#>",
-  error    = TRUE
+  comment  = "#>"
 )
 ```
 
@@ -28,7 +27,7 @@ This is designed to reduce bugs introduced from typos or changing code-bases,
 which aren't caught until creating instances. Many stops are employed to 
 maintain the assumptions of `oopr` classes.
 
-```{r}
+```{r, error = TRUE, purl = FALSE}
 oopr("Bad",,
 {
 public:
@@ -122,7 +121,7 @@ private:
 })
 ```
 
-```{r}
+```{r, error = TRUE, purl = FALSE}
 ConstructorExample()
 ```
 

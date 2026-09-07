@@ -20,14 +20,7 @@ OBJECTS.root	 = breakpoint.o \
 OBJECTS = $(OBJECTS.models) $(OBJECTS.util) $(OBJECTS.root)
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-CXX_STD = CXX14
-PKG_CPPFLAGS = -I.
-#PKG_CXXFLAGS = -fno-inline -fno-omit-frame-pointer
-#STRIP =
-
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 all: $(SHLIB)
 
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 clean:
 	rm -f $(OBJECTS) oopr.so

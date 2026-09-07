@@ -2,7 +2,7 @@
 #ifndef OOPR_SEXP_H
 #define OOPR_SEXP_H
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-#include "common.h"
+#include "../common.h"
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Inspired by cpp11 package implementation of using a doubly-linked list to
  * PROTECT R objects.

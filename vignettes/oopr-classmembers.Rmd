@@ -12,8 +12,7 @@ editor_options:
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment  = "#>",
-  error    = TRUE
+  comment  = "#>"
 )
 ```
 
@@ -84,7 +83,9 @@ public:
   MemberClass <- \(x) { this$x <- x; }
   x <- 1L; 
 })
+```
 
+```{r, error = TRUE, purl = FALSE}
 # not allowed, needs constructing
 oopr("ClassMemExample",,
 {

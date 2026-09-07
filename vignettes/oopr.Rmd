@@ -10,8 +10,7 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment  = "#>",
-  error    = TRUE
+  comment  = "#>"
 )
 ```
 
@@ -106,7 +105,7 @@ print(obj$x);
 This class has an issue: the `$incr()` method assumes `$x` is always an integer. 
 The user could accidentally break this assumption:
 
-```{r}
+```{r, error = TRUE, purl = FALSE}
 # whoops!
 obj$x <- "a";
 
@@ -134,7 +133,7 @@ being directly accessed by a user while still allowing the `$incr()` to access
 it. Users may need to access the count so a public getter method `$x()` is 
 introduced.
 
-```{r}
+```{r, error = TRUE, purl = FALSE}
 obj <- Counter();
 
 # can still access x
@@ -165,7 +164,7 @@ private:
 The `get:` specifier can be prepended to a zero-argument function to treat
 it as a property.
 
-```{r property2}
+```{r property2, error = TRUE, purl = FALSE}
 obj <- Counter();
 
 # x looks like a normal field

@@ -10,8 +10,7 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>",
-  error = TRUE
+  comment = "#>"
 )
 ```
 
@@ -45,6 +44,9 @@ oopr("InheritanceExample", Base1,
 public:
   speak <- \( ) { this$shout(); }
 })
+```
+
+```{r}
 obj <- InheritanceExample();
 obj$speak();
 ```
@@ -60,6 +62,9 @@ public:
     this$whisper(); 
   }
 })
+```
+
+```{r}
 obj <- InheritanceExample();
 obj$speak();
 ```
@@ -74,15 +79,20 @@ If `public:`, then the base S3 class is included in the derived instance S3
 class list.
 
 ```{r}
-# Inherits private by default
+# Inherits privately by default
 print(obj)
+```
 
+```{r}
 # Inherit as public
 oopr("InheritanceExample", public:Base1,
 {
 public:
   speak <- \( ) { this$shout(); }
 })
+```
+
+```{r}
 obj <- InheritanceExample();
 
 # Base public members are visible
@@ -162,7 +172,8 @@ public:
 })
 ```
 
-```{r}
+```{r, error = TRUE, purl = FALSE}
+# not allowed
 oopr("Derived", public:Base,
 {
 public:
@@ -189,7 +200,7 @@ public:
 })
 ```
 
-```{r}
+```{r, error = TRUE, purl = FALSE}
 # does not match arguments
 oopr("Derived", public:Base, 
 {
@@ -198,7 +209,7 @@ public:
 })
 ```
 
-```{r}
+```{r, error = TRUE, purl = FALSE}
 # does not have a default argument
 oopr("Derived", public:Base, 
 {
@@ -254,7 +265,9 @@ public:
   Base <- \(x) { this$x <- x; }
   x    <- integer(1L);
 })
+```
 
+```{r, error = TRUE, purl = FALSE}
 # unable to create the derived class
 oopr("Derived", Base, {})
 ```
@@ -269,7 +282,9 @@ oopr("Derived", public:Base,
 public:
   Derived <- \(x) { Base(x); }
 })
+```
 
+```{r}
 # success
 obj <- Derived(1L);
 print(obj);
@@ -277,7 +292,7 @@ print(obj);
 
 Note that base class members cannot be accessed until they are constructed:
 
-```{r}
+```{r, error = TRUE, purl = FALSE}
 # cannot access `x` before Base(...)
 oopr("Derived", public:Base,
 {
@@ -303,10 +318,14 @@ oopr("Base",,
 protected:
   Base <- \( ) { }
 })
+```
 
+```{r, error = TRUE, purl = FALSE}
 # not allowed
 Base();
+```
 
+```{r}
 # allowed
 oopr("Derived", Base, { })
 Derived();
