@@ -1,52 +1,54 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #include "enclosure.h"
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-SEXP interface(SEXP env, SEXP nme, SEXP nms, SEXP cls)
+SEXP interface(SEXP env, SEXP nme, SEXP nms, SEXP cls) try
 {
-  if(!Rf_isEnvironment(env)) Rf_error("`env` must be an environment");
-  if(Rf_isNull(nms))
-  {
-    nms = R_lsInternal3(env, TRUE, FALSE);
-  }
-  else if(!Rf_isString(nms))
-  {
-    Rf_error("`nms` must be a character vector");
-  }
-  if(Rf_isNull(cls))
-  {
-    cls = Rf_getAttrib(env, R_ClassSymbol);
-  }
-  else if(!Rf_isString(cls))
-  {
-    Rf_error("`cls` must be a character vector");
-  }
+  return interface(env, nme, nms, cls, true);
+}
+catchR
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+SEXP interface(SEXP env, SEXP nme, SEXP nms, SEXP cls, bool chk)
+{
+  if(!REnv<>::is(env)) stop("`env` must be an environment");
+  const REnv<SEXP> from(env);
 
-  const R_xlen_t len = Rf_xlength(nms);
-  pSEXP out = R_NewEnv(R_ParentEnv(env), 1, (int)len);
-  Rf_setAttrib(out, R_ClassSymbol, cls);
-
-  for(R_xlen_t i = 0; i < len; ++i)
+  if(!(Rf_isNull(nms) || RChr<>::is(nms)))
   {
-    SEXP mem, nm = STRING_ELT(nms, i), sym = Rf_installChar(nm);
-    if(R_BindingIsActive(sym, env))
+    stop("`nms` must be a character vector");
+  }
+  const RChr<PSEXP> names(Rf_isNull(nms) ? from.names() : RChr<PSEXP>(nms));
+
+  const R_xlen_t len = names.size();
+  REnv<PSEXP> out(from.parent(), true, len);
+
+  if(!(Rf_isNull(cls) || RChr<>::is(cls)))
+  {
+    stop("`cls` must be a character vector");
+  }
+  out.attr(R_ClassSymbol) = Rf_isNull(cls) ? *from.attr(R_ClassSymbol) : cls;
+
+  for(const RSym name : names)
+  {
+    const REnv<SEXP>::Bind fr(from[name]);
+    REnv<PSEXP>::Bind      to(out[name]);
+    if(fr.active())
     {
-      mem = R_ActiveBindingFunction(sym, env);
-      R_MakeActiveBinding(sym, mem, out);
+      to.fun = fr.fun;
     }
     else
     {
-      mem = R_getVarEx(sym, env, FALSE, R_NilValue);
-      if(Rf_isFunction(mem))
+      const RObj<SEXP, ALLSXP> mem(fr.get0());
+      if(mem.type() == CLOSXP)
       {
-        Rf_defineVar(sym, mem, out);
+        to = mem;
       }
       else
       {
-        symlinkR(env, nme, out, sym);
+        symlinkR(*from, nme, *out, *name, chk);
       }
     }
-    if(R_BindingIsLocked(sym, env)) R_LockBinding(sym, out);
+    if(fr.locked()) to.lock(true);
   }
-  if(R_EnvironmentIsLocked(env)) R_LockEnvironment(out, FALSE);
-  return out;
+  if(from.locked()) out.lock();
+  return *out;
 }

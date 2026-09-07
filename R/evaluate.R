@@ -247,9 +247,18 @@ evaluate_rhs <- \(env, expr, parent, err)
     environment(obj) <- eenv;
     env$this[[name]] <- obj;
     env$meta$push(names = name, method = TRUE);
-    env$spec$push(list("private"));
+    env$spec$push(list("public"));
     env$succ$push(TRUE);
-    env$src[[length(env$src) + 1L]] <- env$src[[1L]]
+    env$src[[length(env$src) + 1L]] <- env$src[[1L]];
+  }
+  else if(is.function(env$this[[name]]) && !iscall(body(env$this[[name]]), "{"))
+  {
+    obj <- env$this[[name]];
+    src <- attr(obj, "srcref", TRUE);
+    body(obj) <- call("{", body(obj));
+    attr(body(obj), "srcref") <- rep.int(list(src), 2L);
+    attr(obj, "srcref") <- src;
+    env$this[[name]]    <- obj;
   }
   return();
 }
@@ -260,13 +269,34 @@ evaluate_rhs <- \(env, expr, parent, err)
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 evaluate_src <- \(env, expr, err)
 {
-  for(i in env$along)
+  if(length(env$src)) for(i in env$along) if(env$meta$method$get(i))
   {
     name <- env$meta$names$get(i);
-    if(env$meta$method$get(i))
+    src  <- env$src[[i]];
+
+    # remove access specifier and any comments before method definition
+    chr  <- paste(as.character(src), collapse = "\n");
+    p    <- r"{(?x)
+      (?(DEFINE) (?'skip'(\#.*?\n)|[[:space:]]) )
+      ^(?&skip)*(public|protected|private)(?&skip)*:(?&skip)*
+    }";
+    m    <- regexpr(p, chr, perl = TRUE);
+    if(m == -1L)
     {
-      attr(env$this[[name]], "srcref") <- env$src[[i]];
+      attr(env$this[[name]], "srcref") <- src;
+      next;
     }
+
+    chr <- substr(chr, 1L, attr(m, "match.length"));
+    lbs <- charToRaw(chr) == as.raw(10L);
+
+    i      <- c(1L, if(length(src) == 8L) 7L);
+    src[i] <- src[i] + sum(lbs);
+    i      <- c(2L, if(length(src) >= 6L) 5L);
+    if(any(lbs)) { src[i] <- 0L; }
+    src[i] <- src[i] + length(lbs) - which.max(cumsum(lbs)) + 1L;
+
+    attr(env$this[[name]], "srcref") <- src;
   }
 
   wsrc <- attr(expr, "wholeSrcref", exact = TRUE);

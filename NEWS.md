@@ -1,4 +1,38 @@
-# oopr 999.999 (development version)
+# oopr 0.2.0 (2026-09-06)
+
+## Added
+
+* Constructor methods can now be used with any access specifier, allowing
+  for inherit-only classes and static-only classes.
+
+## Changed
+
+* `is.oopr` and `is.ooprC` now also validates the structure of their objects.
+
+* Instancing of classes now ~20% quicker.
+
+* Constructor methods are now forced to be braced, preventing errors when 
+  inheriting or having class members.
+
+* Access specifiers are now enforced to be listed first.
+
+* Generated constructor usage for roxygen documentation will now separate 
+  arguments over multiple lines if too wide.
+
+* R 4.1.x is no longer supported.
+
+## Fixed
+
+* Method source reference no longer covers the access specifier, and no longer
+  includes any comments in between.
+  
+* Documentation now uses `\command` instead of `\code` macro for escaping
+  roxygen markdown. Using `\if` inside `\code` macro had `R CMD CHECK` warning.
+
+* Constructors & destructors can no longer have non-access specifiers.
+
+* Constructors & destructors can no longer be referred to inside methods.
+
 
 # oopr 0.0.1 (2026-07-28)
 

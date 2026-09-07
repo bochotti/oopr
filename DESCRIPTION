@@ -1,11 +1,11 @@
 Package: oopr
 Title: Classes for Object Oriented Programming
-Version: 0.0.1
+Version: 0.2.0
 Authors@R: 
     person("Nathan", "Bachetti", , "nathanbachetti@gmail.com", role = c("aut", "cre"))
 Description: Create classes to implement object oriented programming principles
-    in R. Use specifiers to change the behaviour of class members. Classes are
-    check when defined to reduce run-time errors.
+    in R. Use specifiers to change the behaviour of class members. Class
+    creation is met with a series of checks to reduce run-time errors.
 License: GPL (>= 3)
 Encoding: UTF-8
 Suggests: 
@@ -20,7 +20,10 @@ Suggests:
 Imports:
     methods
 Depends:
-    R (>= 4.1.0)
+    R (>= 4.2.0)
+UseLTO: true
+NeedsCompilation: "yes"
+SystemRequirements: C++14
 Config/testthat/edition: 3
 RoxygenNote: 7.3.3
 Collate: 

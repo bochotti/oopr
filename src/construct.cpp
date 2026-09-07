@@ -1,5 +1,11 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #include "construct.h"
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+#define LIST(X)                                                \
+  X(thiz, "this")                                              \
+  X(intf, ".this")
+SYMBOLS(LIST, sym)
+#undef  LIST
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * A class with methods to create an instance of an oopr class.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -8,40 +14,26 @@ class OoprInstance
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 public:
   OoprInstance(SEXP gen, SEXP name, SEXP frames)
-    : gen(gen)
+    : calr(getCalr(frames))
+    , envr(CAR(Rf_lastElt(frames)))
     , name(name)
-    , meta(Rf_getAttrib(gen, sym["meta"]))
-    , inhr(Rf_getAttrib(gen, sym["inhr"]))
-    , encl(Rf_getAttrib(gen, sym["encl"]))
-  {
-    const R_xlen_t len = Rf_xlength(frames);
-    if(len > 3)
-    {
-      // find out if this class is being initialized as a base class
-      for(R_xlen_t i = 0; i < (len - 3); ++i, frames = CDR(frames)) { }
-      calr = CAR(frames);
-      if(Rf_isEnvironment(calr))
-      {
-        calr   = R_ParentEnv(calr);
-        isInhr = is_ooprC(R_getVarEx(name, calr, FALSE, R_NilValue), name);
-      }
-    }
-    while(CDR(frames) != R_NilValue) { frames = CDR(frames); }
-    envr = CAR(frames);
-  }
+    , isInhr(OoprC::is(calr[this->name].get0()))
+    , ooprC(gen, !isInhr)
+    , meta(ooprC.meta)
+    , inst(ooprC.encl.parent(), true, 2 + ooprC.inhr.size())
+    , thiz(inst, true, meta.size())
+  { }
 
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  SEXP     gen;    // ooprC
-  SEXP     name;   // SYMSXP
-  OoprMeta meta;
-  SEXP     inhr;   // STRSXP
-  SEXP     encl;   // ENVSXP
-  SEXP     calr;   // ENVSXP
-  SEXP     envr;   // ENVSXP
-  bool     isInhr = false;
-  pSEXP    inst;
-  pSEXP    thiz;
-  pSEXP    intf;
+  const REnv<SEXP> calr;  // caller environment
+  REnv<SEXP>       envr;  // ooprC@.Data() environment
+  const RSym       name;
+  bool             isInhr{false};
+  const OoprC      ooprC;
+  const OoprMeta&  meta;
+  REnv<PSEXP>      inst; // new instance enclosure
+  REnv<PSEXP>      thiz; // new instance this
+  REnv<PSEXP>      intf; // new instance .this
 
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
    * Creates environment that holds `this` and base classes. Base classes
@@ -50,15 +42,8 @@ public:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
   void makeEnclosure()
   {
-    const R_xlen_t len = Rf_xlength(inhr);
-    inst = R_NewEnv(R_ParentEnv(encl), 1, 2 + len);
-    // assign the inherited constructors
-    for(int i = 0; i < len; ++i)
-    {
-      SEXP nm = Rf_installChar(STRING_ELT(inhr, i));
-      Rf_defineVar(nm, R_getVar(nm, encl, FALSE), inst);
-    }
-    Rf_defineVar(sym[".this"], R_NilValue, inst);
+    for(const RSym nm : ooprC.inhr) { inst[nm] = ooprC.encl[nm].get0(); }
+    inst[sym.intf] = R_NilValue;
   }
 
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
@@ -70,50 +55,60 @@ public:
   void makeThis()
   {
     const R_xlen_t len = meta.size();
-    thiz = R_NewEnv(inst, 1, len);
-    SEXP from = R_getVar(sym["this"], encl, FALSE);
-
+    const REnv<SEXP> from(ooprC.oopr.thiz);
     for(R_xlen_t i = 0; i < len; ++i)
     {
-      SEXP nm = meta.name(i);
+      const RSym nm = meta.name(i);
+      if(nm == name && !meta.isAccess(i, "public"))
+      {
+        if(meta.isAccess(i, "private"))
+        {
+          stop("%s constructor is private", nm.c_str());
+        }
+        if(!isInhr)
+        {
+          stop("%s constructor is protected", nm.c_str());
+        }
+      }
+      const REnv<SEXP>::Bind fr(from[nm]);
+      REnv<PSEXP>::Bind      to(thiz[nm]);
       // if virtual, look forward to the caller and take its method
       if(isInhr && meta.isVirtual(i))
       {
-        SEXP from = R_getVar(sym["this"], calr, FALSE);
+        const REnv<SEXP> from(calr[sym.thiz].get0());
+        const REnv<SEXP>::Bind fr(from[nm]);
         // if not an active binding in the caller then the caller
         // has defined the method and has not inherited it.
-        if(R_existsVarInFrame(from, nm) && !R_BindingIsActive(nm, from))
+        if(fr.exists() && !fr.active())
         {
-          Rf_defineVar(nm, R_getVar(nm, from, FALSE), thiz);
+          to = fr.get0();
           continue;
         }
       }
       // inherited members use symlink as their instances not yet initialized
       if(meta.isInherit(i))
       {
-        symlinkR(thiz, meta.inherit(i), thiz, nm, false);
+        symlinkR(*thiz, *meta.inherit(i), *thiz, *nm, false);
       }
       else if(meta.isMethod(i))
       {
-        SEXP fun = R_getVar(nm, from, FALSE);
-        Rf_defineVar(nm, dupeFun(fun, meta.isStatic(i)), thiz);
-        R_LockBinding(nm, thiz);
+        to = dupeFun(*fr.get0(), meta.isStatic(i));
+        to.lock(true);
       }
       else if(meta.isProperty(i))
       {
-        SEXP fun = R_ActiveBindingFunction(nm, from);
-        R_MakeActiveBinding(nm, dupeFun(fun, meta.isStatic(i)), thiz);
+        to.fun = dupeFun(*fr.fun, meta.isStatic(i));
       }
       else if(meta.isStatic(i))
       {
-        symlinkR(from, sym["this"], thiz, nm);
+        symlinkR(*from, *sym.thiz, *thiz, *nm, false);
       }
       else
       {
-        Rf_defineVar(nm, R_getVar(nm, from, FALSE), thiz);
+        to = fr.get0();
       }
     }
-    Rf_defineVar(sym["this"], thiz, inst);
+    inst[sym.thiz] = thiz;
   }
 
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
@@ -122,19 +117,26 @@ public:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
   void callConstructor()
   {
-    SEXP fun  = R_getVar(name, thiz, FALSE);
-    SEXP args = R_ClosureFormals(fun);
-
-    pSEXP expr = Rf_allocVector(LANGSXP, Rf_length(args) + 1);
-    SETCAR(expr, name);
-    for(SEXP e = CDR(expr); e != R_NilValue; e = CDR(e), args = CDR(args))
+    REnv<PSEXP>::Bind bind = thiz[name];
+    SEXP fun               = *bind.get0();
+    SEXP body              = R_ClosureExpr(fun);
+    const bool run         = (Rf_xlength(body) > 1);
+    PSEXP expr;
+    if(run)
     {
-      SETCAR(e, TAG(args));
+      SEXP args = R_ClosureFormals(fun);
+      expr = Rf_allocVector(LANGSXP, Rf_length(args) + 1);
+      SETCAR(expr, *name);
+      for(SEXP e = CDR(expr); e != R_NilValue; e = CDR(e), args = CDR(args))
+      {
+        SETCAR(e, TAG(args));
+      }
+      envr[name] = fun;
     }
-
-    Rf_defineVar(name, fun, envr);
-    R_removeVarFromFrame(name, thiz);
-    RUnWind::eval(expr, envr);
+    if(run)
+    {
+      RUnWind::eval(expr, *envr);
+    }
   }
 
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
@@ -148,30 +150,34 @@ public:
     for(R_xlen_t i = 0; i < len; ++i)
     {
       if(!meta.isInherit(i) || (isInhr && meta.isVirtual(i))) continue;
-      SEXP nm   = meta.name(i);
-      SEXP inhr = R_getVar(meta.inherit(i), inst, FALSE);
+      const RSym         nm(meta.name(i));
+      const REnv<SEXP>   inhr(inst[meta.inherit(i)]);
+
+      const REnv<SEXP>::Bind fr(inhr[nm]);
+      REnv<PSEXP>::Bind      to(thiz[nm]);
+
       if(meta.isMethod(i))
       {
-        R_unLockBinding(nm, thiz);
-        R_removeVarFromFrame(nm, thiz);
-        Rf_defineVar(nm, R_getVar(nm, inhr, FALSE), thiz);
-        R_LockBinding(nm, thiz);
+        to.lock(false);
+        to.remove();
+        to = fr.get0();
+        to.lock(true);
       }
-      else if(meta.isProperty(i))
+      else if(meta.isProperty(i) || fr.active())
       {
-        R_removeVarFromFrame(nm, thiz);
-        R_MakeActiveBinding(nm, R_ActiveBindingFunction(nm, inhr), thiz);
+        to.remove();
+        to.fun = fr.fun;
       }
       else
       {
-        R_removeVarFromFrame(nm, thiz);
-        if(R_BindingIsActive(nm, inhr))
+        to.remove();
+        if(fr.active())
         {
-          R_MakeActiveBinding(nm, R_ActiveBindingFunction(nm, inhr), thiz);
+          to.fun = fr.fun;
         }
         else
         {
-          symlinkR(inhr, sym["this"], thiz, nm);
+          symlinkR(*inhr, *sym.thiz, *thiz, *nm, false);
         }
       }
     }
@@ -182,14 +188,16 @@ public:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
   void registerDestructor()
   {
-    std::string name(Rf_translateChar(PRINTNAME(this->name)));
+    std::string name{this->name.c_str()};
     name.insert(0, 1, '~');
-    SEXP sym = Rf_install(name.c_str());
+    RSym nm = name.c_str();
 
-    if(R_existsVarInFrame(thiz, sym))
+    REnv<PSEXP>::Bind bind = thiz[nm];
+    if(bind.exists())
     {
-      R_RegisterFinalizer(thiz, R_getVar(sym, thiz, FALSE));
-      R_removeVarFromFrame(sym, thiz);
+      R_RegisterFinalizer(*thiz, *bind.get0());
+      bind.lock(false);
+      bind.remove();
     }
   }
 
@@ -199,100 +207,87 @@ public:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
   void makeInterface()
   {
-    pSEXP names;
-    if(isInhr)
-    {
-      names = meta.subName("private", true);
-    }
-    else
-    {
-      names = meta.subName("public");
-    }
-
-    SEXP dthiz = sym[".this"];
-    SEXP clazz = Rf_getAttrib(R_getVar(dthiz, encl, FALSE), R_ClassSymbol);
-    intf = interface(thiz, sym["this"], names, clazz);
+    const RChr<PSEXP> names(
+      meta.subName(isInhr ? "private" : "public", isInhr)
+    );
+    const RChr<SEXP> clazz(ooprC.oopr.cls());
+    intf = interface(*thiz, *sym.thiz, *names, *clazz, false);
 
     // interface can have the actual implementation if override via virtual
     if(isInhr)
     {
-      SEXP thiz = R_getVar(sym["this"], encl, FALSE);
+      const REnv<SEXP> thiz(ooprC.oopr.thiz);
       const R_xlen_t len = meta.size();
       for(R_xlen_t i = 0; i < len; ++i)
       {
         if(!meta.isVirtual(i)) continue;
-        SEXP  nm = meta.name(i);
-        pSEXP fun;
-        if(meta.isInherit(i))
-        {
-          SEXP inhr = R_getVar(meta.inherit(i), inst, FALSE);
-          fun = R_getVar(nm, inhr, FALSE);
-        }
-        else
-        {
-          fun = dupeFun(R_getVar(nm, thiz, FALSE), false);
-        }
-        R_unLockBinding(nm, intf);
-        R_removeVarFromFrame(nm, intf);
-        Rf_defineVar(nm, fun, intf);
-        R_LockBinding(nm, intf);
+        const RSym nm = meta.name(i);
+        const PSEXP fun(
+          meta.isInherit(i) ? *REnv<SEXP>(inst[meta.inherit(i)])[nm].get0()
+                            : dupeFun(*thiz[nm].get0(), false)
+        );
+        REnv<PSEXP>::Bind to(intf[nm]);
+        to.lock(false);
+        to.remove();
+        to = fun;
+        to.lock(true);
       }
     }
-
-    Rf_defineVar(dthiz, intf, inst);
+    inst[sym.intf] = intf;
   }
 
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-   * Locks bindings and paragraphs.
+   * Locks environments and enclosures bindings.
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
   void lock()
   {
-    const R_xlen_t len = Rf_xlength(inhr);
-    for(R_xlen_t i = 0; i < len; ++i)
+    for(REnv<PSEXP>* env : { &intf, &thiz })
     {
-      SEXP sym = Rf_installChar(STRING_ELT(inhr, i));
-      R_LockEnvironment(R_getVar(sym, inst, FALSE), FALSE);
+      REnv<PSEXP>::Bind bind((*env)[name]);
+      if(bind.exists())
+      {
+        bind.lock(false);
+        bind.remove();
+      }
+      env->lock();
     }
-    R_LockEnvironment(intf, FALSE);
-    R_LockEnvironment(thiz, FALSE);
-    R_LockEnvironment(inst, TRUE);
+    inst.lock(true);
   }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 private:
-  static inline Symbols sym{
-    "name", "meta", "inhr", "encl", "this", ".this", "base", "::", "sys.call"
-  };
+  REnv<SEXP> getCalr(SEXP frames) const
+  {
+    SEXP up = Rf_elt(frames, Rf_xlength(frames) - 3);
+    return REnv<>::is(up) ? R_ParentEnv(up) : R_EmptyEnv;
+  }
   SEXP dupeFun(SEXP fun, bool keep_env)
   {
-    SEXP env = keep_env ? R_ClosureEnv(fun) : (SEXP)inst;
-    pSEXP out = R_mkClosure(R_ClosureFormals(fun), R_ClosureExpr(fun), env);
+    const REnv<SEXP> env(keep_env ? R_ClosureEnv(fun) : inst.sexp());
+    PSEXP out = R_mkClosure(R_ClosureFormals(fun), R_ClosureExpr(fun), *env);
     DUPLICATE_ATTRIB(out, fun);
     return out;
   }
-};
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-SEXP oopr_make(SEXP gen, SEXP name, SEXP frames)
+}; // OoprInstance
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+SEXP oopr_make(SEXP gen, SEXP name, SEXP frames) try
 {
-  if(!(is_ooprC(gen, name) && Rf_isPairList(frames)))
+  if(!(Rf_inherits(gen, "ooprC") && RSym::is(name) && Rf_isPairList(frames)))
   {
-    Rf_error("ooprC not called correctly");
+    stop("ooprC not called correctly");
   }
-  try
-  {
-    OoprInstance obj = OoprInstance(gen, name, frames);
-    obj.makeEnclosure();
-    obj.makeThis();
-    obj.callConstructor();
-    obj.replaceInheritedMembers();
-    obj.registerDestructor();
-    obj.makeInterface();
-    obj.lock();
-    return obj.intf;
-  }
-  catch(const RUnWind::exception& e)
-  {
-  }
-  return R_NilValue;
+  OoprInstance obj(gen, name, frames);
+  obj.makeEnclosure();
+  obj.makeThis();
+  obj.callConstructor();
+  obj.replaceInheritedMembers();
+  obj.registerDestructor();
+  obj.makeInterface();
+  obj.lock();
+  return *obj.intf;
 }
+catchR

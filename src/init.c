@@ -20,6 +20,9 @@ extern SEXP symlinkR        (SEXP, SEXP, SEXP, SEXP);
 extern SEXP oopr_cont_init  (SEXP, SEXP);
 extern SEXP find_instances  (SEXP, SEXP, SEXP);
 extern SEXP eval_context    (SEXP, SEXP, SEXP);
+extern SEXP isooprC         (SEXP, SEXP);
+extern SEXP isoopr          (SEXP, SEXP);
+extern SEXP get_PSEXPs      ( );
 
 static const R_CallMethodDef CallEntries[] = {
     {"find_member_refs", (DL_FUNC) &find_member_refs, 1},
@@ -34,10 +37,13 @@ static const R_CallMethodDef CallEntries[] = {
     {"oopr_cont_init",   (DL_FUNC) &oopr_cont_init,   3},
     {"find_instances",   (DL_FUNC) &find_instances,   3},
     {"eval_context",     (DL_FUNC) &eval_context,     3},
+    {"isooprC",          (DL_FUNC) &isooprC,          2},
+    {"isoopr",           (DL_FUNC) &isoopr,           2},
+    {"get_PSEXPs",       (DL_FUNC) &get_PSEXPs,       0},
     {NULL, NULL, 0}
 };
 
-void R_init_oopr(DllInfo *dll)
+void R_init_oopr(DllInfo* dll)
 {
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
     R_useDynamicSymbols(dll, FALSE);

@@ -3,8 +3,10 @@ title: "Class Members"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Class Members}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r, include = FALSE}
@@ -48,15 +50,15 @@ uses `OoprVec()` and `[[]]` uses `OoprMap()`.
 ```{r}
 oopr("ClassMemExample",,
 {
-ClassMemExample <- \( )
-{
-  for(i in 1:3)
-  {
-    this$mem$emplace();
-    this$mem[i]$x <- i;
-  }
-}
 public:
+  ClassMemExample <- \( )
+  {
+    for(i in 1:3)
+    {
+      this$mem$emplace();
+      this$mem[i]$x <- i;
+    }
+  }
   mem <- MemberClass[]; # <- use of []
 })
 ```
@@ -78,8 +80,9 @@ If the member is specified as `static:`, then 2. is the only option.
 ```{r}
 oopr("MemberClass",, 
 { 
-MemberClass <- \(x) { this$x <- x; }
-public:x    <- 1L; 
+public:
+  MemberClass <- \(x) { this$x <- x; }
+  x <- 1L; 
 })
 
 # not allowed, needs constructing
@@ -94,11 +97,11 @@ public:
 # both approaches
 oopr("ClassMemExample",,
 {
-ClassMemExample <- \( )
-{
-  this$mem1(1L);           # <- args given in constructor
-}
 public:
+  ClassMemExample <- \( )
+  {
+    this$mem1(1L);         # <- args given in constructor
+  }
   mem1 <- MemberClass;
   mem2 <- MemberClass(2L); # <- args given in-line
 })

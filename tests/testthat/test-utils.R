@@ -35,10 +35,10 @@ test_that("iscall",
 
   it("can do packages",
   {
-    expect_false(iscall(quote(a::b())), "b");
-    expect_false(iscall(quote(a::b())), "b", "b");
-    expect_true(iscall(quote(a::b()), "b", "a"));
-    expect_true(iscall(quote(a:::b()), "b", "a"));
+    expect_false(iscall(str2lang("a::b()")), "b");
+    expect_false(iscall(str2lang("a::b()")), "b", "b");
+    expect_true(iscall(str2lang("a::b()"), "b", "a"));
+    expect_true(iscall(str2lang("a::b()"), "b", "a"));
   })
 })
 
@@ -47,8 +47,8 @@ test_that("symlink",
 {
   parent <- new.env();
   target <- new.env(parent = parent);
-  parent$target <- target;
-  target$a <- 1L;
+  assign("target", target, envir = parent);
+  assign("a", 1L, envir = target);
   link <- new.env();
 
   it("asserts",
@@ -77,12 +77,12 @@ test_that("symlink",
       symlink(target, "target", link, "b")
      ,"`name` does not exist in `tenv`"
     );
-    link$a <- "a"
+    assign("a", "a", envir = link);
     expect_error(
       symlink(target, "target", link, "a")
      ,"`name` already exists in `env`"
     );
-    rm(a, envir = link)
+    rm(list = "a", envir = link)
   })
 
   it("creates a reference to another environment",

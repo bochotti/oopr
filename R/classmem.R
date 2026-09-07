@@ -115,9 +115,12 @@ references_classmem <- \(i, name, refs, meta, access, encl, this, env, err)
     {
       oopr <- classmem_get_ooprC(class, meta, this, contain, ref$slct, env);
       if(!is.ooprC(oopr)) next;
+      ccls  <- oopr@name;
       cmeta <- oopr@meta;
       cthis <- oopr@encl$this;
-      references_method(i, name, ref, cmeta, "public", class, cthis, env, err);
+      references_method(
+        i, name, ccls, ref, cmeta, "public", class, cthis, env, err
+      );
     }
   }
   return();

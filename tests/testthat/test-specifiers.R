@@ -27,6 +27,14 @@ test_that("specifiers_access",
     );
   })
 
+  it("forces to be listed first",
+  {
+    expect_error(
+      oopr("test",, { static:private:a <- 1L; })
+     ,class = "ooprAccessSpecifierNotFirst"
+    );
+  })
+
   it("will use the last specifier if not provided",
   {
     oopr("test",, { public:a <- 1L; b <- 2L; })
@@ -38,7 +46,23 @@ test_that("specifiers_access",
   it("will default to private",
   {
     oopr("test",, { a <- 1L; })
-    expect_equal(test@meta$access$get(2L), "private");
+    expect_equal(test@meta$access$get(1L), "private");
+  })
+})
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("specifiers_special",
+{
+  it("Does not allow non-access specifiers",
+  {
+    expect_error(
+      oopr("test",, { static:test <- \( ) { }})
+     ,class = "ooprNonAccessSpecifierSpecial"
+    );
+    expect_error(
+      oopr("test",, { static:~test <- \( ) { }})
+     ,class = "ooprNonAccessSpecifierSpecial"
+    );
   })
 })
 

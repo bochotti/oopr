@@ -6,6 +6,7 @@
 class ExprWalker
 {
 public:
+  virtual ~ExprWalker() = default;
   virtual SEXP toList() = 0;
 protected:
   std::vector<int>  paths;
@@ -16,13 +17,16 @@ protected:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
   SEXP getSrcRef()
   {
-    SEXP srcref           = Rf_install("srcref");
-    const std::size_t len = paths.size();
-    for(std::size_t i = len; i > 0; --i)
+    static RSym srcref("srcref");
+    const R_xlen_t len = paths.size();
+    for(R_xlen_t i = (len - 1); i > 0; --i)
     {
-      SEXP src = Rf_getAttrib(parents[i - 1], srcref);
-      const R_xlen_t j = (R_xlen_t)paths[i - 1] - 1;
-      if(src != R_NilValue && j < Rf_xlength(src)) return VECTOR_ELT(src, j);
+      const RObj<SEXP> parent = parents[i];
+      const RObj<SEXP> src    = parent.attr(srcref);
+      if(*src == R_NilValue) { continue; }
+      const R_xlen_t j = paths[i] - 1;
+      const RList<SEXP> src2 = src;
+      if(j < src2.size()) return *src2[j];
     }
     return R_NilValue;
   }
@@ -46,38 +50,43 @@ SEXP recurseExpr(SEXP expr, Args... args)
     T out(expr, args...);
     return out.toList();
   }
-  default:      break;
+  case ENVSXP:
+  case VECSXP: break;
+  default:     return R_NilValue;
   }
-  if(!(type == ENVSXP || type == VECSXP)) return R_NilValue;
 
   const R_xlen_t len = Rf_xlength(expr);
-  pSEXP out = Rf_allocVector(VECSXP, len);
-  SEXP names, x;
+  RList<PSEXP> out(len);
   switch(type)
   {
   case ENVSXP:
   {
-    names = R_lsInternal3(expr, TRUE, FALSE);
+    REnv<SEXP> obj(expr);
+    RChr<PSEXP> names = obj.names();
     for(R_xlen_t i = 0; i < len; ++i)
     {
-      x = R_getVar(Rf_installChar(STRING_ELT(names, i)), expr, FALSE);
-      SET_VECTOR_ELT(out, i, recurseExpr<T>(x, args...));
+      const RStr<SEXP> name(names[i]);
+      out[i] = recurseExpr<T>(*obj[name], args...);
     }
+    out.attr(R_NamesSymbol) = names;
     break;
   }
   case VECSXP:
-    names = Rf_getAttrib(expr, R_NamesSymbol);
+  {
+    RList<SEXP> obj(expr);
+    RChr<SEXP> names = obj.names();
     for(R_xlen_t i = 0; i < len; ++i)
     {
-      x = VECTOR_ELT(expr, i);
-      SET_VECTOR_ELT(out, i, recurseExpr<T>(x, args...));
+      const RStr<SEXP> name(names[i]);
+      out[i] = recurseExpr<T>(*obj[name], args...);
     }
+    out.attr(R_NamesSymbol) = names;
     break;
+  }
   default:
     break;
   }
-  Rf_setAttrib(out, R_NamesSymbol, names);
-  return out;
+  return *out;
 }
 
 
@@ -102,60 +111,42 @@ public:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   SEXP toList() override
   {
-    R_xlen_t n = (R_xlen_t)matches.size();
+    const R_xlen_t n = (R_xlen_t)matches.size();
 
-    pSEXP at   = Rf_allocVector(VECSXP, n);
-    pSEXP type = Rf_allocVector(STRSXP, n);
-    pSEXP oper = Rf_allocVector(STRSXP, n);
-    pSEXP encl = Rf_allocVector(STRSXP, n);
-    pSEXP memb = Rf_allocVector(STRSXP, n);
-    pSEXP expr = Rf_allocVector(VECSXP, n);
-    pSEXP src  = Rf_allocVector(VECSXP, n);
-
+    RList<PSEXP> at(n);
+    RChr <PSEXP> type(n);
+    RChr <PSEXP> oper(n);
+    RChr <PSEXP> encl(n);
+    RChr <PSEXP> memb(n);
+    RList<PSEXP> expr(n);
+    RList<PSEXP> src(n);
     for(R_xlen_t i = 0; i < n; ++i)
     {
-      const Match& m = matches[(std::size_t)i];
-
-      pSEXP iv = Rf_allocVector(INTSXP, (R_xlen_t)m.at.size());
-      for(R_xlen_t j = 0; j < (R_xlen_t)m.at.size(); ++j)
-      {
-        INTEGER(iv)[j] = m.at[(std::size_t)j];
-      }
-      SET_VECTOR_ELT(at,   i, iv);
-      SET_STRING_ELT(type, i, Rf_mkChar(m.type.c_str()));
-      SET_STRING_ELT(oper, i, Rf_asChar(m.oper));
-      SET_STRING_ELT(encl, i, Rf_asChar(m.encl));
-      SET_STRING_ELT(memb, i, Rf_asChar(m.memb));
-      SET_VECTOR_ELT(expr, i, m.expr);
-      SET_VECTOR_ELT(src,  i, m.src);
+      const Match& m = matches[static_cast<std::size_t>(i)];
+      at[i]   = RInt<SEXP>(m.at);
+      type[i] = m.type.c_str();
+      oper[i] = Rf_asChar(m.oper);
+      encl[i] = Rf_asChar(m.encl);
+      memb[i] = Rf_asChar(m.memb);
+      expr[i] = m.expr;
+      src[i]  = m.src;
     }
-
-    pSEXP out = Rf_allocVector(VECSXP, 7);
-    SET_VECTOR_ELT(out, 0, at);
-    SET_VECTOR_ELT(out, 1, type);
-    SET_VECTOR_ELT(out, 2, oper);
-    SET_VECTOR_ELT(out, 3, encl);
-    SET_VECTOR_ELT(out, 4, memb);
-    SET_VECTOR_ELT(out, 5, expr);
-    SET_VECTOR_ELT(out, 6, src);
-
-    pSEXP names = Rf_allocVector(STRSXP, 7);
-    SET_STRING_ELT(names, 0, Rf_mkChar("at"));
-    SET_STRING_ELT(names, 1, Rf_mkChar("type"));
-    SET_STRING_ELT(names, 2, Rf_mkChar("oper"));
-    SET_STRING_ELT(names, 3, Rf_mkChar("encl"));
-    SET_STRING_ELT(names, 4, Rf_mkChar("memb"));
-    SET_STRING_ELT(names, 5, Rf_mkChar("expr"));
-    SET_STRING_ELT(names, 6, Rf_mkChar("src"));
-    Rf_setAttrib(out, R_NamesSymbol, names);
-
-    return out;
+    RList<PSEXP> out{
+      {"at",   *at}
+     ,{"type", *type}
+     ,{"oper", *oper}
+     ,{"encl", *encl}
+     ,{"memb", *memb}
+     ,{"expr", *expr}
+     ,{"src",  *src}
+    };
+    return *out;
   }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 private:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  static inline Symbols sym{"$", "[[", "<-", "<<-", "=", "(", "{", "["};
+  static const Symbols sym;
   struct Match
   {
     std::vector<int> at;
@@ -226,7 +217,7 @@ private:
 
     // brackets can vary, but I do not want to consider symbols
     SEXP rhs  = CADDR(e);
-    return sym.is(oper, "[[") && !Rf_isSymbol(rhs) && Rf_xlength(rhs) == 1;
+    return sym.is(oper, "[[") && Rf_isString(rhs) && Rf_xlength(rhs) == 1;
   }
 
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
@@ -304,16 +295,18 @@ private:
     return false;
   }
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-};
+}; // MemberReferences
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+const Symbols MemberReferences::sym{"$", "[[", "<-", "<<-", "=", "(", "{", "["};
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Access point to the above class.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-SEXP find_member_refs(SEXP expr)
+SEXP find_member_refs(SEXP expr) try
 {
   return recurseExpr<MemberReferences>(expr);
 }
-
+catchR
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
@@ -332,7 +325,7 @@ public:
       env = R_ClosureEnv(x);
       x   = R_ClosureExpr(x);
     }
-    if(!Rf_isEnvironment(env)) Rf_error("`env` must be an environment");
+    if(!Rf_isEnvironment(env)) stop("`env` must be an environment");
     env_ = env;
     walk(x);
   }
@@ -340,34 +333,28 @@ public:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   SEXP toList() override
   {
-    const R_xlen_t len = (R_xlen_t)missings.size();
-    pSEXP var = Rf_allocVector(STRSXP, len);
-    pSEXP src = Rf_allocVector(VECSXP, len);
+    const R_xlen_t len = missings.size();
+    RChr <PSEXP> var(len);
+    RList<PSEXP> src(len);
     for(R_xlen_t i = 0; i < len; ++i)
     {
-      Missing& m = missings[i];
-      SET_STRING_ELT(var, i, Rf_asChar(m.var));
-      SET_VECTOR_ELT(src, i, m.src);
+      const Missing& m = missings[i];
+      var[i] = Rf_asChar(m.var);
+      src[i] = m.src;
     }
-    pSEXP out = Rf_allocVector(VECSXP, 2);
-    SET_VECTOR_ELT(out, 0, var);
-    SET_VECTOR_ELT(out, 1, src);
-    pSEXP nms = Rf_allocVector(STRSXP, 2);
-    SET_STRING_ELT(nms, 0, Rf_mkChar("var"));
-    SET_STRING_ELT(nms, 1, Rf_mkChar("src"));
-    Rf_setAttrib(out, R_NamesSymbol, nms);
-    return out;
+    RList<PSEXP> out{ {"var", *var}, {"src", *src} };
+    return *out;
   }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 private:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  static inline Symbols assign{"<-", "=", "<<-"};
-  static inline Symbols subset{"$", "[[", "[", "@"};
-  static inline Symbols loop{"for"};
-  static inline Symbols fun{"function"};
-  static inline Symbols pkg{"::", ":::"};
-  static inline Symbols quo{"quote", "substitute", "bquote", "with", "within"};
+  static const Symbols assign;
+  static const Symbols subset;
+  static const Symbols loop;
+  static const Symbols fun;
+  static const Symbols pkg;
+  static const Symbols quo;
   SEXP env_;
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   std::vector<SEXP> locals;
@@ -436,7 +423,7 @@ private:
       }
       else if(pkg.is(CAR(e)))
       {
-        pSEXP expr = Rf_lang2(quo.get("quote"), CADR(e));
+        PSEXP expr = Rf_lang2(quo.get("quote"), CADR(e));
         expr = Rf_lang2(Rf_install("getNamespace"), expr);
         int err;
         R_tryEval(expr, R_GlobalEnv, &err);
@@ -497,57 +484,64 @@ private:
   }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-};
+}; // ExprUsage
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+const Symbols ExprUsage::assign{"<-", "=", "<<-"};
+const Symbols ExprUsage::subset{"$", "[[", "[", "@"};
+const Symbols ExprUsage::loop{"for"};
+const Symbols ExprUsage::fun{"function"};
+const Symbols ExprUsage::pkg{"::", ":::"};
+const Symbols ExprUsage::quo{"quote", "substitute", "bquote", "with", "within"};
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Access point to the above class.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-SEXP get_missing_vars(SEXP expr, SEXP env)
+SEXP get_missing_vars(SEXP expr, SEXP env) try
 {
   return recurseExpr<ExprUsage>(expr, env);
 }
-
+catchR
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Find source reference from a path.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-SEXP find_src_ref(SEXP at, SEXP expr)
+SEXP find_src_ref(SEXP at, SEXP expr) try
 {
-  if(!Rf_isInteger(at)) Rf_error("`at` must be an integer");
+  if(!Rf_isInteger(at)) stop("`at` must be an integer");
   switch(TYPEOF(expr))
   {
   case CLOSXP:  expr = R_ClosureExpr(expr);
   case LANGSXP: break;
-  default:      Rf_error("`expr` must be a call object");
+  default:      stop("`expr` must be a call object");
   }
 
   const R_xlen_t len = Rf_xlength(at);
-  std::vector<int> path(len);
-  for(R_xlen_t i = 0; i < len; ++i)
-  {
-    path[i] = INTEGER_ELT(at, i);
-  }
+  const RInt<SEXP> path(at);
 
   // collect each expr within the path
-  std::vector<SEXP> parents(len);
+  RList<PSEXP> parents(len);
   for(R_xlen_t i = 0; i < len; ++i)
   {
     parents[i] = expr;
     for(int j = 1; j < path[i]; expr = CDR(expr), ++j)
     {
-      if(expr == R_NilValue) Rf_error("`at` is out of bounds");
+      if(expr == R_NilValue) stop("`at` is out of bounds");
     }
     expr = CAR(expr);
   }
 
   // find the srcref, which is an attribute of the immediate parent
   SEXP srcref = Rf_install("srcref");
-  for(std::size_t i = len; i > 0; --i)
+  for(R_xlen_t i = (len - 1); i >= 0; --i)
   {
-    SEXP src = Rf_getAttrib(parents[i - 1], srcref);
-    const R_xlen_t j = (R_xlen_t)path[i - 1] - 1;
-    if(src != R_NilValue && j < Rf_xlength(src)) return VECTOR_ELT(src, j);
+    const RObj<SEXP, ALLSXP> parent = parents[i];
+    const RObj<SEXP, ALLSXP> src    = parent.attr(srcref);
+    if(*src == R_NilValue) continue;
+    const R_xlen_t j = path[i] - 1;
+    const RList<SEXP> src2 = src;
+    if(j < src2.size()) return *src2[j];
   }
   return R_NilValue;
 }
+catchR

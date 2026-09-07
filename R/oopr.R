@@ -49,19 +49,19 @@
 #' oopr("Human",,
 #' {
 #' ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-#' Human <- \(first, last, age)
-#' {
-#'   stopifnot(
-#'     this$isScalar("character", first)
-#'    ,this$isScalar("character", last)
-#'    ,this$isScalar("integer"  , age)
-#'   );
-#'   this$first_ <- first;
-#'   this$last_  <- last;
-#'   this$age_   <- age;
-#' }
-#' ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' public:
+#'   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#'   Human <- \(first, last, age)
+#'   {
+#'     stopifnot(
+#'       this$isScalar("character", first)
+#'      ,this$isScalar("character", last)
+#'      ,this$isScalar("integer"  , age)
+#'     );
+#'     this$first_ <- first;
+#'     this$last_  <- last;
+#'     this$age_   <- age;
+#'   }
 #'   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #'   get:name <- \( )
 #'   {
@@ -103,9 +103,12 @@
 oopr <- \(name, inherits = NULL, definition, parent = parent.frame())
 {
   stopifnot(
-    is.character(name) && length(name) == 1L && !is.na(name) && nzchar(name)
-   ,is.environment(parent)
-   ,!missing(definition)
+    "`name` must be a single character vector" =
+      is.character(name) && length(name) == 1L && !is.na(name) && nzchar(name)
+   ,"`parent` must be an environment" =
+      is.environment(parent)
+   ,"`definition` must be supplied" =
+      !missing(definition)
   );
   if(match(name, c("this", ".this"), 0L))
   {
@@ -265,9 +268,9 @@ print.oopr <- \(x, max.level = 5L, ...)
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @exportS3Method utils::.DollarNames
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-.DollarNames.oopr <- \(x, pattern = "", names = NULL)
+.DollarNames.oopr <- \(x, pattern = "")
 {
-  names <- names %||% names(x);
+  names <- attr(pattern, ".names", exact = TRUE) %||% names(x);
   names <- grep(pattern, names, value = TRUE);
   if(match("tools:rstudio", search(), 0L))
   {
@@ -336,9 +339,13 @@ dollar_attr <- \(x, names)
 #' @description
 #' Check whether an object is `oopr` or `ooprC`.
 #'
-#' @param x    Any object.
+#' @param x    `varies` \cr
+#'             Any object.
 #' @param name `character()` \cr
 #'             Check for any class name.
+#'
+#' @details
+#' Also validates the structure of `oopr` and `ooprC` objects.
 #'
 #' @returns
 #' `logical(1L)`
@@ -360,6 +367,5 @@ dollar_attr <- \(x, names)
 is.oopr <- \(x, name = character(0L))
 {
   stopifnot(is.character(name));
-  test <- inherits(x, c("oopr", name), which = TRUE) > 0L;
-  return(test[1L] && (!length(name) || any(test[-1L])));
+  return(.Call(Cpp_isoopr, x, name));
 }

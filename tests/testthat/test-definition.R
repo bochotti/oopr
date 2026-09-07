@@ -1,31 +1,29 @@
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 test_that("definitions_special",
 {
-  it("enforces constructor method as private method without '.', '..' args",
+  it("asserts constructor method without '.', etc args",
   {
     expect_error(
       oopr("test",, { test <- 1L; })
      ,class = "ooprSpecialNotAMethod"
     );
     expect_error(
-      oopr("test",, { public:test <- \( ) { } })
-     ,class = "ooprSpecialNotPrivate"
-    );
-    expect_error(
       oopr("test",, { private:test <- \(.) { } })
      ,class = "ooprConstructorBadArgNames"
     );
     expect_error(
-      oopr("test",, { private:test <- \(., a) { } })
+      oopr("test",, { protected:test <- \(., a) { } })
      ,class = "ooprConstructorBadArgNames"
     );
     expect_error(
-      oopr("test",, { private:test <- \(.Call) { } })
+      oopr("test",, { public:test <- \(.Call) { } })
      ,class = "ooprConstructorBadArgNames"
     );
     expect_no_error(
       oopr("test",, { test <- \(a, b, c) { } })
     );
+    oopr("test",, { })
+    expect_equal(test@meta$access$get(1L), "public");
   })
 
   it("does not allow `.this` in the constructor",
@@ -42,10 +40,10 @@ test_that("definitions_special",
       oopr("test",, { ~test <- 1L; })
      ,class = "ooprSpecialNotAMethod"
     );
-    expect_error(
-      oopr("test",, { public:~test <- \( ) { } })
-     ,class = "ooprSpecialNotPrivate"
-    );
+
+    oopr("test",, { public:~test <- \( ) { } })
+    expect_equal(test@meta$access$get(1L), "private");
+
     expect_error(
       oopr("test",, { private:~test <- \(x) { } })
      ,class = "ooprDestructorHasArgs"
@@ -55,6 +53,16 @@ test_that("definitions_special",
     );
   })
 
+})
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("definitions_init",
+{
+  it("does not error on non-braced constructor",
+  {
+    oopr("A",, { })
+    expect_no_error(oopr("B", A, { B <- \( ) 1L; }))
+  })
 })
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##

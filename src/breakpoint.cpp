@@ -23,7 +23,7 @@ public:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   void walk(SEXP x)
   {
-    if(is_oopr(x))
+    if(Oopr::is(x))
     {
       searchOopr(x);
     }
@@ -35,7 +35,7 @@ public:
     {
       searchList(x);
     }
-    else if(is_ooprC(x))
+    else if(OoprC::is(x))
     {
       searchOoprC(x);
     }
@@ -48,7 +48,7 @@ public:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   SEXP toList()
   {
-    pSEXP out = Rf_allocVector(VECSXP, (R_xlen_t)instances_.size());
+    PSEXP out = Rf_allocVector(VECSXP, (R_xlen_t)instances_.size());
     for(std::size_t i = 0; i < instances_.size(); ++i)
     {
       SET_VECTOR_ELT(out, (R_xlen_t)i, instances_[i]);
@@ -63,14 +63,14 @@ private:
   SEXP        clazz_;
   std::string pkg_;
   std::string fun_;
-  static inline Symbols sym{"meta", "encl", "this", ".this", "format.default"};
+  static const Symbols sym;
   std::vector<SEXP> searched_;
   std::vector<SEXP> instances_;
 
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   std::string getEnvName(SEXP x)
   {
-    pSEXP call = Rf_lang2(sym["format.default"], x);
+    PSEXP call = Rf_lang2(sym["format.default"], x);
     return CHAR(STRING_ELT(Rf_eval(call, R_BaseEnv), 0));
   }
 
@@ -120,7 +120,7 @@ private:
     OoprMeta meta(Rf_getAttrib(x, sym["meta"]));
     for(R_xlen_t i = 0; i < meta.size(); ++i)
     {
-      if(meta.isStatic(i)) walk(R_getVar(meta.name(i), thiz, FALSE));
+      if(meta.isStatic(i)) walk(R_getVar(*meta.name(i), thiz, FALSE));
     }
   }
 
@@ -147,10 +147,10 @@ private:
     // check if the instance inherits from the ooprC. must check:
     //   1. That the enclosure holds an instance of the ooprC
     //   2. The instances own ooprC to see if member exists and not overridden
-    else if(is_oopr(R_getVarEx(clazz_, encl, FALSE, R_NilValue)))
+    else if(Oopr::is(R_getVarEx(clazz_, encl, FALSE, R_NilValue)))
     {
       SEXP ooprC = R_getVar(clazz, R_ParentEnv(encl), FALSE);
-      if(is_ooprC(ooprC, clazz))
+      if(OoprC::is(ooprC, { RSym(clazz).chr() }))
       {
         OoprMeta meta(Rf_getAttrib(ooprC, Rf_install("meta")));
         const int i = meta.which(fun_);
@@ -163,11 +163,13 @@ private:
     searchEnv(encl);
   }
 };
-
+const Symbols InstanceFinder::sym{
+  "meta", "encl", "this", ".this", "format.default"
+};
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-SEXP find_instances(SEXP ooprC, SEXP frames, SEXP fun)
+SEXP find_instances(SEXP ooprC, SEXP frames, SEXP fun) try
 {
-  if(!is_ooprC(ooprC))                              return R_NilValue;
+  if(!OoprC::is(ooprC))                             return R_NilValue;
   SEXP name = Rf_getAttrib(ooprC, Rf_install("name"));
   SEXP encl = Rf_getAttrib(ooprC, Rf_install("encl"));
   SEXP pkg  = R_ParentEnv(encl);
@@ -178,3 +180,4 @@ SEXP find_instances(SEXP ooprC, SEXP frames, SEXP fun)
   if(frames != R_NilValue) obj.walk(frames);
   return obj.toList();
 }
+catchR

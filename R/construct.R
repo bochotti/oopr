@@ -90,7 +90,7 @@ names.ooprC <- \(x) { return(names(x@encl$.this)); }
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @exportS3Method utils::.DollarNames ooprC
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-.DollarNames.ooprC <- \(x, pattern)
+.DollarNames.ooprC <- \(x, pattern = "")
 {
   comp <- OoprCompletion();
   if(comp$isCompletion()) return(comp$names());
@@ -109,11 +109,16 @@ format.ooprC <- \(x, ...)
 show <- methods::show;
 setMethod("show", c(object = "ooprC"), \(object)
 {
+  cat(sprintf("%s\n", format.ooprC(object)));
+  acs <- object@meta$subs("access", names = object@name);
+  if(acs != "private")
+  {
+    acs <- if(acs == "public") "" else " [protected]";
+    usg <- deparse(object@.Data, getOption("width"), nlines = 1L);
+    usg <- sub("function ", object@name, usg);
+    cat(sprintf("Usage%s:\n  %s\n", acs, usg));
+  }
   bot <- capture.output(str.oopr(object@encl$.this));
-  top <- format(object);
-  usg <- deparse(object@.Data, getOption("width"), nlines = 1L);
-  usg <- sub("function ", object@name, usg);
-  cat(sprintf("%s\nUsage:\n  %s\n", top, usg));
   if(length(bot) > 1L)
   {
     bot[1L] <- "Static Members:";
@@ -134,8 +139,7 @@ print.ooprC <- \(x, ...) show(x);
 is.ooprC <- \(x, name = character(0L))
 {
   stopifnot(is.character(name));
-  if(!inherits(x, "ooprC")) return(FALSE);
-  return(!length(name) || any(match(name, x@name, 0L) > 0L));
+  return(.Call(Cpp_isooprC, x, name));
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -147,10 +151,15 @@ constructor <- \(name, inhr, meta, encl, src = NULL, parent)
 {
   fun  <- construct_fun;
   args <- formals(encl$this[[name]]);
-  formals(fun) <- args;
-  body(fun) <- do.call(substitute, list(body(fun), list(
+  body <- do.call(substitute, list(body(fun), list(
     class = as.name(name), within = parent
   )));
+  if(!is.null(src))
+  {
+    attr(body, "srcref") <- rep(list(src), length(body));
+  }
+  formals(fun) <- args;
+  body(fun)    <- body;
   attr(fun, "srcref") <- src;
   ooprC(.Data = fun, name = name, inhr = inhr, meta = meta, encl = encl);
 }
@@ -161,6 +170,6 @@ constructor <- \(name, inhr, meta, encl, src = NULL, parent)
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 construct_fun <- \(...)
 {
-  .     <- base::evalq(class, within, NULL);
+  . <- base::evalq(class, within, NULL);
   return(.Call(Cpp_oopr_make, ., base::quote(class), base::sys.frames()));
 }

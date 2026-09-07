@@ -236,28 +236,29 @@ private:
 oopr("OoprSourceTry", public:OoprSource,
 {
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-OoprSourceTry <- \(file = NULL, text = NULL, row = NULL, col = NULL)
-{
-  if(!is.null(file))
-  {
-    OoprSource$file <- file;
-    text <- text %||% readLines(file, warn = FALSE);
-  }
-  if(!is.null(text))
-  {
-    OoprSource$text <- text;
-  }
-  if(!is.null(row))
-  {
-    OoprSource$row  <- row;
-  }
-  if(!is.null(col))
-  {
-    OoprSource$col  <- col;
-  }
-}
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 public:
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  OoprSourceTry <- \(file = NULL, text = NULL, row = NULL, col = NULL)
+  {
+    if(!is.null(file))
+    {
+      OoprSource$file <- file;
+      text <- text %||% readLines(file, warn = FALSE);
+    }
+    if(!is.null(text))
+    {
+      OoprSource$text <- text;
+    }
+    if(!is.null(row))
+    {
+      OoprSource$row  <- row;
+    }
+    if(!is.null(col))
+    {
+      OoprSource$col  <- col;
+    }
+  }
+
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   #' @field call `call` \cr
   #'             The evaluation string/call at the position `row` & `col` in

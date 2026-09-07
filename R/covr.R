@@ -23,28 +23,29 @@ NULL
 oopr("OoprCovr",,
 {
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-OoprCovr <- \( )
-{
-  if(!this$covrIsRunning()) return();
-
-  root <- this$covr$package_root(".");
-  pkg  <- read.dcf(file.path(root, "DESCRIPTION"), "Package")[[1L]];
-  ns   <- getNamespace(pkg);
-
-  for(name in names(ns))
+public:
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  OoprCovr <- \( )
   {
-    if(is.ooprC(ns[[name]])) this$traceOoprC(ns[[name]]);
+    if(!this$covrIsRunning()) return();
+
+    root <- this$covr$package_root(".");
+    pkg  <- read.dcf(file.path(root, "DESCRIPTION"), "Package")[[1L]];
+    ns   <- getNamespace(pkg);
+
+    for(name in names(ns))
+    {
+      if(is.ooprC(ns[[name]])) this$traceOoprC(ns[[name]]);
+    }
+
+    this$rplc <- this$covr$compact(this$rplc);
+
+    lapply(this$rplc, this$covr$replace);
+
+    the <- this$covr$the;
+    the$replacements <- c(the$replacements, this$rplc);
   }
 
-  this$rplc <- this$covr$compact(this$rplc);
-
-  lapply(this$rplc, this$covr$replace);
-
-  the <- this$covr$the;
-  the$replacements <- c(the$replacements, this$rplc);
-}
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   #' @description
   #' Test a single class.
@@ -85,6 +86,7 @@ public:
     if(report) this$covr$report(x);
     return(x)
   }
+
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 private:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -133,6 +135,7 @@ private:
     tst <- sprintf("test-%s", basename(src));
     return(file.path(".", "tests", "testthat", tst));
   }
+
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-})
+}) ## OoprCovr
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##

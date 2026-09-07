@@ -2,9 +2,13 @@
 #ifndef OOPR_BREAKPOINT_H
 #define OOPR_BREAKPOINT_H
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-#include "utils.h"
+#include "common.h"
 #include <vector>
-#include "meta.h"
+#include "./util/unwind.h"
+#include "./util/psexp.h"
+#include "./util/symbols.h"
+#include "./models/oopr.h"
+#include "./models/meta.h"
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Find oopr class instances.
  * TODO: now that I have virtual... cannot find all definitions.

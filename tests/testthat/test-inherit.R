@@ -49,7 +49,7 @@ test_that("inheritance_get",
   it("throws if no package",
   {
     expect_error(
-      oopr("test", pkg::base, {})
+      do.call(oopr, list("test", str2lang("pkg::base"), call("{")))
      ,class = "ooprInheritPackageNotFound"
     );
   })

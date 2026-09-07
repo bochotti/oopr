@@ -98,7 +98,7 @@ public:
   }
   bool inside()
   {
-    for(const auto& [key, val] : opens) if(val->count) return true;
+    for(const auto& open : opens) { if(open.second->count) return true; }
     return false;
   }
 };
@@ -133,15 +133,15 @@ class EvaluationContext
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 public:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  EvaluationContext(SEXP text, SEXP row, SEXP col)
+  EvaluationContext(
+    const RChr<SEXP> text, const RInt<SEXP> row, const RInt<SEXP> col
+  )
   {
-    const R_xlen_t len = Rf_xlength(text);
-    for(R_xlen_t i = 0; i < len; ++i)
-    {
-      text_.append(Rf_translateCharUTF8(STRING_ELT(text, i)));
-      text_.append("\n");
-    }
-    makePos(INTEGER_ELT(row, 0), INTEGER_ELT(col, 0));
+    if(text.size() == 0) stop("`text` must have length");
+    if(row.size()  == 0) stop("`row` must have length");
+    if(col.size()  == 0) stop("`col` must have length");
+    for(const RStr<SEXP>& t : text) { text_.append(t.str()).append("\n"); }
+    makePos(row[0], col[0]);
   }
 
   Complements comps{{'(',')'}, {'[',']'}};
@@ -447,12 +447,12 @@ stop:
   SEXP toList()
   {
     const R_xlen_t len = matches.size();
-    pSEXP out = Rf_allocVector(VECSXP, len);
+    PSEXP out = Rf_allocVector(VECSXP, len);
 
     for(R_xlen_t i = 0; i < len; ++i)
     {
       Match m = matches[i];
-      pSEXP v;
+      PSEXP v;
       if(m.stt >= 0 && m.end >= 0)
       {
         v = Rf_allocVector(VECSXP, 3);
@@ -492,13 +492,14 @@ private:
   }
 };
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-SEXP eval_context(SEXP text, SEXP row, SEXP col)
+SEXP eval_context(SEXP text, SEXP row, SEXP col) try
 {
-  if(!Rf_isString(text)) Rf_error("`text` must be a string");
-  if(!Rf_isInteger(row)) Rf_error("`row` must be an integer");
-  if(!Rf_isInteger(col)) Rf_error("`col` must be an integer");
+  if(!RChr<>::is(text)) stop("`text` must be a character vector");
+  if(!RInt<>::is(row))  stop("`row` must be an integer vector");
+  if(!RInt<>::is(col))  stop("`col` must be an integer vector");
   EvaluationContext obj(text, row, col);
   if(!obj.collect()) return R_NilValue;
   return obj.toList();
 }
+catchR
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //

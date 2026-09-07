@@ -12,13 +12,14 @@ specifiers <- \(env, err)
   for(i in env$along)
   {
     name <- meta$names$get(i);
-    if(!specifiers_dupes(i, name, spec, env, err))          next;
-    if(!specifiers_access(i, name, spec, meta, env, err))   next;
-    if(!specifiers_S3(i, name, spec, meta, env, err))       next;
-    if(!specifiers_property(i, name, spec, meta, env, err)) next;
-    if(!specifiers_static(i, name, spec, meta, env, err))   next;
-    if(!specifiers_virtual(i, name, spec, meta, env, err))  next;
-    if(!specifiers_final(i, name, spec, meta, env, err))    next;
+    if(!specifiers_dupes   (i, name, spec, env, err))       { next; }
+    if(!specifiers_access  (i, name, spec, meta, env, err)) { next; }
+    if(!specifiers_special (i, name, spec, env, err))       { next; }
+    if(!specifiers_S3      (i, name, spec, meta, env, err)) { next; }
+    if(!specifiers_property(i, name, spec, meta, env, err)) { next; }
+    if(!specifiers_static  (i, name, spec, meta, env, err)) { next; }
+    if(!specifiers_virtual (i, name, spec, meta, env, err)) { next; }
+    if(!specifiers_final   (i, name, spec, meta, env, err)) { next; }
     specifiers_unknown(i, name, spec, env, err);
   }
   return();
@@ -75,6 +76,15 @@ specifiers_access <- \(i, name, spec, meta, env, err)
   }
   else if(sum(has) == 1L)
   {
+    if(which.min(has) > 1L)
+    {
+      err$push(
+        cls = "ooprAccessSpecifierNotFirst"
+       ,src = env$src[[i]]
+       ,msg = "Member `%s` access specifier %s must be specified first."
+       ,name, deparse1(set[has])
+      );
+    }
     meta$access$set(i, set[has]);
     spec$set(i, list(set[!has]));
   }
@@ -89,6 +99,28 @@ specifiers_access <- \(i, name, spec, meta, env, err)
     env$succ$set(i, FALSE);
   }
   return(env$succ$get(i));
+}
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @intern
+#' Only allow access specifiers for constructor & destructor
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+specifiers_special <- \(i, name, spec, env, err)
+{
+  if(!match(name, sprintf("%s%s", c("", "~"), env$name), 0L)) { return(TRUE); }
+  set <- spec$get(i)[[1L]];
+  if(length(set))
+  {
+    err$push(
+      cls = "ooprNonAccessSpecifierSpecial"
+     ,src = env$src[[i]]
+     ,msg = "%s `%s` has a non-access specifier."
+     ,if(startsWith(name, "~")) "Destructor" else "Constructor"
+     ,name
+    );
+    return(FALSE);
+  }
+  return(TRUE);
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##

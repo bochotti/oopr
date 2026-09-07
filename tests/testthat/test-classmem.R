@@ -58,11 +58,11 @@ test_that("definitions_classmem",
     oopr("test",, { a <- memb(); })
     expect_identical(body(test@encl$this$test)[[2:1]], quote(base::assign));
 
-    oopr("memb",, { memb <- \(x) { }})
+    oopr("memb",, { public:memb <- \(x) { }})
     oopr("test",, { a <- memb(1L); })
     expect_identical(body(test@encl$this$test)[[2:3]], quote(this$a(x = 1L)));
 
-    oopr("memb",, { memb <- \(x = 1) { }})
+    oopr("memb",, { public:memb <- \(x = 1) { }})
     oopr("test",, { a <- memb; })
     expect_identical(body(test@encl$this$test)[[2:3]], quote(this$a()));
 

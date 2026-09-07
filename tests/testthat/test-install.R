@@ -29,6 +29,7 @@ test_that("oopr_onLoad",
 {
   testthat::skip_on_cran();
   testthat::skip_if_not_installed(c("withr", "callr"));
+  testthat::skip_on_os("windows");
   local_packageInstall(files = c(code = r"{
   oopr::oopr("test",,  { public:get:a    <- \( ) { } })
   oopr::oopr("test2",, { public:static:a <- 1L; })
@@ -38,8 +39,8 @@ test_that("oopr_onLoad",
   }
   oopr::oopr_onInstall();
   }"))
-  test  <- ooprTest:::test;
-  test2 <- ooprTest:::test2
+  test  <- eval(str2lang("ooprTest:::test"));
+  test2 <- eval(str2lang("ooprTest:::test2"));
 
   it("maintains active bindings",
   {
@@ -59,10 +60,12 @@ test_that("oopr_onLoad",
 
   it("can be reloaded",
   {
-    library(ooprTest);
+    eval(str2lang("library(ooprTest)"));
     expect_no_error(detach("package:ooprTest", unload = TRUE));
-    expect_no_error(library(ooprTest));
-    expect_true(bindingIsActive("a", ooprTest:::test2@encl$.this))
+    expect_no_error(eval(str2lang("library(ooprTest)")));
+    expect_true(
+      bindingIsActive("a", eval(str2lang("ooprTest:::test2@encl$.this")))
+    );
   })
 })
 
@@ -71,6 +74,7 @@ test_that("oopr_onLoad inherit",
 {
   testthat::skip_on_cran();
   testthat::skip_if_not_installed(c("withr", "callr"));
+  testthat::skip_on_os("windows");
 
   local_packageInstall(
     name      = "ooprA"
@@ -119,8 +123,8 @@ test_that("oopr_onLoad inherit",
 
   it("carries over inherited classes from other packages",
   {
-    A <- ooprA::A;
-    B <- ooprB::B;
+    A <- eval(str2lang("ooprA::A"));
+    B <- eval(str2lang("ooprB::B"));
     expect_env(B@encl$A@encl, A@encl);
     expect_env(activeBindingFunction("Af", B@encl$this), A@encl);
     expect_env(activeBindingFunction("Ap", B@encl$this), A@encl);
@@ -130,8 +134,8 @@ test_that("oopr_onLoad inherit",
 
   it("refers static members to original package env",
   {
-    A <- ooprA::A;
-    B <- ooprB::B;
+    A <- eval(str2lang("ooprA::A"));
+    B <- eval(str2lang("ooprB::B"));
     B$As   <- 2L;
     expect_equal(A$As, 2L);
     obj    <- B();
@@ -145,6 +149,7 @@ test_that("oopr_onLoad classmem",
 {
   testthat::skip_on_cran();
   testthat::skip_if_not_installed(c("withr", "callr"));
+  testthat::skip_on_os("windows");
 
   local_packageInstall(
     name      = "ooprA"
@@ -191,8 +196,8 @@ test_that("oopr_onLoad classmem",
 
   it("carries over class members from other packages",
   {
-    A <- ooprA::A;
-    B <- ooprB::B;
+    A <- eval(str2lang("ooprA::A"));
+    B <- eval(str2lang("ooprB::B"));
     expect_env(B@encl$this$Bc@encl, A@encl);
     expect_true(is.oopr(B@encl$this$Bs, "A"));
     expect_env(parent.env(parent.env(B@encl$this$Bs)), asNamespace("ooprA"));
@@ -200,8 +205,8 @@ test_that("oopr_onLoad classmem",
 
   it("refers static members to original package env",
   {
-    A <- ooprA::A;
-    B <- ooprB::B;
+    A <- eval(str2lang("ooprA::A"));
+    B <- eval(str2lang("ooprB::B"));
     expect_env(activeBindingFunction("As", B@encl$this$Bs), A@encl);
     B$Bs$As   <- 2L;
     expect_equal(A$As, 2L);

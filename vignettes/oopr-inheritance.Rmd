@@ -111,6 +111,7 @@ This has some implications:
   3.  Inheriting a class privately will allow use of its members to the 
       derived class, but hide them from further derived classes.
 
+Note that constructor and destructor methods are never inherited.
 
 ## Redefining Base Members
 
@@ -249,12 +250,9 @@ or all arguments have a default value.
 # base class with constructor method
 oopr("Base",,
 {
-Base <- \(x)
-{
-  this$x <- x;
-}
 public:
-  x <- integer(1L);
+  Base <- \(x) { this$x <- x; }
+  x    <- integer(1L);
 })
 
 # unable to create the derived class
@@ -268,10 +266,8 @@ customer method:
 # call Base(...)
 oopr("Derived", public:Base, 
 {
-Derived <- \(x)
-{
-  Base(x);
-}
+public:
+  Derived <- \(x) { Base(x); }
 })
 
 # success
@@ -283,13 +279,35 @@ Note that base class members cannot be accessed until they are constructed:
 
 ```{r}
 # cannot access `x` before Base(...)
-oopr("Derived", public:Base, 
+oopr("Derived", public:Base,
 {
-Derived <- \(x)
-{
-  print(Base$x); # <- neither Base$
-  print(this$x); # <- nor this$
-  Base(x);
-}
+public:
+  Derived <- \(x)
+  {
+    print(Base$x); # <- neither Base$
+    print(this$x); # <- nor this$
+    Base(x);
+  }
 })
+```
+
+### Protected Constructor
+
+To ensure that a class can only be constructed as a base class, mark its
+constructor method as `protected:`:
+
+```{r}
+# protected constructor
+oopr("Base",,
+{
+protected:
+  Base <- \( ) { }
+})
+
+# not allowed
+Base();
+
+# allowed
+oopr("Derived", Base, { })
+Derived();
 ```

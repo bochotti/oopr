@@ -1,6 +1,7 @@
 .Rproj.user
 *.so
 *.o
+*.d
 inst/doc
 docs
 /doc/

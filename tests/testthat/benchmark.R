@@ -15,8 +15,8 @@
 # OPq <- quote({
 # oopr::oopr("OP",,
 # {
-# OP <- \(x = 1) { this$x <- x; }
 # public:
+#   OP   <- \(x = 1) { this$x <- x; }
 #   getx <- \()      this$x;
 #   inc  <- \(n = 1) this$x <- this$x + n;
 #   x    <- NULL;
@@ -29,7 +29,7 @@
 #
 # lobstr::obj_sizes(R6$new(), OP())
 #
-# microbenchmark::microbenchmark(r6 <- R6$new(), op <- OP())
+# microbenchmark::microbenchmark(r6 <- R6$new(), op <- OP(), times = 1e4)
 #
 # lobstr::obj_sizes(r6, op)
 #

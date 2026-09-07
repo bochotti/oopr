@@ -111,10 +111,41 @@ test_that("evaluate_rhs",
     expect_true(test@meta$method$get(2L));
     expect_true(is.function(test@encl$this[["test"]]));
   })
+
+  it("enforces a braced body for construct method",
+  {
+    oopr("test",, { test <- \( ) 1L; })
+    body <- body(test@encl$this$test);
+    expect_true(iscall(body, "{"));
+    expect_true(!is.null(attr(body, "srcref")));
+  })
 })
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 test_that("evaluate_src",
 {
-  oopr("test",, { a <- \( ) { } })
+  it("maintains specifiers in srcref",
+  {
+    oopr("test",, { static:a <- \( ) { 1L; } })
+    src <- attr(test@encl$this$a, "srcref");
+    expect_true(startsWith(as.character(src), "static"));
+  })
+
+  it("removes access specifier and any comments inbetween",
+  {
+    oopr("test",,
+    {
+      public:
+        #aaaaa
+        a <- \( ) { 1L; }
+    })
+    src <- attr(test@encl$this$a, "srcref");
+    expect_equal(src[1L], src[3L]);
+    expect_true(startsWith(as.character(src), "a"));
+
+    oopr("test",, { public:a <- \( ) { 1L; } })
+    src <- attr(test@encl$this$a, "srcref");
+    expect_equal(src[1L], src[3L]);
+    expect_true(startsWith(as.character(src), "a"));
+  })
 })
