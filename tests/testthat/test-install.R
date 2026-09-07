@@ -74,6 +74,7 @@ test_that("oopr_onLoad inherit",
 {
   testthat::skip_on_cran();
   testthat::skip_if_not_installed(c("withr", "callr"));
+  testthat::skip_on_os("windows");
 
   local_packageInstall(
     name      = "ooprA"
@@ -148,6 +149,7 @@ test_that("oopr_onLoad classmem",
 {
   testthat::skip_on_cran();
   testthat::skip_if_not_installed(c("withr", "callr"));
+  testthat::skip_on_os("windows");
 
   local_packageInstall(
     name      = "ooprA"
