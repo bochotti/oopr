@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">oopr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -42,7 +42,27 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="999.999" id="oopr-999999-development-version">oopr 999.999 (development version)<a class="anchor" aria-label="anchor" href="#oopr-999999-development-version"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.2.0" id="oopr-020-2026-09-06">oopr 0.2.0 (2026-09-06)<a class="anchor" aria-label="anchor" href="#oopr-020-2026-09-06"></a></h2>
+<div class="section level3">
+<h3 id="added-0-2-0">Added<a class="anchor" aria-label="anchor" href="#added-0-2-0"></a></h3>
+<ul><li>Constructor methods can now be used with any access specifier, allowing for inherit-only classes and static-only classes.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="changed-0-2-0">Changed<a class="anchor" aria-label="anchor" href="#changed-0-2-0"></a></h3>
+<ul><li><p><code>is.oopr</code> and <code>is.ooprC</code> now also validates the structure of their objects.</p></li>
+<li><p>Instancing of classes now ~20% quicker.</p></li>
+<li><p>Constructor methods are now forced to be braced, preventing errors when inheriting or having class members.</p></li>
+<li><p>Access specifiers are now enforced to be listed first.</p></li>
+<li><p>Generated constructor usage for roxygen documentation will now separate arguments over multiple lines if too wide.</p></li>
+<li><p>R 4.1.x is no longer supported.</p></li>
+</ul></div>
+<div class="section level3">
+<h3 id="fixed-0-2-0">Fixed<a class="anchor" aria-label="anchor" href="#fixed-0-2-0"></a></h3>
+<ul><li><p>Method source reference no longer covers the access specifier, and no longer includes any comments in between.</p></li>
+<li><p>Documentation now uses <code>\command</code> instead of <code>\code</code> macro for escaping roxygen markdown. Using <code>\if</code> inside <code>\code</code> macro had <code>R CMD CHECK</code> warning.</p></li>
+<li><p>Constructors &amp; destructors can no longer have non-access specifiers.</p></li>
+<li><p>Constructors &amp; destructors can no longer be referred to inside methods.</p></li>
+</ul></div>
 </div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.0.1" id="oopr-001-2026-07-28">oopr 0.0.1 (2026-07-28)<a class="anchor" aria-label="anchor" href="#oopr-001-2026-07-28"></a></h2>

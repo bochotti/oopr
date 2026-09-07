@@ -14,6 +14,7 @@ is.ooprC(x, name = character(0L))
 
 - x:
 
+  `varies`  
   Any object.
 
 - name:
@@ -24,6 +25,10 @@ is.ooprC(x, name = character(0L))
 ## Value
 
 `logical(1L)`
+
+## Details
+
+Also validates the structure of `oopr` and `ooprC` objects.
 
 ## Examples
 

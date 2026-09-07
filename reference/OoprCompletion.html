@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">oopr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -78,23 +78,23 @@ The package that the class lives in.</p></dd>
 
 
 <p></p>
-<dl><dt><code><a href="#OoprCompletion-OoprCompletionSource">OoprCompletionSource</a></code></dt>
-<dd><p><em><code>[10 fields]</code></em> <em><code>[5 methods]</code></em><br>
+<dl><dt><code class="command"><a href="#OoprCompletion-OoprCompletionSource">OoprCompletionSource</a></code></dt>
+<dd><p><em><code>[public]</code></em><br><em><code>[10 fields]</code></em> <em><code>[5 methods]</code></em><br>
 A virtual class that can be inherited to use as a completion identifier.</p></dd>
 
 
-<dt><code><a href="#OoprCompletion-OoprCompletionRStudio">OoprCompletionRStudio</a></code></dt>
-<dd><p><em><code>[10 fields]</code></em> <em><code>[5 methods]</code></em><br>
+<dt><code class="command"><a href="#OoprCompletion-OoprCompletionRStudio">OoprCompletionRStudio</a></code></dt>
+<dd><p><em><code>[public]</code></em><br><em><code>[10 fields]</code></em> <em><code>[5 methods]</code></em><br>
 Use completion in RStudio.</p></dd>
 
 
-<dt><code><a href="#OoprCompletion-OoprCompletion">OoprCompletion</a></code></dt>
-<dd><p><em><code>[3 fields]</code></em> <em><code>[3 methods]</code></em><br>
+<dt><code class="command"><a href="#OoprCompletion-OoprCompletion">OoprCompletion</a></code></dt>
+<dd><p><em><code>[public]</code></em><br><em><code>[3 fields]</code></em> <em><code>[3 methods]</code></em><br>
 Use completion.</p></dd>
 
 
-<dt><code><a href="#OoprCompletion-OoprRd">OoprRd</a></code></dt>
-<dd><p><em><code>[4 fields]</code></em> <em><code>[3 methods]</code></em><br>
+<dt><code class="command"><a href="#OoprCompletion-OoprRd">OoprRd</a></code></dt>
+<dd><p><em><code>[public]</code></em><br><em><code>[4 fields]</code></em> <em><code>[3 methods]</code></em><br>
 Read the Rd (documentation) of an <code>oopr</code> class.</p></dd>
 
 
@@ -111,53 +111,53 @@ Read the Rd (documentation) of an <code>oopr</code> class.</p></dd>
 <div class="section">
 <h3 id="fields">Fields<a class="anchor" aria-label="anchor" href="#fields"></a></h3>
 
-<dl><dt><code>env</code></dt>
+<dl><dt><code class="command">env</code></dt>
 <dd><p><em><code>[read-only]</code></em> <br><code>environment</code> <br>
 The environment provided to <code>$load</code>.</p></dd>
 
 
-<dt><code>call</code></dt>
+<dt><code class="command">call</code></dt>
 <dd><p><code>call</code> <br>
 The evaluation string/call at the position <code>row</code> &amp; <code>col</code> in
 the file, e.g. <code>this$a$b</code>.</p></dd>
 
 
-<dt><code>file</code></dt>
+<dt><code class="command">file</code></dt>
 <dd><p><code>character(1L)</code> <br>
 An R source file.</p></dd>
 
 
-<dt><code>text</code></dt>
+<dt><code class="command">text</code></dt>
 <dd><p><code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code> <br>
 A vector of lines of an R source file.</p></dd>
 
 
-<dt><code>row</code></dt>
+<dt><code class="command">row</code></dt>
 <dd><p><code>integer(1L)</code> <br>
 Line of a text cursor position.</p></dd>
 
 
-<dt><code>col</code></dt>
+<dt><code class="command">col</code></dt>
 <dd><p><code>integer(1L)</code> <br>
 Line of a text cursor position.</p></dd>
 
 
-<dt><code>expr</code></dt>
+<dt><code class="command">expr</code></dt>
 <dd><p><em><code>[read-only]</code></em> <br><code>expression</code> <br>
 A parsed expressed of <code>$file</code> or <code>$text</code> from <code>$parse()</code>.</p></dd>
 
 
-<dt><code>defs</code></dt>
+<dt><code class="command">defs</code></dt>
 <dd><p><em><code>[read-only]</code></em> <br><code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code> <br>
 A named list of <code>oopr</code> definitions from <code>$parse()</code>.</p></dd>
 
 
-<dt><code>objs</code></dt>
+<dt><code class="command">objs</code></dt>
 <dd><p><em><code>[read-only]</code></em> <br><code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code> <br>
 A named list of <code>oopr</code> object from <code>$eval()</code>.</p></dd>
 
 
-<dt><code>obj</code></dt>
+<dt><code class="command">obj</code></dt>
 <dd><p><em><code>[read-only]</code></em> <br><code>ooprC</code>
 If <code>$row</code> and <code>$col</code> are set, then the <code>oopr</code> object that
 is at that location.</p></dd>
@@ -168,33 +168,33 @@ is at that location.</p></dd>
 <div class="section">
 <h3 id="methods">Methods<a class="anchor" aria-label="anchor" href="#methods"></a></h3>
 
-<dl><dt><code><a href="#OoprCompletion-OoprCompletionSource-isAvailable">isAvailable</a></code></dt>
+<dl><dt><code class="command"><a href="#OoprCompletion-OoprCompletionSource-isAvailable">isAvailable</a></code></dt>
 <dd><p><em><code>[virtual]</code></em> <br>
 Check if the call is currently a completion.</p></dd>
 
 
-<dt><code><a href="#OoprCompletion-OoprCompletionSource-load">load</a></code></dt>
+<dt><code class="command"><a href="#OoprCompletion-OoprCompletionSource-load">load</a></code></dt>
 <dd><p><em><code>[final]</code></em> <br>
 Load the completion context into the class.</p></dd>
 
 
-<dt><code><a href="#OoprCompletion-OoprCompletionSource-source">source</a></code></dt>
+<dt><code class="command"><a href="#OoprCompletion-OoprCompletionSource-source">source</a></code></dt>
 <dd><p><em><code>[final]</code></em> <br>
 Source the file being completed.</p></dd>
 
 
-<dt><code><a href="#OoprCompletion-OoprCompletionSource-parse">parse</a></code></dt>
+<dt><code class="command"><a href="#OoprCompletion-OoprCompletionSource-parse">parse</a></code></dt>
 <dd><p>Try to parse the file.</p></dd>
 
 
-<dt><code><a href="#OoprCompletion-OoprCompletionSource-eval">eval</a></code></dt>
+<dt><code class="command"><a href="#OoprCompletion-OoprCompletionSource-eval">eval</a></code></dt>
 <dd><p>Evaluate the <code>oopr</code>s in <code>$defs</code>.</p></dd>
 
 
 </dl></div>
 
 <div class="section">
-<h3 id="isavailable"><code><a id="OoprCompletion-OoprCompletionSource-isAvailable" style="display:block;position:relative;top:-40px;"></a></code><hr>isAvailable<a class="anchor" aria-label="anchor" href="#isavailable"></a></h3>
+<h3 id="isavailable"><code class="command"><a id="OoprCompletion-OoprCompletionSource-isAvailable" style="display:block;position:relative;top:-40px;"></a></code><hr>isAvailable<a class="anchor" aria-label="anchor" href="#isavailable"></a></h3>
 
 <div class="section">
 <h4 id="description-1">Description<a class="anchor" aria-label="anchor" href="#description-1"></a></h4>
@@ -221,7 +221,7 @@ method.</p>
 </div>
 
 <div class="section">
-<h3 id="load"><code><a id="OoprCompletion-OoprCompletionSource-load" style="display:block;position:relative;top:-40px;"></a></code><hr>load<a class="anchor" aria-label="anchor" href="#load"></a></h3>
+<h3 id="load"><code class="command"><a id="OoprCompletion-OoprCompletionSource-load" style="display:block;position:relative;top:-40px;"></a></code><hr>load<a class="anchor" aria-label="anchor" href="#load"></a></h3>
 
 <div class="section">
 <h4 id="description-2">Description<a class="anchor" aria-label="anchor" href="#description-2"></a></h4>
@@ -263,7 +263,7 @@ Text cursor position of column on the line, indexed by 1.</td></tr></table></div
 </div>
 
 <div class="section">
-<h3 id="source"><code><a id="OoprCompletion-OoprCompletionSource-source" style="display:block;position:relative;top:-40px;"></a></code><hr>source<a class="anchor" aria-label="anchor" href="#source"></a></h3>
+<h3 id="source"><code class="command"><a id="OoprCompletion-OoprCompletionSource-source" style="display:block;position:relative;top:-40px;"></a></code><hr>source<a class="anchor" aria-label="anchor" href="#source"></a></h3>
 
 <div class="section">
 <h4 id="description-3">Description<a class="anchor" aria-label="anchor" href="#description-3"></a></h4>
@@ -288,7 +288,7 @@ Text cursor position of column on the line, indexed by 1.</td></tr></table></div
 </div>
 
 <div class="section">
-<h3 id="parse"><code><a id="OoprCompletion-OoprCompletionSource-parse" style="display:block;position:relative;top:-40px;"></a></code><hr>parse<a class="anchor" aria-label="anchor" href="#parse"></a></h3>
+<h3 id="parse"><code class="command"><a id="OoprCompletion-OoprCompletionSource-parse" style="display:block;position:relative;top:-40px;"></a></code><hr>parse<a class="anchor" aria-label="anchor" href="#parse"></a></h3>
 
 <div class="section">
 <h4 id="description-4">Description<a class="anchor" aria-label="anchor" href="#description-4"></a></h4>
@@ -319,7 +319,7 @@ class members are not reference checked.</p>
 </div>
 
 <div class="section">
-<h3 id="eval"><code><a id="OoprCompletion-OoprCompletionSource-eval" style="display:block;position:relative;top:-40px;"></a></code><hr>eval<a class="anchor" aria-label="anchor" href="#eval"></a></h3>
+<h3 id="eval"><code class="command"><a id="OoprCompletion-OoprCompletionSource-eval" style="display:block;position:relative;top:-40px;"></a></code><hr>eval<a class="anchor" aria-label="anchor" href="#eval"></a></h3>
 
 <div class="section">
 <h4 id="description-5">Description<a class="anchor" aria-label="anchor" href="#description-5"></a></h4>
@@ -361,53 +361,53 @@ An environment to be the top-level of the <code>oopr</code> objects.</td></tr></
 <div class="section">
 <h3 id="fields-1">Fields<a class="anchor" aria-label="anchor" href="#fields-1"></a></h3>
 
-<dl><dt><code>env</code></dt>
+<dl><dt><code class="command">env</code></dt>
 <dd><p><em><code>[read-only]</code></em> <br><code>environment</code> <br>
 The environment provided to <code>$load</code>.</p></dd>
 
 
-<dt><code>call</code></dt>
+<dt><code class="command">call</code></dt>
 <dd><p><code>call</code> <br>
 The evaluation string/call at the position <code>row</code> &amp; <code>col</code> in
 the file, e.g. <code>this$a$b</code>.</p></dd>
 
 
-<dt><code>file</code></dt>
+<dt><code class="command">file</code></dt>
 <dd><p><code>character(1L)</code> <br>
 An R source file.</p></dd>
 
 
-<dt><code>text</code></dt>
+<dt><code class="command">text</code></dt>
 <dd><p><code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code> <br>
 A vector of lines of an R source file.</p></dd>
 
 
-<dt><code>row</code></dt>
+<dt><code class="command">row</code></dt>
 <dd><p><code>integer(1L)</code> <br>
 Line of a text cursor position.</p></dd>
 
 
-<dt><code>col</code></dt>
+<dt><code class="command">col</code></dt>
 <dd><p><code>integer(1L)</code> <br>
 Line of a text cursor position.</p></dd>
 
 
-<dt><code>expr</code></dt>
+<dt><code class="command">expr</code></dt>
 <dd><p><em><code>[read-only]</code></em> <br><code>expression</code> <br>
 A parsed expressed of <code>$file</code> or <code>$text</code> from <code>$parse()</code>.</p></dd>
 
 
-<dt><code>defs</code></dt>
+<dt><code class="command">defs</code></dt>
 <dd><p><em><code>[read-only]</code></em> <br><code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code> <br>
 A named list of <code>oopr</code> definitions from <code>$parse()</code>.</p></dd>
 
 
-<dt><code>objs</code></dt>
+<dt><code class="command">objs</code></dt>
 <dd><p><em><code>[read-only]</code></em> <br><code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code> <br>
 A named list of <code>oopr</code> object from <code>$eval()</code>.</p></dd>
 
 
-<dt><code>obj</code></dt>
+<dt><code class="command">obj</code></dt>
 <dd><p><em><code>[read-only]</code></em> <br><code>ooprC</code>
 If <code>$row</code> and <code>$col</code> are set, then the <code>oopr</code> object that
 is at that location.</p></dd>
@@ -418,33 +418,33 @@ is at that location.</p></dd>
 <div class="section">
 <h3 id="methods-1">Methods<a class="anchor" aria-label="anchor" href="#methods-1"></a></h3>
 
-<dl><dt><code><a href="#OoprCompletion-OoprCompletionRStudio-isAvailable">isAvailable</a></code></dt>
+<dl><dt><code class="command"><a href="#OoprCompletion-OoprCompletionRStudio-isAvailable">isAvailable</a></code></dt>
 <dd><p><em><code>[virtual]</code></em> <br>
 Pull information from the <code>.rs.rpc_get_completions</code> call.</p></dd>
 
 
-<dt><code><a href="#OoprCompletion-OoprCompletionRStudio-load">load</a></code></dt>
+<dt><code class="command"><a href="#OoprCompletion-OoprCompletionRStudio-load">load</a></code></dt>
 <dd><p><em><code>[final]</code></em> <br>
 Load the completion context into the class.</p></dd>
 
 
-<dt><code><a href="#OoprCompletion-OoprCompletionRStudio-source">source</a></code></dt>
+<dt><code class="command"><a href="#OoprCompletion-OoprCompletionRStudio-source">source</a></code></dt>
 <dd><p><em><code>[final]</code></em> <br>
 Source the file being completed.</p></dd>
 
 
-<dt><code><a href="#OoprCompletion-OoprCompletionRStudio-parse">parse</a></code></dt>
+<dt><code class="command"><a href="#OoprCompletion-OoprCompletionRStudio-parse">parse</a></code></dt>
 <dd><p>Try to parse the file.</p></dd>
 
 
-<dt><code><a href="#OoprCompletion-OoprCompletionRStudio-eval">eval</a></code></dt>
+<dt><code class="command"><a href="#OoprCompletion-OoprCompletionRStudio-eval">eval</a></code></dt>
 <dd><p>Evaluate the <code>oopr</code>s in <code>$defs</code>.</p></dd>
 
 
 </dl></div>
 
 <div class="section">
-<h3 id="isavailable-1"><code><a id="OoprCompletion-OoprCompletionRStudio-isAvailable" style="display:block;position:relative;top:-40px;"></a></code><hr>isAvailable<a class="anchor" aria-label="anchor" href="#isavailable-1"></a></h3>
+<h3 id="isavailable-1"><code class="command"><a id="OoprCompletion-OoprCompletionRStudio-isAvailable" style="display:block;position:relative;top:-40px;"></a></code><hr>isAvailable<a class="anchor" aria-label="anchor" href="#isavailable-1"></a></h3>
 
 <div class="section">
 <h4 id="description-7">Description<a class="anchor" aria-label="anchor" href="#description-7"></a></h4>
@@ -470,7 +470,7 @@ the file path, row and column.</p>
 </div>
 
 <div class="section">
-<h3 id="load-1"><code><a id="OoprCompletion-OoprCompletionRStudio-load" style="display:block;position:relative;top:-40px;"></a></code><hr>load<a class="anchor" aria-label="anchor" href="#load-1"></a></h3>
+<h3 id="load-1"><code class="command"><a id="OoprCompletion-OoprCompletionRStudio-load" style="display:block;position:relative;top:-40px;"></a></code><hr>load<a class="anchor" aria-label="anchor" href="#load-1"></a></h3>
 
 <div class="section">
 <h4 id="description-8">Description<a class="anchor" aria-label="anchor" href="#description-8"></a></h4>
@@ -512,7 +512,7 @@ Text cursor position of column on the line, indexed by 1.</td></tr></table></div
 </div>
 
 <div class="section">
-<h3 id="source-1"><code><a id="OoprCompletion-OoprCompletionRStudio-source" style="display:block;position:relative;top:-40px;"></a></code><hr>source<a class="anchor" aria-label="anchor" href="#source-1"></a></h3>
+<h3 id="source-1"><code class="command"><a id="OoprCompletion-OoprCompletionRStudio-source" style="display:block;position:relative;top:-40px;"></a></code><hr>source<a class="anchor" aria-label="anchor" href="#source-1"></a></h3>
 
 <div class="section">
 <h4 id="description-9">Description<a class="anchor" aria-label="anchor" href="#description-9"></a></h4>
@@ -537,7 +537,7 @@ Text cursor position of column on the line, indexed by 1.</td></tr></table></div
 </div>
 
 <div class="section">
-<h3 id="parse-1"><code><a id="OoprCompletion-OoprCompletionRStudio-parse" style="display:block;position:relative;top:-40px;"></a></code><hr>parse<a class="anchor" aria-label="anchor" href="#parse-1"></a></h3>
+<h3 id="parse-1"><code class="command"><a id="OoprCompletion-OoprCompletionRStudio-parse" style="display:block;position:relative;top:-40px;"></a></code><hr>parse<a class="anchor" aria-label="anchor" href="#parse-1"></a></h3>
 
 <div class="section">
 <h4 id="description-10">Description<a class="anchor" aria-label="anchor" href="#description-10"></a></h4>
@@ -568,7 +568,7 @@ class members are not reference checked.</p>
 </div>
 
 <div class="section">
-<h3 id="eval-1"><code><a id="OoprCompletion-OoprCompletionRStudio-eval" style="display:block;position:relative;top:-40px;"></a></code><hr>eval<a class="anchor" aria-label="anchor" href="#eval-1"></a></h3>
+<h3 id="eval-1"><code class="command"><a id="OoprCompletion-OoprCompletionRStudio-eval" style="display:block;position:relative;top:-40px;"></a></code><hr>eval<a class="anchor" aria-label="anchor" href="#eval-1"></a></h3>
 
 <div class="section">
 <h4 id="description-11">Description<a class="anchor" aria-label="anchor" href="#description-11"></a></h4>
@@ -621,20 +621,20 @@ object, which then fires the <code>names</code> method below. The evaluation con
 <div class="section">
 <h3 id="fields-2">Fields<a class="anchor" aria-label="anchor" href="#fields-2"></a></h3>
 
-<dl><dt><code>isCompleting</code></dt>
+<dl><dt><code class="command">isCompleting</code></dt>
 <dd><p><em><code>[read-only]</code></em> <em><code>[static]</code></em> <br><code>logical(1L)</code> <br>
 Whether completion is currently in place. This will
 skip over each <code>$</code> call in the evaluation context.</p></dd>
 
 
-<dt><code>isGettingNames</code></dt>
+<dt><code class="command">isGettingNames</code></dt>
 <dd><p><em><code>[static]</code></em> <br><code>logical(1L)</code> <br>
 Whether names of an <code>ooprC</code> are being saught.
 This is used from <code>.DollarNames.ooprC</code> to provide
 more than just public static members.</p></dd>
 
 
-<dt><code>source</code></dt>
+<dt><code class="command">source</code></dt>
 <dd><p><em><code>[static]</code></em> <br><code>OoprCompletionSource</code> <br>
 A instanced class advising whether completion is being
 sought.</p></dd>
@@ -645,22 +645,22 @@ sought.</p></dd>
 <div class="section">
 <h3 id="methods-2">Methods<a class="anchor" aria-label="anchor" href="#methods-2"></a></h3>
 
-<dl><dt><code><a href="#OoprCompletion-OoprCompletion-isCompletion">isCompletion</a></code></dt>
+<dl><dt><code class="command"><a href="#OoprCompletion-OoprCompletion-isCompletion">isCompletion</a></code></dt>
 <dd><p>Is completion being sought?</p></dd>
 
 
-<dt><code><a href="#OoprCompletion-OoprCompletion-names">names</a></code></dt>
+<dt><code class="command"><a href="#OoprCompletion-OoprCompletion-names">names</a></code></dt>
 <dd><p>Get the dollar names of the completion context.</p></dd>
 
 
-<dt><code><a href="#OoprCompletion-OoprCompletion-obj">obj</a></code></dt>
+<dt><code class="command"><a href="#OoprCompletion-OoprCompletion-obj">obj</a></code></dt>
 <dd><p>Get the object of the completion context.</p></dd>
 
 
 </dl></div>
 
 <div class="section">
-<h3 id="iscompletion"><code><a id="OoprCompletion-OoprCompletion-isCompletion" style="display:block;position:relative;top:-40px;"></a></code><hr>isCompletion<a class="anchor" aria-label="anchor" href="#iscompletion"></a></h3>
+<h3 id="iscompletion"><code class="command"><a id="OoprCompletion-OoprCompletion-isCompletion" style="display:block;position:relative;top:-40px;"></a></code><hr>isCompletion<a class="anchor" aria-label="anchor" href="#iscompletion"></a></h3>
 
 <div class="section">
 <h4 id="description-13">Description<a class="anchor" aria-label="anchor" href="#description-13"></a></h4>
@@ -687,7 +687,7 @@ are within a completion context. If so, then the file is parsed,
 </div>
 
 <div class="section">
-<h3 id="names"><code><a id="OoprCompletion-OoprCompletion-names" style="display:block;position:relative;top:-40px;"></a></code><hr>names<a class="anchor" aria-label="anchor" href="#names"></a></h3>
+<h3 id="names"><code class="command"><a id="OoprCompletion-OoprCompletion-names" style="display:block;position:relative;top:-40px;"></a></code><hr>names<a class="anchor" aria-label="anchor" href="#names"></a></h3>
 
 <div class="section">
 <h4 id="description-14">Description<a class="anchor" aria-label="anchor" href="#description-14"></a></h4>
@@ -707,7 +707,7 @@ are within a completion context. If so, then the file is parsed,
 </div>
 
 <div class="section">
-<h3 id="obj"><code><a id="OoprCompletion-OoprCompletion-obj" style="display:block;position:relative;top:-40px;"></a></code><hr>obj<a class="anchor" aria-label="anchor" href="#obj"></a></h3>
+<h3 id="obj"><code class="command"><a id="OoprCompletion-OoprCompletion-obj" style="display:block;position:relative;top:-40px;"></a></code><hr>obj<a class="anchor" aria-label="anchor" href="#obj"></a></h3>
 
 <div class="section">
 <h4 id="description-15">Description<a class="anchor" aria-label="anchor" href="#description-15"></a></h4>
@@ -751,22 +751,22 @@ methods to access specific information.</p>
 <div class="section">
 <h3 id="fields-3">Fields<a class="anchor" aria-label="anchor" href="#fields-3"></a></h3>
 
-<dl><dt><code>topic</code></dt>
+<dl><dt><code class="command">topic</code></dt>
 <dd><p><code>character(1L)</code> <br>
 The class name.</p></dd>
 
 
-<dt><code>package</code></dt>
+<dt><code class="command">package</code></dt>
 <dd><p><code>character(1L)</code> <br>
 The package that the class lives in.</p></dd>
 
 
-<dt><code>rd</code></dt>
+<dt><code class="command">rd</code></dt>
 <dd><p><code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code> <br>
 The parsed <code>Rd</code>.</p></dd>
 
 
-<dt><code>fail</code></dt>
+<dt><code class="command">fail</code></dt>
 <dd><p><code>logical(1L)</code> <br>
 Whether the Rd was found and parsed at construction.</p></dd>
 
@@ -776,22 +776,22 @@ Whether the Rd was found and parsed at construction.</p></dd>
 <div class="section">
 <h3 id="methods-3">Methods<a class="anchor" aria-label="anchor" href="#methods-3"></a></h3>
 
-<dl><dt><code><a href="#OoprCompletion-OoprRd-getDescription">getDescription</a></code></dt>
+<dl><dt><code class="command"><a href="#OoprCompletion-OoprRd-getDescription">getDescription</a></code></dt>
 <dd><p>Get the description of a field or method.</p></dd>
 
 
-<dt><code><a href="#OoprCompletion-OoprRd-getMethod">getMethod</a></code></dt>
+<dt><code class="command"><a href="#OoprCompletion-OoprRd-getMethod">getMethod</a></code></dt>
 <dd><p>Get the subsection of a method.</p></dd>
 
 
-<dt><code><a href="#OoprCompletion-OoprRd-getArguments">getArguments</a></code></dt>
+<dt><code class="command"><a href="#OoprCompletion-OoprRd-getArguments">getArguments</a></code></dt>
 <dd><p>Get the arguments of a method.</p></dd>
 
 
 </dl></div>
 
 <div class="section">
-<h3 id="getdescription"><code><a id="OoprCompletion-OoprRd-getDescription" style="display:block;position:relative;top:-40px;"></a></code><hr>getDescription<a class="anchor" aria-label="anchor" href="#getdescription"></a></h3>
+<h3 id="getdescription"><code class="command"><a id="OoprCompletion-OoprRd-getDescription" style="display:block;position:relative;top:-40px;"></a></code><hr>getDescription<a class="anchor" aria-label="anchor" href="#getdescription"></a></h3>
 
 <div class="section">
 <h4 id="description-17">Description<a class="anchor" aria-label="anchor" href="#description-17"></a></h4>
@@ -822,7 +822,7 @@ Whether to to output as HTML, otherwise <code>Rd</code>.</td></tr></table></div>
 </div>
 
 <div class="section">
-<h3 id="getmethod"><code><a id="OoprCompletion-OoprRd-getMethod" style="display:block;position:relative;top:-40px;"></a></code><hr>getMethod<a class="anchor" aria-label="anchor" href="#getmethod"></a></h3>
+<h3 id="getmethod"><code class="command"><a id="OoprCompletion-OoprRd-getMethod" style="display:block;position:relative;top:-40px;"></a></code><hr>getMethod<a class="anchor" aria-label="anchor" href="#getmethod"></a></h3>
 
 <div class="section">
 <h4 id="description-18">Description<a class="anchor" aria-label="anchor" href="#description-18"></a></h4>
@@ -853,7 +853,7 @@ Whether to to output as HTML, otherwise <code>Rd</code>.</td></tr></table></div>
 </div>
 
 <div class="section">
-<h3 id="getarguments"><code><a id="OoprCompletion-OoprRd-getArguments" style="display:block;position:relative;top:-40px;"></a></code><hr>getArguments<a class="anchor" aria-label="anchor" href="#getarguments"></a></h3>
+<h3 id="getarguments"><code class="command"><a id="OoprCompletion-OoprRd-getArguments" style="display:block;position:relative;top:-40px;"></a></code><hr>getArguments<a class="anchor" aria-label="anchor" href="#getarguments"></a></h3>
 
 <div class="section">
 <h4 id="description-19">Description<a class="anchor" aria-label="anchor" href="#description-19"></a></h4>

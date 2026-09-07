@@ -21,11 +21,13 @@ OoprMap(ooprC)
 
 - [`OoprVec`](#oopr_containers-OoprVec):
 
+  *`[public]`*  
   *`[4 fields]`* *`[8 methods]`*  
   A vector/array, where the container is indexed by an integer position.
 
 - [`OoprMap`](#oopr_containers-OoprMap):
 
+  *`[public]`*  
   *`[5 fields]`* *`[8 methods]`*  
   A map, where the container is indexed by a string, i.e. key-value
   pair.
@@ -582,8 +584,9 @@ Can be used to set members of classes within the container, e.g.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 oopr("test",,
 {
-test <- \(x) { this$x <- x; }
-public:x <- 0L;
+public:
+  test <- \(x) { this$x <- x; }
+  x    <- 0L;
 })
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 # create a vector
@@ -596,14 +599,14 @@ vec$emplace(, 1L);
 vec$insert(0L, test(2L));
 
 print(vec);
-#> <OoprVec: 0x55aac38938f8>
+#> <OoprVec: 0x55b2fc2512c0>
 #>  ├─$class  : chr "test"
 #>  ├─$empty  : logi FALSE
 #>  ├─$size   : int 2
 #>  ├─$data   :List of 2
-#>  │           $:<test: 0x55aac37c1a88>
+#>  │           $:<test: 0x55b2fc2d5580>
 #>  │            ..└─$x: int 2
-#>  │           $:<test: 0x55aac381ba00>
+#>  │           $:<test: 0x55b2fc2903b8>
 #>  │            ..└─$x: int 1
 #>  ├─$insert :\(pos = this$size, x)  
 #>  ├─$emplace:\(. = this$size, x)  
@@ -617,14 +620,14 @@ print(vec);
 # $swap will swap elements
 vec$swap(2L, 1L);
 print(vec);
-#> <OoprVec: 0x55aac38938f8>
+#> <OoprVec: 0x55b2fc2512c0>
 #>  ├─$class  : chr "test"
 #>  ├─$empty  : logi FALSE
 #>  ├─$size   : int 2
 #>  ├─$data   :List of 2
-#>  │           $:<test: 0x55aac381ba00>
+#>  │           $:<test: 0x55b2fc2903b8>
 #>  │            ..└─$x: int 1
-#>  │           $:<test: 0x55aac37c1a88>
+#>  │           $:<test: 0x55b2fc2d5580>
 #>  │            ..└─$x: int 2
 #>  ├─$insert :\(pos = this$size, x)  
 #>  ├─$emplace:\(. = this$size, x)  
@@ -655,15 +658,15 @@ vec$apply(\(x) { x$x; })
 map <- OoprMap(test);
 map$emplace("a", "a")$emplace("b", "b");
 print(map);
-#> <OoprMap: 0x55aac8de3138>
+#> <OoprMap: 0x55b2fceb2620>
 #>  ├─$class  : chr "test"
 #>  ├─$empty  : logi FALSE
 #>  ├─$size   : int 2
 #>  ├─$keys   : chr [1:2] "a" "b"
 #>  ├─$data   :List of 2
-#>  │           $a:<test: 0x55aac887ea58>
+#>  │           $a:<test: 0x55b2fcee1a88>
 #>  │            ..└─$x: chr "a"
-#>  │           $b:<test: 0x55aac8881ef8>
+#>  │           $b:<test: 0x55b2fcee4eb8>
 #>  │            ..└─$x: chr "b"
 #>  ├─$exists :\(key)  
 #>  ├─$insert :\(key, x)  

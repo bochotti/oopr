@@ -11,7 +11,7 @@ OoprBreakpointsClass(ooprC)
 
 OoprBreakpointsFile(file, env)
 
-OoprBreakpoints()
+OoprBreakpoints
 ```
 
 ## Arguments
@@ -41,21 +41,25 @@ OoprBreakpoints()
 
 - [`OoprBreakpointsFunction`](#OoprBreakpoints-OoprBreakpointsFunction):
 
+  *`[public]`*  
   *`[7 fields]`* *`[4 methods]`*  
   Represents a function object inside a class.
 
 - [`OoprBreakpointsClass`](#OoprBreakpoints-OoprBreakpointsClass):
 
+  *`[public]`*  
   *`[3 fields]`* *`[4 methods]`*  
   Represents a class inside a file.
 
 - [`OoprBreakpointsFile`](#OoprBreakpoints-OoprBreakpointsFile):
 
+  *`[public]`*  
   *`[3 fields]`* *`[5 methods]`*  
   Represents a source file that contains `oopr` classes.
 
 - [`OoprBreakpoints`](#OoprBreakpoints-OoprBreakpoints):
 
+  *`[private]`*  
   *`[1 field]`* *`[5 methods]`*  
   The controller of the breakpoints. Process of setting a breakpoint is:
 

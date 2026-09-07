@@ -85,19 +85,19 @@ For more information on specifiers see `...`.
 oopr("Human",,
 {
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-Human <- \(first, last, age)
-{
-  stopifnot(
-    this$isScalar("character", first)
-   ,this$isScalar("character", last)
-   ,this$isScalar("integer"  , age)
-  );
-  this$first_ <- first;
-  this$last_  <- last;
-  this$age_   <- age;
-}
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 public:
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  Human <- \(first, last, age)
+  {
+    stopifnot(
+      this$isScalar("character", first)
+     ,this$isScalar("character", last)
+     ,this$isScalar("integer"  , age)
+    );
+    this$first_ <- first;
+    this$last_  <- last;
+    this$age_   <- age;
+  }
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   get:name <- \( )
   {
@@ -134,7 +134,7 @@ private:
 
 john <- Human("john", "smith", 50L);
 print(john);
-#> <Human: 0x55aac72e1cd0>
+#> <Human: 0x55b2fc53e370>
 #>  ├─$name : chr "john smith"
 #>  └─$greet:\()  
 john$greet();

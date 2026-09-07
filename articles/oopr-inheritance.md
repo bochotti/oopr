@@ -72,7 +72,7 @@ S3 class list.
 
 # Inherits private by default
 print(obj)
-#> <InheritanceExample: 0x559a2c296e28>
+#> <InheritanceExample: 0x56394db7cd48>
 #>  └─$speak:\()
 
 # Inherit as public
@@ -85,7 +85,7 @@ obj <- InheritanceExample();
 
 # Base public members are visible
 print(obj);
-#> <InheritanceExample: 0x559a2db24870>
+#> <InheritanceExample: 0x56394cb6abd0>
 #>  ├─$speak:\()  
 #>  └─$shout:\()
 
@@ -112,6 +112,8 @@ This has some implications:
     members cannot.
 3.  Inheriting a class privately will allow use of its members to the
     derived class, but hide them from further derived classes.
+
+Note that constructor and destructor methods are never inherited.
 
 ## Redefining Base Members
 
@@ -148,7 +150,7 @@ public:
 # only one method
 obj <- Derived();
 print(obj);
-#> <Derived: 0x559a2ee98e88>
+#> <Derived: 0x56394fcb7218>
 #>  └─$method:\()
 
 # which calls the base class
@@ -275,12 +277,9 @@ initialized in the derived class[^2].
 # base class with constructor method
 oopr("Base",,
 {
-Base <- \(x)
-{
-  this$x <- x;
-}
 public:
-  x <- integer(1L);
+  Base <- \(x) { this$x <- x; }
+  x    <- integer(1L);
 })
 
 # unable to create the derived class
@@ -299,16 +298,14 @@ customer method:
 # call Base(...)
 oopr("Derived", public:Base, 
 {
-Derived <- \(x)
-{
-  Base(x);
-}
+public:
+  Derived <- \(x) { Base(x); }
 })
 
 # success
 obj <- Derived(1L);
 print(obj);
-#> <Derived: 0x559a30f79ea0>
+#> <Derived: 0x563951c6f248>
 #>  └─$x: int 1
 ```
 
@@ -318,14 +315,15 @@ constructed:
 ``` r
 
 # cannot access `x` before Base(...)
-oopr("Derived", public:Base, 
+oopr("Derived", public:Base,
 {
-Derived <- \(x)
-{
-  print(Base$x); # <- neither Base$
-  print(this$x); # <- nor this$
-  Base(x);
-}
+public:
+  Derived <- \(x)
+  {
+    print(Base$x); # <- neither Base$
+    print(this$x); # <- nor this$
+    Base(x);
+  }
 })
 #>   Constructor method `Derived` is using an inherited member `Base$x`
 #>   prior to initializing the inherited class `Base`.
@@ -334,6 +332,31 @@ Derived <- \(x)
 #>   prior to initializing the inherited class `Base`.
 #> Error in `oopr()`:
 #> ! Compilation errors
+```
+
+### Protected Constructor
+
+To ensure that a class can only be constructed as a base class, mark its
+constructor method as `protected:`:
+
+``` r
+
+# protected constructor
+oopr("Base",,
+{
+protected:
+  Base <- \( ) { }
+})
+
+# not allowed
+Base();
+#> Error in `Base()`:
+#> ! Base constructor is protected
+
+# allowed
+oopr("Derived", Base, { })
+Derived();
+#> <Derived: 0x5639502835b0>
 ```
 
 [^1]: As R is not type safe, just the argument names apply, not the

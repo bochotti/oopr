@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">oopr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -127,7 +127,7 @@ derived instance S3 class list.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Inherits private by default</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span></span>
-<span><span class="co">#&gt; &lt;InheritanceExample: 0x559a2c296e28&gt;</span></span>
+<span><span class="co">#&gt; &lt;InheritanceExample: 0x56394db7cd48&gt;</span></span>
 <span><span class="co">#&gt;  └─$speak:\()</span></span>
 <span></span>
 <span><span class="co"># Inherit as public</span></span>
@@ -140,7 +140,7 @@ derived instance S3 class list.</p>
 <span></span>
 <span><span class="co"># Base public members are visible</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span>;</span>
-<span><span class="co">#&gt; &lt;InheritanceExample: 0x559a2db24870&gt;</span></span>
+<span><span class="co">#&gt; &lt;InheritanceExample: 0x56394cb6abd0&gt;</span></span>
 <span><span class="co">#&gt;  ├─$speak:\()  </span></span>
 <span><span class="co">#&gt;  └─$shout:\()</span></span>
 <span></span>
@@ -187,6 +187,7 @@ members cannot.</li>
 <li>Inheriting a class privately will allow use of its members to the
 derived class, but hide them from further derived classes.</li>
 </ol>
+<p>Note that constructor and destructor methods are never inherited.</p>
 </div>
 <div class="section level2">
 <h2 id="redefining-base-members">Redefining Base Members<a class="anchor" aria-label="anchor" href="#redefining-base-members"></a>
@@ -216,7 +217,7 @@ class methods via <code>base$</code> instead of <code>this$</code>:</p>
 <code class="sourceCode R"><span><span class="co"># only one method</span></span>
 <span><span class="va">obj</span> <span class="op">&lt;-</span> <span class="fu">Derived</span><span class="op">(</span><span class="op">)</span>;</span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span>;</span>
-<span><span class="co">#&gt; &lt;Derived: 0x559a2ee98e88&gt;</span></span>
+<span><span class="co">#&gt; &lt;Derived: 0x56394fcb7218&gt;</span></span>
 <span><span class="co">#&gt;  └─$method:\()</span></span>
 <span></span>
 <span><span class="co"># which calls the base class</span></span>
@@ -319,12 +320,9 @@ arguments, or all arguments have a default value.&lt;/p&gt;"><sup>2</sup></a>.</
 <code class="sourceCode R"><span><span class="co"># base class with constructor method</span></span>
 <span><span class="fu"><a href="../reference/oopr.html">oopr</a></span><span class="op">(</span><span class="st">"Base"</span>,,</span>
 <span><span class="op">{</span></span>
-<span><span class="va">Base</span> <span class="op">&lt;-</span> \<span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
-<span><span class="op">{</span></span>
-<span>  <span class="va">this</span><span class="op">$</span><span class="va">x</span> <span class="op">&lt;-</span> <span class="va">x</span>;</span>
-<span><span class="op">}</span></span>
 <span><span class="va">public</span><span class="op">:</span></span>
-<span>  <span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">integer</a></span><span class="op">(</span><span class="fl">1L</span><span class="op">)</span>;</span>
+<span>  <span class="va">Base</span> <span class="op">&lt;-</span> \<span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span> <span class="va">this</span><span class="op">$</span><span class="va">x</span> <span class="op">&lt;-</span> <span class="va">x</span>; <span class="op">}</span></span>
+<span>  <span class="va">x</span>    <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">integer</a></span><span class="op">(</span><span class="fl">1L</span><span class="op">)</span>;</span>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># unable to create the derived class</span></span>
@@ -339,29 +337,28 @@ derived customer method:</p>
 <code class="sourceCode R"><span><span class="co"># call Base(...)</span></span>
 <span><span class="fu"><a href="../reference/oopr.html">oopr</a></span><span class="op">(</span><span class="st">"Derived"</span>, <span class="va">public</span><span class="op">:</span><span class="va">Base</span>, </span>
 <span><span class="op">{</span></span>
-<span><span class="va">Derived</span> <span class="op">&lt;-</span> \<span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
-<span><span class="op">{</span></span>
-<span>  <span class="fu">Base</span><span class="op">(</span><span class="va">x</span><span class="op">)</span>;</span>
-<span><span class="op">}</span></span>
+<span><span class="va">public</span><span class="op">:</span></span>
+<span>  <span class="va">Derived</span> <span class="op">&lt;-</span> \<span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span> <span class="fu">Base</span><span class="op">(</span><span class="va">x</span><span class="op">)</span>; <span class="op">}</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># success</span></span>
 <span><span class="va">obj</span> <span class="op">&lt;-</span> <span class="fu">Derived</span><span class="op">(</span><span class="fl">1L</span><span class="op">)</span>;</span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span>;</span>
-<span><span class="co">#&gt; &lt;Derived: 0x559a30f79ea0&gt;</span></span>
+<span><span class="co">#&gt; &lt;Derived: 0x563951c6f248&gt;</span></span>
 <span><span class="co">#&gt;  └─$x: int 1</span></span></code></pre></div>
 <p>Note that base class members cannot be accessed until they are
 constructed:</p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># cannot access `x` before Base(...)</span></span>
-<span><span class="fu"><a href="../reference/oopr.html">oopr</a></span><span class="op">(</span><span class="st">"Derived"</span>, <span class="va">public</span><span class="op">:</span><span class="va">Base</span>, </span>
+<span><span class="fu"><a href="../reference/oopr.html">oopr</a></span><span class="op">(</span><span class="st">"Derived"</span>, <span class="va">public</span><span class="op">:</span><span class="va">Base</span>,</span>
 <span><span class="op">{</span></span>
-<span><span class="va">Derived</span> <span class="op">&lt;-</span> \<span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
-<span><span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">Base</span><span class="op">$</span><span class="va">x</span><span class="op">)</span>; <span class="co"># &lt;- neither Base$</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">this</span><span class="op">$</span><span class="va">x</span><span class="op">)</span>; <span class="co"># &lt;- nor this$</span></span>
-<span>  <span class="fu">Base</span><span class="op">(</span><span class="va">x</span><span class="op">)</span>;</span>
-<span><span class="op">}</span></span>
+<span><span class="va">public</span><span class="op">:</span></span>
+<span>  <span class="va">Derived</span> <span class="op">&lt;-</span> \<span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
+<span>  <span class="op">{</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">Base</span><span class="op">$</span><span class="va">x</span><span class="op">)</span>; <span class="co"># &lt;- neither Base$</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">this</span><span class="op">$</span><span class="va">x</span><span class="op">)</span>; <span class="co"># &lt;- nor this$</span></span>
+<span>    <span class="fu">Base</span><span class="op">(</span><span class="va">x</span><span class="op">)</span>;</span>
+<span>  <span class="op">}</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   Constructor method `Derived` is using an inherited member `Base$x`</span></span>
 <span><span class="co">#&gt;   prior to initializing the inherited class `Base`.</span></span>
@@ -370,6 +367,29 @@ constructed:</p>
 <span><span class="co">#&gt;   prior to initializing the inherited class `Base`.</span></span>
 <span><span class="co">#&gt; <span style="color: #BBBB00; font-weight: bold;">Error</span><span style="font-weight: bold;"> in `oopr()`:</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> Compilation errors</span></span></code></pre></div>
+<div class="section level3">
+<h3 id="protected-constructor">Protected Constructor<a class="anchor" aria-label="anchor" href="#protected-constructor"></a>
+</h3>
+<p>To ensure that a class can only be constructed as a base class, mark
+its constructor method as <code>protected:</code>:</p>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># protected constructor</span></span>
+<span><span class="fu"><a href="../reference/oopr.html">oopr</a></span><span class="op">(</span><span class="st">"Base"</span>,,</span>
+<span><span class="op">{</span></span>
+<span><span class="va">protected</span><span class="op">:</span></span>
+<span>  <span class="va">Base</span> <span class="op">&lt;-</span> \<span class="op">(</span> <span class="op">)</span> <span class="op">{</span> <span class="op">}</span></span>
+<span><span class="op">}</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># not allowed</span></span>
+<span><span class="fu">Base</span><span class="op">(</span><span class="op">)</span>;</span>
+<span><span class="co">#&gt; <span style="color: #BBBB00; font-weight: bold;">Error</span><span style="font-weight: bold;"> in `Base()`:</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> Base constructor is protected</span></span>
+<span></span>
+<span><span class="co"># allowed</span></span>
+<span><span class="fu"><a href="../reference/oopr.html">oopr</a></span><span class="op">(</span><span class="st">"Derived"</span>, <span class="va">Base</span>, <span class="op">{</span> <span class="op">}</span><span class="op">)</span></span>
+<span><span class="fu">Derived</span><span class="op">(</span><span class="op">)</span>;</span>
+<span><span class="co">#&gt; &lt;Derived: 0x5639502835b0&gt;</span></span></code></pre></div>
+</div>
 </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

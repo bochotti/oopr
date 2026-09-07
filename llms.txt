@@ -41,19 +41,19 @@ See
 oopr("Human",,
 {
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-Human <- \(first, last, age)
-{
-  stopifnot(
-    this$isScalar("character", first)
-   ,this$isScalar("character", last)
-   ,this$isScalar("integer"  , age)
-  );
-  this$first_ <- first;
-  this$last_  <- last;
-  this$age_   <- age;
-}
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 public:
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  Human <- \(first, last, age)
+  {
+    stopifnot(
+      this$isScalar("character", first)
+     ,this$isScalar("character", last)
+     ,this$isScalar("integer"  , age)
+    );
+    this$first_ <- first;
+    this$last_  <- last;
+    this$age_   <- age;
+  }
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   get:name <- \( )
   {
@@ -90,7 +90,7 @@ private:
 
 john <- Human("john", "smith", 50L);
 print(john);
-#> <Human: 0x6103bc3ecb58>
+#> <Human: 0x6090ab0843e8>
 #>  ├─$name : chr "john smith"
 #>  └─$greet:\()
 john$greet();

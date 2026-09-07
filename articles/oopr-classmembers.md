@@ -26,8 +26,8 @@ public:
 
 obj <- ClassMemExample();
 print(obj);
-#> <ClassMemExample: 0x560a4823e2c8>
-#>  └─$mem:<MemberClass: 0x560a4823e840>
+#> <ClassMemExample: 0x5565644acc08>
+#>  └─$mem:<MemberClass: 0x5565644ad340>
 #>          └─$x: int 1
 ```
 
@@ -43,15 +43,15 @@ and `[[]]` uses
 
 oopr("ClassMemExample",,
 {
-ClassMemExample <- \( )
-{
-  for(i in 1:3)
-  {
-    this$mem$emplace();
-    this$mem[i]$x <- i;
-  }
-}
 public:
+  ClassMemExample <- \( )
+  {
+    for(i in 1:3)
+    {
+      this$mem$emplace();
+      this$mem[i]$x <- i;
+    }
+  }
   mem <- MemberClass[]; # <- use of []
 })
 ```
@@ -60,17 +60,17 @@ public:
 
 obj <- ClassMemExample();
 print(obj);
-#> <ClassMemExample: 0x560a431f9a10>
-#>  └─$mem:<OoprVec: 0x560a43288ca0>
+#> <ClassMemExample: 0x55655fb73b38>
+#>  └─$mem:<OoprVec: 0x55655fbac0c0>
 #>          ├─$class  : chr "MemberClass"
 #>          ├─$empty  : logi FALSE
 #>          ├─$size   : int 3
 #>          ├─$data   :List of 3
-#>          │           $:<MemberClass: 0x560a4327fc28>
+#>          │           $:<MemberClass: 0x55655fba8c90>
 #>          │            ..└─$x: int 1
-#>          │           $:<MemberClass: 0x560a4323fbe0>
+#>          │           $:<MemberClass: 0x55655fb908d8>
 #>          │            ..└─$x: int 2
-#>          │           $:<MemberClass: 0x560a43225d68>
+#>          │           $:<MemberClass: 0x55655fb7e360>
 #>          │            ..└─$x: int 3
 #>          ├─$insert :\(pos = this$size, x)  
 #>          ├─$emplace:\(. = this$size)  
@@ -96,8 +96,9 @@ If the member is specified as `static:`, then 2. is the only option.
 
 oopr("MemberClass",, 
 { 
-MemberClass <- \(x) { this$x <- x; }
-public:x    <- 1L; 
+public:
+  MemberClass <- \(x) { this$x <- x; }
+  x <- 1L; 
 })
 
 # not allowed, needs constructing
@@ -117,11 +118,11 @@ public:
 # both approaches
 oopr("ClassMemExample",,
 {
-ClassMemExample <- \( )
-{
-  this$mem1(1L);           # <- args given in constructor
-}
 public:
+  ClassMemExample <- \( )
+  {
+    this$mem1(1L);         # <- args given in constructor
+  }
   mem1 <- MemberClass;
   mem2 <- MemberClass(2L); # <- args given in-line
 })
@@ -131,9 +132,9 @@ public:
 
 obj <- ClassMemExample();
 print(obj);
-#> <ClassMemExample: 0x560a45f16720>
-#>  ├─$mem1:<MemberClass: 0x560a45f16c28>
+#> <ClassMemExample: 0x5565620ca958>
+#>  ├─$mem1:<MemberClass: 0x5565620cb020>
 #>  │        └─$x: int 1
-#>  └─$mem2:<MemberClass: 0x560a45f14ec8>
+#>  └─$mem2:<MemberClass: 0x5565620c98a8>
 #>           └─$x: int 2
 ```

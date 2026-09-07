@@ -13,6 +13,7 @@ OoprCovr()
 
 - [`OoprCovr`](#oopr_covr-OoprCovr):
 
+  *`[public]`*  
   *`[0 fields]`* *`[1 method]`*
 
 ## Details

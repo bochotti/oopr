@@ -14,15 +14,33 @@ which creates a roxy block containing sections for each class.
 ``` r
 OoprRoxy()
 
-OoprRoxySection(title = "", content = character(0L), hr = FALSE, pfx = "")
+OoprRoxySection(
+  title   = ""
+ ,content = character(0L)
+ ,hr      = FALSE
+ ,rf      = ""
+)
 
-OoprRoxyDescribe(title = "Fields", hr = FALSE)
+OoprRoxyDescribe(
+  title = "Fields"
+ ,hr    = FALSE
+)
 
-OoprRoxyUsage(content = character(0L), name = "")
+OoprRoxyUsage(
+  content = character(0L)
+ ,name    = ""
+)
 
 OoprRoxyArguments(args = list())
 
-OoprRoxyMethod(title, tags, fun, warn = TRUE, hr = TRUE, pfx = "")
+OoprRoxyMethod(
+  title
+ ,tags 
+ ,fun  
+ ,warn  = TRUE
+ ,hr    = TRUE
+ ,rf    = ""
+)
 
 OoprRoxyClass(block)
 ```
@@ -44,7 +62,7 @@ OoprRoxyClass(block)
   `logical(1L)`  
   Whether to add horizontal line to section heading.
 
-- pfx:
+- rf:
 
   `character(1L)`  
   To add a hyperref.
@@ -79,32 +97,38 @@ OoprRoxyClass(block)
 
 - [`OoprRoxySection`](#OoprRoxy-OoprRoxySection):
 
+  *`[public]`*  
   *`[3 fields]`* *`[4 methods]`*  
   Create a subsection.
 
 - [`OoprRoxyDescribe`](#OoprRoxy-OoprRoxyDescribe):
 
+  *`[public]`*  
   *`[4 fields]`* *`[3 methods]`*  
   Represents a describe subsection.
 
 - [`OoprRoxyUsage`](#OoprRoxy-OoprRoxyUsage):
 
+  *`[public]`*  
   *`[3 fields]`* *`[3 methods]`*  
   Represents a usage subsection.
 
 - [`OoprRoxyArguments`](#OoprRoxy-OoprRoxyArguments):
 
+  *`[public]`*  
   *`[4 fields]`* *`[3 methods]`*  
   Create an arguments subsection.
 
 - [`OoprRoxyMethod`](#OoprRoxy-OoprRoxyMethod):
 
+  *`[public]`*  
   *`[6 fields]`* *`[3 methods]`*  
   Represents a method subsection.
 
 - [`OoprRoxyClass`](#OoprRoxy-OoprRoxyClass):
 
-  *`[5 fields]`* *`[4 methods]`*  
+  *`[public]`*  
+  *`[6 fields]`* *`[5 methods]`*  
   Represents a class section.
 
 ------------------------------------------------------------------------
@@ -751,6 +775,12 @@ Methods need to be called in order.
   `roxy_block`  
   A roxy block containing an `oopr` class.
 
+- `access`:
+
+  *`[read-only]`*  
+  `character(1L)`  
+  Access specifier of the constructor method.
+
 - `members`:
 
   *`[read-only]`*  
@@ -771,6 +801,10 @@ Methods need to be called in order.
 
 ### Methods
 
+- [`makeUsage`](#OoprRoxy-OoprRoxyClass-makeUsage):
+
+  Make usage section
+
 - [`makeSections`](#OoprRoxy-OoprRoxyClass-makeSections):
 
   Creates subsections for `@description` and `@details` tags.
@@ -787,6 +821,20 @@ Methods need to be called in order.
 - [`makeTag`](#OoprRoxy-OoprRoxyClass-makeTag):
 
   Places the class section under the blocks tags list
+
+------------------------------------------------------------------------
+
+makeUsage
+
+#### Description
+
+Make usage section
+
+#### Usage
+
+``` R
+makeUsage()
+```
 
 ------------------------------------------------------------------------
 

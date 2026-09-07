@@ -95,17 +95,18 @@ instance of a class. For example, allowing a user to provide initial
 values for members, or opening connections elsewhere.
 
 To define a constructor method, define a method with the same name as
-the class. Constructor methods can only be private, as they cannot be
-re-used after an instance is created.
+the class. Regardless of its access specifier, constructor methods
+cannot be used again after the instance is created.
 
 ``` r
 
 oopr("ConstructorExample",,
 {
-ConstructorExample <- \(x) 
-{
-  cat(sprintf("Constructing with x = %s\n", deparse1(x)));
-}
+public:
+  ConstructorExample <- \(x)
+  {
+    cat(sprintf("Constructing with x = %s\n", deparse1(x)));
+  }
 })
 ```
 
@@ -113,8 +114,33 @@ ConstructorExample <- \(x)
 
 ConstructorExample(2L);
 #> Constructing with x = 2L
-#> <ConstructorExample: 0x55e56a23b9b8>
+#> <ConstructorExample: 0x55713cad5f38>
 ```
+
+Private constructors stop users from being able to construct a class
+instance, this can be useful for `static:` only classes:
+
+``` r
+
+oopr("ConstructorExample",,
+{
+private:
+  ConstructorExample <- \(x)
+  {
+    cat(sprintf("Constructing with x = %s\n", deparse1(x)));
+  }
+})
+```
+
+``` r
+
+ConstructorExample()
+#> Error in `ConstructorExample()`:
+#> ! ConstructorExample constructor is private
+```
+
+For protected constructors, see
+[`vignette("oopr-inheritance")`](https://bochotti.github.io/oopr/articles/oopr-inheritance.md).
 
 ## Destructor
 
@@ -131,10 +157,11 @@ any arguments.
 
 oopr("DestructorExample",,
 {
-~DestructorExample <- \( )
-{
-  print("Destructing!");
-}
+public:
+  ~DestructorExample <- \( )
+  {
+    print("Destructing!");
+  }
 })
 ```
 

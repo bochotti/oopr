@@ -32,22 +32,26 @@ OoprCompletionHelp(topic, source, class, package)
 
 - [`OoprCompletionSource`](#OoprCompletion-OoprCompletionSource):
 
+  *`[public]`*  
   *`[10 fields]`* *`[5 methods]`*  
   A virtual class that can be inherited to use as a completion
   identifier.
 
 - [`OoprCompletionRStudio`](#OoprCompletion-OoprCompletionRStudio):
 
+  *`[public]`*  
   *`[10 fields]`* *`[5 methods]`*  
   Use completion in RStudio.
 
 - [`OoprCompletion`](#OoprCompletion-OoprCompletion):
 
+  *`[public]`*  
   *`[3 fields]`* *`[3 methods]`*  
   Use completion.
 
 - [`OoprRd`](#OoprCompletion-OoprRd):
 
+  *`[public]`*  
   *`[4 fields]`* *`[3 methods]`*  
   Read the Rd (documentation) of an `oopr` class.
 

@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">oopr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -130,19 +130,19 @@ A template of what the class looks like.</p></dd>
 <span class="r-in"><span><span class="fu">oopr</span><span class="op">(</span><span class="st">"Human"</span>,,</span></span>
 <span class="r-in"><span><span class="op">{</span></span></span>
 <span class="r-in"><span><span class="co">## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##</span></span></span>
-<span class="r-in"><span><span class="va">Human</span> <span class="op">&lt;-</span> \<span class="op">(</span><span class="va">first</span>, <span class="va">last</span>, <span class="va">age</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">{</span></span></span>
-<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>    <span class="va">this</span><span class="op">$</span><span class="fu">isScalar</span><span class="op">(</span><span class="st">"character"</span>, <span class="va">first</span><span class="op">)</span></span></span>
-<span class="r-in"><span>   ,<span class="va">this</span><span class="op">$</span><span class="fu">isScalar</span><span class="op">(</span><span class="st">"character"</span>, <span class="va">last</span><span class="op">)</span></span></span>
-<span class="r-in"><span>   ,<span class="va">this</span><span class="op">$</span><span class="fu">isScalar</span><span class="op">(</span><span class="st">"integer"</span>  , <span class="va">age</span><span class="op">)</span></span></span>
-<span class="r-in"><span>  <span class="op">)</span>;</span></span>
-<span class="r-in"><span>  <span class="va">this</span><span class="op">$</span><span class="va">first_</span> <span class="op">&lt;-</span> <span class="va">first</span>;</span></span>
-<span class="r-in"><span>  <span class="va">this</span><span class="op">$</span><span class="va">last_</span>  <span class="op">&lt;-</span> <span class="va">last</span>;</span></span>
-<span class="r-in"><span>  <span class="va">this</span><span class="op">$</span><span class="va">age_</span>   <span class="op">&lt;-</span> <span class="va">age</span>;</span></span>
-<span class="r-in"><span><span class="op">}</span></span></span>
-<span class="r-in"><span><span class="co">## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##</span></span></span>
 <span class="r-in"><span><span class="va">public</span><span class="op">:</span></span></span>
+<span class="r-in"><span>  <span class="co">## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##</span></span></span>
+<span class="r-in"><span>  <span class="va">Human</span> <span class="op">&lt;-</span> \<span class="op">(</span><span class="va">first</span>, <span class="va">last</span>, <span class="va">age</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="op">{</span></span></span>
+<span class="r-in"><span>    <span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>      <span class="va">this</span><span class="op">$</span><span class="fu">isScalar</span><span class="op">(</span><span class="st">"character"</span>, <span class="va">first</span><span class="op">)</span></span></span>
+<span class="r-in"><span>     ,<span class="va">this</span><span class="op">$</span><span class="fu">isScalar</span><span class="op">(</span><span class="st">"character"</span>, <span class="va">last</span><span class="op">)</span></span></span>
+<span class="r-in"><span>     ,<span class="va">this</span><span class="op">$</span><span class="fu">isScalar</span><span class="op">(</span><span class="st">"integer"</span>  , <span class="va">age</span><span class="op">)</span></span></span>
+<span class="r-in"><span>    <span class="op">)</span>;</span></span>
+<span class="r-in"><span>    <span class="va">this</span><span class="op">$</span><span class="va">first_</span> <span class="op">&lt;-</span> <span class="va">first</span>;</span></span>
+<span class="r-in"><span>    <span class="va">this</span><span class="op">$</span><span class="va">last_</span>  <span class="op">&lt;-</span> <span class="va">last</span>;</span></span>
+<span class="r-in"><span>    <span class="va">this</span><span class="op">$</span><span class="va">age_</span>   <span class="op">&lt;-</span> <span class="va">age</span>;</span></span>
+<span class="r-in"><span>  <span class="op">}</span></span></span>
 <span class="r-in"><span>  <span class="co">## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##</span></span></span>
 <span class="r-in"><span>  <span class="va">get</span><span class="op">:</span><span class="va">name</span> <span class="op">&lt;-</span> \<span class="op">(</span> <span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="op">{</span></span></span>
@@ -179,7 +179,7 @@ A template of what the class looks like.</p></dd>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">john</span> <span class="op">&lt;-</span> <span class="fu">Human</span><span class="op">(</span><span class="st">"john"</span>, <span class="st">"smith"</span>, <span class="fl">50L</span><span class="op">)</span>;</span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">john</span><span class="op">)</span>;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;Human: 0x55aac72e1cd0&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;Human: 0x55b2fc53e370&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  ├─$name : chr "john smith"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  └─$greet:\()  </span>
 <span class="r-in"><span><span class="va">john</span><span class="op">$</span><span class="fu">greet</span><span class="op">(</span><span class="op">)</span>;</span></span>

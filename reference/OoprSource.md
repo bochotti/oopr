@@ -7,18 +7,25 @@ Source files for oopr
 ``` r
 OoprSource()
 
-OoprSourceTry(file = NULL, text = NULL, row = NULL, col = NULL)
+OoprSourceTry(
+  file = NULL
+ ,text = NULL
+ ,row  = NULL
+ ,col  = NULL
+)
 ```
 
 ## Value
 
 - [`OoprSource`](#OoprSource-OoprSource):
 
+  *`[public]`*  
   *`[8 fields]`* *`[2 methods]`*  
   Takes a file and parses the oopr definitions inside it.
 
 - [`OoprSourceTry`](#OoprSource-OoprSourceTry):
 
+  *`[public]`*  
   *`[9 fields]`* *`[2 methods]`*  
   Tries to parse and evaluate a file containing ooprs, intended for
   completion.

@@ -19,7 +19,7 @@ Tidy up pdf
 
     <a class="navbar-brand me-2" href="../index.html">oopr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -65,15 +65,33 @@ which creates a roxy block containing sections for each class.</p>
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">OoprRoxy</span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">OoprRoxySection</span><span class="op">(</span>title <span class="op">=</span> <span class="st">""</span>, content <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0L</span><span class="op">)</span>, hr <span class="op">=</span> <span class="cn">FALSE</span>, pfx <span class="op">=</span> <span class="st">""</span><span class="op">)</span></span>
+<span><span class="fu">OoprRoxySection</span><span class="op">(</span></span>
+<span>  title   <span class="op">=</span> <span class="st">""</span></span>
+<span> ,content <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0L</span><span class="op">)</span></span>
+<span> ,hr      <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span> ,rf      <span class="op">=</span> <span class="st">""</span></span>
+<span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">OoprRoxyDescribe</span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Fields"</span>, hr <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="fu">OoprRoxyDescribe</span><span class="op">(</span></span>
+<span>  title <span class="op">=</span> <span class="st">"Fields"</span></span>
+<span> ,hr    <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">OoprRoxyUsage</span><span class="op">(</span>content <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0L</span><span class="op">)</span>, name <span class="op">=</span> <span class="st">""</span><span class="op">)</span></span>
+<span><span class="fu">OoprRoxyUsage</span><span class="op">(</span></span>
+<span>  content <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0L</span><span class="op">)</span></span>
+<span> ,name    <span class="op">=</span> <span class="st">""</span></span>
+<span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">OoprRoxyArguments</span><span class="op">(</span>args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">OoprRoxyMethod</span><span class="op">(</span><span class="va">title</span>, <span class="va">tags</span>, <span class="va">fun</span>, warn <span class="op">=</span> <span class="cn">TRUE</span>, hr <span class="op">=</span> <span class="cn">TRUE</span>, pfx <span class="op">=</span> <span class="st">""</span><span class="op">)</span></span>
+<span><span class="fu">OoprRoxyMethod</span><span class="op">(</span></span>
+<span>  <span class="va">title</span></span>
+<span> ,<span class="va">tags</span> </span>
+<span> ,<span class="va">fun</span>  </span>
+<span> ,warn  <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span> ,hr    <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span> ,rf    <span class="op">=</span> <span class="st">""</span></span>
+<span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">OoprRoxyClass</span><span class="op">(</span><span class="va">block</span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -97,7 +115,7 @@ Lines of the content for the section.</p></dd>
 Whether to add horizontal line to section heading.</p></dd>
 
 
-<dt id="arg-pfx">pfx<a class="anchor" aria-label="anchor" href="#arg-pfx"></a></dt>
+<dt id="arg-rf">rf<a class="anchor" aria-label="anchor" href="#arg-rf"></a></dt>
 <dd><p><code>character(1L)</code> <br>
 To add a hyperref.</p></dd>
 
@@ -133,33 +151,33 @@ A roxy block containing an <code>oopr</code> class.</p></dd>
 
 
 <p></p>
-<dl><dt><code><a href="#OoprRoxy-OoprRoxySection">OoprRoxySection</a></code></dt>
-<dd><p><em><code>[3 fields]</code></em> <em><code>[4 methods]</code></em><br>
+<dl><dt><code class="command"><a href="#OoprRoxy-OoprRoxySection">OoprRoxySection</a></code></dt>
+<dd><p><em><code>[public]</code></em><br><em><code>[3 fields]</code></em> <em><code>[4 methods]</code></em><br>
 Create a subsection.</p></dd>
 
 
-<dt><code><a href="#OoprRoxy-OoprRoxyDescribe">OoprRoxyDescribe</a></code></dt>
-<dd><p><em><code>[4 fields]</code></em> <em><code>[3 methods]</code></em><br>
+<dt><code class="command"><a href="#OoprRoxy-OoprRoxyDescribe">OoprRoxyDescribe</a></code></dt>
+<dd><p><em><code>[public]</code></em><br><em><code>[4 fields]</code></em> <em><code>[3 methods]</code></em><br>
 Represents a describe subsection.</p></dd>
 
 
-<dt><code><a href="#OoprRoxy-OoprRoxyUsage">OoprRoxyUsage</a></code></dt>
-<dd><p><em><code>[3 fields]</code></em> <em><code>[3 methods]</code></em><br>
+<dt><code class="command"><a href="#OoprRoxy-OoprRoxyUsage">OoprRoxyUsage</a></code></dt>
+<dd><p><em><code>[public]</code></em><br><em><code>[3 fields]</code></em> <em><code>[3 methods]</code></em><br>
 Represents a usage subsection.</p></dd>
 
 
-<dt><code><a href="#OoprRoxy-OoprRoxyArguments">OoprRoxyArguments</a></code></dt>
-<dd><p><em><code>[4 fields]</code></em> <em><code>[3 methods]</code></em><br>
+<dt><code class="command"><a href="#OoprRoxy-OoprRoxyArguments">OoprRoxyArguments</a></code></dt>
+<dd><p><em><code>[public]</code></em><br><em><code>[4 fields]</code></em> <em><code>[3 methods]</code></em><br>
 Create an arguments subsection.</p></dd>
 
 
-<dt><code><a href="#OoprRoxy-OoprRoxyMethod">OoprRoxyMethod</a></code></dt>
-<dd><p><em><code>[6 fields]</code></em> <em><code>[3 methods]</code></em><br>
+<dt><code class="command"><a href="#OoprRoxy-OoprRoxyMethod">OoprRoxyMethod</a></code></dt>
+<dd><p><em><code>[public]</code></em><br><em><code>[6 fields]</code></em> <em><code>[3 methods]</code></em><br>
 Represents a method subsection.</p></dd>
 
 
-<dt><code><a href="#OoprRoxy-OoprRoxyClass">OoprRoxyClass</a></code></dt>
-<dd><p><em><code>[5 fields]</code></em> <em><code>[4 methods]</code></em><br>
+<dt><code class="command"><a href="#OoprRoxy-OoprRoxyClass">OoprRoxyClass</a></code></dt>
+<dd><p><em><code>[public]</code></em><br><em><code>[6 fields]</code></em> <em><code>[5 methods]</code></em><br>
 Represents a class section.</p></dd>
 
 
@@ -176,17 +194,17 @@ Represents a class section.</p></dd>
 <div class="section">
 <h3 id="fields">Fields<a class="anchor" aria-label="anchor" href="#fields"></a></h3>
 
-<dl><dt><code>title</code></dt>
+<dl><dt><code class="command">title</code></dt>
 <dd><p><em><code>[read-only]</code></em> <br><code>character(1L)</code> <br>
 The title of the section.</p></dd>
 
 
-<dt><code>content</code></dt>
+<dt><code class="command">content</code></dt>
 <dd><p><em><code>[read-only]</code></em> <br><code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code> <br>
 Lines of the content for the section.</p></dd>
 
 
-<dt><code>size</code></dt>
+<dt><code class="command">size</code></dt>
 <dd><p><em><code>[read-only]</code></em> <br><code>integer(1L)</code> <br>
 The number of lines.</p></dd>
 
@@ -196,22 +214,22 @@ The number of lines.</p></dd>
 <div class="section">
 <h3 id="methods">Methods<a class="anchor" aria-label="anchor" href="#methods"></a></h3>
 
-<dl><dt><code><a href="#OoprRoxy-OoprRoxySection-insert">insert</a></code></dt>
+<dl><dt><code class="command"><a href="#OoprRoxy-OoprRoxySection-insert">insert</a></code></dt>
 <dd><p><em><code>[virtual]</code></em> <br>
 Insert a line into the section.</p></dd>
 
 
-<dt><code><a href="#OoprRoxy-OoprRoxySection-erase">erase</a></code></dt>
+<dt><code class="command"><a href="#OoprRoxy-OoprRoxySection-erase">erase</a></code></dt>
 <dd><p><em><code>[final]</code></em> <br>
 Remove all lines from the section.</p></dd>
 
 
-<dt><code><a href="#OoprRoxy-OoprRoxySection-toRd">toRd</a></code></dt>
+<dt><code class="command"><a href="#OoprRoxy-OoprRoxySection-toRd">toRd</a></code></dt>
 <dd><p><em><code>[final]</code></em> <br>
 Convert the section into Rd formatted text.</p></dd>
 
 
-<dt><code><a href="#OoprRoxy-OoprRoxySection-format">format</a></code></dt>
+<dt><code class="command"><a href="#OoprRoxy-OoprRoxySection-format">format</a></code></dt>
 <dd><p><em><code>[protected]</code></em> <em><code>[virtual]</code></em> <br>
 Convert <code>$content</code> into a format for use in <code>$toRd()</code>.</p></dd>
 
@@ -219,7 +237,7 @@ Convert <code>$content</code> into a format for use in <code>$toRd()</code>.</p>
 </dl></div>
 
 <div class="section">
-<h3 id="insert"><code><a id="OoprRoxy-OoprRoxySection-insert" style="display:block;position:relative;top:-40px;"></a></code><hr>insert<a class="anchor" aria-label="anchor" href="#insert"></a></h3>
+<h3 id="insert"><code class="command"><a id="OoprRoxy-OoprRoxySection-insert" style="display:block;position:relative;top:-40px;"></a></code><hr>insert<a class="anchor" aria-label="anchor" href="#insert"></a></h3>
 
 <div class="section">
 <h4 id="description-1">Description<a class="anchor" aria-label="anchor" href="#description-1"></a></h4>
@@ -245,7 +263,7 @@ The position to insert, must be the same length as <code>x</code>.</td></tr></ta
 </div>
 
 <div class="section">
-<h3 id="erase"><code><a id="OoprRoxy-OoprRoxySection-erase" style="display:block;position:relative;top:-40px;"></a></code><hr>erase<a class="anchor" aria-label="anchor" href="#erase"></a></h3>
+<h3 id="erase"><code class="command"><a id="OoprRoxy-OoprRoxySection-erase" style="display:block;position:relative;top:-40px;"></a></code><hr>erase<a class="anchor" aria-label="anchor" href="#erase"></a></h3>
 
 <div class="section">
 <h4 id="description-2">Description<a class="anchor" aria-label="anchor" href="#description-2"></a></h4>
@@ -265,7 +283,7 @@ The position to insert, must be the same length as <code>x</code>.</td></tr></ta
 </div>
 
 <div class="section">
-<h3 id="tord"><code><a id="OoprRoxy-OoprRoxySection-toRd" style="display:block;position:relative;top:-40px;"></a></code><hr>toRd<a class="anchor" aria-label="anchor" href="#tord"></a></h3>
+<h3 id="tord"><code class="command"><a id="OoprRoxy-OoprRoxySection-toRd" style="display:block;position:relative;top:-40px;"></a></code><hr>toRd<a class="anchor" aria-label="anchor" href="#tord"></a></h3>
 
 <div class="section">
 <h4 id="description-3">Description<a class="anchor" aria-label="anchor" href="#description-3"></a></h4>
@@ -290,7 +308,7 @@ The position to insert, must be the same length as <code>x</code>.</td></tr></ta
 </div>
 
 <div class="section">
-<h3 id="format"><code><a id="OoprRoxy-OoprRoxySection-format" style="display:block;position:relative;top:-40px;"></a></code><hr>format<a class="anchor" aria-label="anchor" href="#format"></a></h3>
+<h3 id="format"><code class="command"><a id="OoprRoxy-OoprRoxySection-format" style="display:block;position:relative;top:-40px;"></a></code><hr>format<a class="anchor" aria-label="anchor" href="#format"></a></h3>
 
 <div class="section">
 <h4 id="description-4">Description<a class="anchor" aria-label="anchor" href="#description-4"></a></h4>
@@ -322,22 +340,22 @@ The position to insert, must be the same length as <code>x</code>.</td></tr></ta
 <div class="section">
 <h3 id="fields-1">Fields<a class="anchor" aria-label="anchor" href="#fields-1"></a></h3>
 
-<dl><dt><code>names</code></dt>
+<dl><dt><code class="command">names</code></dt>
 <dd><p><em><code>[read-only]</code></em> <br><code>character(0L)</code> <br>
 Name of each item.</p></dd>
 
 
-<dt><code>title</code></dt>
+<dt><code class="command">title</code></dt>
 <dd><p><em><code>[read-only]</code></em> <br><code>character(1L)</code> <br>
 The title of the section.</p></dd>
 
 
-<dt><code>content</code></dt>
+<dt><code class="command">content</code></dt>
 <dd><p><em><code>[read-only]</code></em> <br><code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code> <br>
 Lines of the content for the section.</p></dd>
 
 
-<dt><code>size</code></dt>
+<dt><code class="command">size</code></dt>
 <dd><p><em><code>[read-only]</code></em> <br><code>integer(1L)</code> <br>
 The number of lines.</p></dd>
 
@@ -347,17 +365,17 @@ The number of lines.</p></dd>
 <div class="section">
 <h3 id="methods-1">Methods<a class="anchor" aria-label="anchor" href="#methods-1"></a></h3>
 
-<dl><dt><code><a href="#OoprRoxy-OoprRoxyDescribe-insert">insert</a></code></dt>
+<dl><dt><code class="command"><a href="#OoprRoxy-OoprRoxyDescribe-insert">insert</a></code></dt>
 <dd><p><em><code>[virtual]</code></em> <br>
 Insert a line into the section.</p></dd>
 
 
-<dt><code><a href="#OoprRoxy-OoprRoxyDescribe-erase">erase</a></code></dt>
+<dt><code class="command"><a href="#OoprRoxy-OoprRoxyDescribe-erase">erase</a></code></dt>
 <dd><p><em><code>[final]</code></em> <br>
 Remove all lines from the section.</p></dd>
 
 
-<dt><code><a href="#OoprRoxy-OoprRoxyDescribe-toRd">toRd</a></code></dt>
+<dt><code class="command"><a href="#OoprRoxy-OoprRoxyDescribe-toRd">toRd</a></code></dt>
 <dd><p><em><code>[final]</code></em> <br>
 Convert the section into Rd formatted text.</p></dd>
 
@@ -365,7 +383,7 @@ Convert the section into Rd formatted text.</p></dd>
 </dl></div>
 
 <div class="section">
-<h3 id="insert-1"><code><a id="OoprRoxy-OoprRoxyDescribe-insert" style="display:block;position:relative;top:-40px;"></a></code><hr>insert<a class="anchor" aria-label="anchor" href="#insert-1"></a></h3>
+<h3 id="insert-1"><code class="command"><a id="OoprRoxy-OoprRoxyDescribe-insert" style="display:block;position:relative;top:-40px;"></a></code><hr>insert<a class="anchor" aria-label="anchor" href="#insert-1"></a></h3>
 
 <div class="section">
 <h4 id="description-6">Description<a class="anchor" aria-label="anchor" href="#description-6"></a></h4>
@@ -392,7 +410,7 @@ The name of the item.</td></tr></table></div>
 </div>
 
 <div class="section">
-<h3 id="erase-1"><code><a id="OoprRoxy-OoprRoxyDescribe-erase" style="display:block;position:relative;top:-40px;"></a></code><hr>erase<a class="anchor" aria-label="anchor" href="#erase-1"></a></h3>
+<h3 id="erase-1"><code class="command"><a id="OoprRoxy-OoprRoxyDescribe-erase" style="display:block;position:relative;top:-40px;"></a></code><hr>erase<a class="anchor" aria-label="anchor" href="#erase-1"></a></h3>
 
 <div class="section">
 <h4 id="description-7">Description<a class="anchor" aria-label="anchor" href="#description-7"></a></h4>
@@ -412,7 +430,7 @@ The name of the item.</td></tr></table></div>
 </div>
 
 <div class="section">
-<h3 id="tord-1"><code><a id="OoprRoxy-OoprRoxyDescribe-toRd" style="display:block;position:relative;top:-40px;"></a></code><hr>toRd<a class="anchor" aria-label="anchor" href="#tord-1"></a></h3>
+<h3 id="tord-1"><code class="command"><a id="OoprRoxy-OoprRoxyDescribe-toRd" style="display:block;position:relative;top:-40px;"></a></code><hr>toRd<a class="anchor" aria-label="anchor" href="#tord-1"></a></h3>
 
 <div class="section">
 <h4 id="description-8">Description<a class="anchor" aria-label="anchor" href="#description-8"></a></h4>
@@ -449,17 +467,17 @@ The name of the item.</td></tr></table></div>
 <div class="section">
 <h3 id="fields-2">Fields<a class="anchor" aria-label="anchor" href="#fields-2"></a></h3>
 
-<dl><dt><code>title</code></dt>
+<dl><dt><code class="command">title</code></dt>
 <dd><p><em><code>[read-only]</code></em> <br><code>character(1L)</code> <br>
 The title of the section.</p></dd>
 
 
-<dt><code>content</code></dt>
+<dt><code class="command">content</code></dt>
 <dd><p><em><code>[read-only]</code></em> <br><code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code> <br>
 Lines of the content for the section.</p></dd>
 
 
-<dt><code>size</code></dt>
+<dt><code class="command">size</code></dt>
 <dd><p><em><code>[read-only]</code></em> <br><code>integer(1L)</code> <br>
 The number of lines.</p></dd>
 
@@ -469,17 +487,17 @@ The number of lines.</p></dd>
 <div class="section">
 <h3 id="methods-2">Methods<a class="anchor" aria-label="anchor" href="#methods-2"></a></h3>
 
-<dl><dt><code><a href="#OoprRoxy-OoprRoxyUsage-insert">insert</a></code></dt>
+<dl><dt><code class="command"><a href="#OoprRoxy-OoprRoxyUsage-insert">insert</a></code></dt>
 <dd><p><em><code>[virtual]</code></em> <br>
 Insert a line into the section.</p></dd>
 
 
-<dt><code><a href="#OoprRoxy-OoprRoxyUsage-erase">erase</a></code></dt>
+<dt><code class="command"><a href="#OoprRoxy-OoprRoxyUsage-erase">erase</a></code></dt>
 <dd><p><em><code>[final]</code></em> <br>
 Remove all lines from the section.</p></dd>
 
 
-<dt><code><a href="#OoprRoxy-OoprRoxyUsage-toRd">toRd</a></code></dt>
+<dt><code class="command"><a href="#OoprRoxy-OoprRoxyUsage-toRd">toRd</a></code></dt>
 <dd><p><em><code>[final]</code></em> <br>
 Convert the section into Rd formatted text.</p></dd>
 
@@ -487,7 +505,7 @@ Convert the section into Rd formatted text.</p></dd>
 </dl></div>
 
 <div class="section">
-<h3 id="insert-2"><code><a id="OoprRoxy-OoprRoxyUsage-insert" style="display:block;position:relative;top:-40px;"></a></code><hr>insert<a class="anchor" aria-label="anchor" href="#insert-2"></a></h3>
+<h3 id="insert-2"><code class="command"><a id="OoprRoxy-OoprRoxyUsage-insert" style="display:block;position:relative;top:-40px;"></a></code><hr>insert<a class="anchor" aria-label="anchor" href="#insert-2"></a></h3>
 
 <div class="section">
 <h4 id="description-10">Description<a class="anchor" aria-label="anchor" href="#description-10"></a></h4>
@@ -513,7 +531,7 @@ The position to insert, must be the same length as <code>x</code>.</td></tr></ta
 </div>
 
 <div class="section">
-<h3 id="erase-2"><code><a id="OoprRoxy-OoprRoxyUsage-erase" style="display:block;position:relative;top:-40px;"></a></code><hr>erase<a class="anchor" aria-label="anchor" href="#erase-2"></a></h3>
+<h3 id="erase-2"><code class="command"><a id="OoprRoxy-OoprRoxyUsage-erase" style="display:block;position:relative;top:-40px;"></a></code><hr>erase<a class="anchor" aria-label="anchor" href="#erase-2"></a></h3>
 
 <div class="section">
 <h4 id="description-11">Description<a class="anchor" aria-label="anchor" href="#description-11"></a></h4>
@@ -533,7 +551,7 @@ The position to insert, must be the same length as <code>x</code>.</td></tr></ta
 </div>
 
 <div class="section">
-<h3 id="tord-2"><code><a id="OoprRoxy-OoprRoxyUsage-toRd" style="display:block;position:relative;top:-40px;"></a></code><hr>toRd<a class="anchor" aria-label="anchor" href="#tord-2"></a></h3>
+<h3 id="tord-2"><code class="command"><a id="OoprRoxy-OoprRoxyUsage-toRd" style="display:block;position:relative;top:-40px;"></a></code><hr>toRd<a class="anchor" aria-label="anchor" href="#tord-2"></a></h3>
 
 <div class="section">
 <h4 id="description-12">Description<a class="anchor" aria-label="anchor" href="#description-12"></a></h4>
@@ -570,22 +588,22 @@ The position to insert, must be the same length as <code>x</code>.</td></tr></ta
 <div class="section">
 <h3 id="fields-3">Fields<a class="anchor" aria-label="anchor" href="#fields-3"></a></h3>
 
-<dl><dt><code>names</code></dt>
+<dl><dt><code class="command">names</code></dt>
 <dd><p><em><code>[read-only]</code></em> <br><code>character(0L)</code> <br>
 Name of each item.</p></dd>
 
 
-<dt><code>title</code></dt>
+<dt><code class="command">title</code></dt>
 <dd><p><em><code>[read-only]</code></em> <br><code>character(1L)</code> <br>
 The title of the section.</p></dd>
 
 
-<dt><code>content</code></dt>
+<dt><code class="command">content</code></dt>
 <dd><p><em><code>[read-only]</code></em> <br><code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code> <br>
 Lines of the content for the section.</p></dd>
 
 
-<dt><code>size</code></dt>
+<dt><code class="command">size</code></dt>
 <dd><p><em><code>[read-only]</code></em> <br><code>integer(1L)</code> <br>
 The number of lines.</p></dd>
 
@@ -595,17 +613,17 @@ The number of lines.</p></dd>
 <div class="section">
 <h3 id="methods-3">Methods<a class="anchor" aria-label="anchor" href="#methods-3"></a></h3>
 
-<dl><dt><code><a href="#OoprRoxy-OoprRoxyArguments-insert">insert</a></code></dt>
+<dl><dt><code class="command"><a href="#OoprRoxy-OoprRoxyArguments-insert">insert</a></code></dt>
 <dd><p><em><code>[virtual]</code></em> <br>
 Insert a line into the section.</p></dd>
 
 
-<dt><code><a href="#OoprRoxy-OoprRoxyArguments-erase">erase</a></code></dt>
+<dt><code class="command"><a href="#OoprRoxy-OoprRoxyArguments-erase">erase</a></code></dt>
 <dd><p><em><code>[final]</code></em> <br>
 Remove all lines from the section.</p></dd>
 
 
-<dt><code><a href="#OoprRoxy-OoprRoxyArguments-toRd">toRd</a></code></dt>
+<dt><code class="command"><a href="#OoprRoxy-OoprRoxyArguments-toRd">toRd</a></code></dt>
 <dd><p><em><code>[final]</code></em> <br>
 Convert the section into Rd formatted text.</p></dd>
 
@@ -613,7 +631,7 @@ Convert the section into Rd formatted text.</p></dd>
 </dl></div>
 
 <div class="section">
-<h3 id="insert-3"><code><a id="OoprRoxy-OoprRoxyArguments-insert" style="display:block;position:relative;top:-40px;"></a></code><hr>insert<a class="anchor" aria-label="anchor" href="#insert-3"></a></h3>
+<h3 id="insert-3"><code class="command"><a id="OoprRoxy-OoprRoxyArguments-insert" style="display:block;position:relative;top:-40px;"></a></code><hr>insert<a class="anchor" aria-label="anchor" href="#insert-3"></a></h3>
 
 <div class="section">
 <h4 id="description-14">Description<a class="anchor" aria-label="anchor" href="#description-14"></a></h4>
@@ -640,7 +658,7 @@ The name of the argument.</td></tr></table></div>
 </div>
 
 <div class="section">
-<h3 id="erase-3"><code><a id="OoprRoxy-OoprRoxyArguments-erase" style="display:block;position:relative;top:-40px;"></a></code><hr>erase<a class="anchor" aria-label="anchor" href="#erase-3"></a></h3>
+<h3 id="erase-3"><code class="command"><a id="OoprRoxy-OoprRoxyArguments-erase" style="display:block;position:relative;top:-40px;"></a></code><hr>erase<a class="anchor" aria-label="anchor" href="#erase-3"></a></h3>
 
 <div class="section">
 <h4 id="description-15">Description<a class="anchor" aria-label="anchor" href="#description-15"></a></h4>
@@ -660,7 +678,7 @@ The name of the argument.</td></tr></table></div>
 </div>
 
 <div class="section">
-<h3 id="tord-3"><code><a id="OoprRoxy-OoprRoxyArguments-toRd" style="display:block;position:relative;top:-40px;"></a></code><hr>toRd<a class="anchor" aria-label="anchor" href="#tord-3"></a></h3>
+<h3 id="tord-3"><code class="command"><a id="OoprRoxy-OoprRoxyArguments-toRd" style="display:block;position:relative;top:-40px;"></a></code><hr>toRd<a class="anchor" aria-label="anchor" href="#tord-3"></a></h3>
 
 <div class="section">
 <h4 id="description-16">Description<a class="anchor" aria-label="anchor" href="#description-16"></a></h4>
@@ -704,32 +722,32 @@ display.</p>
 <div class="section">
 <h3 id="fields-4">Fields<a class="anchor" aria-label="anchor" href="#fields-4"></a></h3>
 
-<dl><dt><code>title</code></dt>
+<dl><dt><code class="command">title</code></dt>
 <dd><p><em><code>[read-only]</code></em> <br><code>character(1L)</code> <br>
 The title of the section.</p></dd>
 
 
-<dt><code>fun</code></dt>
+<dt><code class="command">fun</code></dt>
 <dd><p><em><code>[read-only]</code></em> <br><code>function</code> <br>
 The function object of the method.</p></dd>
 
 
-<dt><code>warn</code></dt>
+<dt><code class="command">warn</code></dt>
 <dd><p><em><code>[read-only]</code></em> <br><code>logical(1L)</code> <br>
 Whether warnings should display when missing tags.</p></dd>
 
 
-<dt><code>sections</code></dt>
+<dt><code class="command">sections</code></dt>
 <dd><p><em><code>[container]</code></em> <br><code>OoprRoxySection</code> <br>
 A container of the subsections.</p></dd>
 
 
-<dt><code>content</code></dt>
+<dt><code class="command">content</code></dt>
 <dd><p><em><code>[read-only]</code></em> <br><code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code> <br>
 Lines of the content for the section.</p></dd>
 
 
-<dt><code>size</code></dt>
+<dt><code class="command">size</code></dt>
 <dd><p><em><code>[read-only]</code></em> <br><code>integer(1L)</code> <br>
 The number of lines.</p></dd>
 
@@ -739,17 +757,17 @@ The number of lines.</p></dd>
 <div class="section">
 <h3 id="methods-4">Methods<a class="anchor" aria-label="anchor" href="#methods-4"></a></h3>
 
-<dl><dt><code><a href="#OoprRoxy-OoprRoxyMethod-insert">insert</a></code></dt>
+<dl><dt><code class="command"><a href="#OoprRoxy-OoprRoxyMethod-insert">insert</a></code></dt>
 <dd><p><em><code>[virtual]</code></em> <br>
 Insert a line into the section.</p></dd>
 
 
-<dt><code><a href="#OoprRoxy-OoprRoxyMethod-erase">erase</a></code></dt>
+<dt><code class="command"><a href="#OoprRoxy-OoprRoxyMethod-erase">erase</a></code></dt>
 <dd><p><em><code>[final]</code></em> <br>
 Remove all lines from the section.</p></dd>
 
 
-<dt><code><a href="#OoprRoxy-OoprRoxyMethod-toRd">toRd</a></code></dt>
+<dt><code class="command"><a href="#OoprRoxy-OoprRoxyMethod-toRd">toRd</a></code></dt>
 <dd><p><em><code>[final]</code></em> <br>
 Convert the section into Rd formatted text.</p></dd>
 
@@ -757,7 +775,7 @@ Convert the section into Rd formatted text.</p></dd>
 </dl></div>
 
 <div class="section">
-<h3 id="insert-4"><code><a id="OoprRoxy-OoprRoxyMethod-insert" style="display:block;position:relative;top:-40px;"></a></code><hr>insert<a class="anchor" aria-label="anchor" href="#insert-4"></a></h3>
+<h3 id="insert-4"><code class="command"><a id="OoprRoxy-OoprRoxyMethod-insert" style="display:block;position:relative;top:-40px;"></a></code><hr>insert<a class="anchor" aria-label="anchor" href="#insert-4"></a></h3>
 
 <div class="section">
 <h4 id="description-18">Description<a class="anchor" aria-label="anchor" href="#description-18"></a></h4>
@@ -783,7 +801,7 @@ The position to insert, must be the same length as <code>x</code>.</td></tr></ta
 </div>
 
 <div class="section">
-<h3 id="erase-4"><code><a id="OoprRoxy-OoprRoxyMethod-erase" style="display:block;position:relative;top:-40px;"></a></code><hr>erase<a class="anchor" aria-label="anchor" href="#erase-4"></a></h3>
+<h3 id="erase-4"><code class="command"><a id="OoprRoxy-OoprRoxyMethod-erase" style="display:block;position:relative;top:-40px;"></a></code><hr>erase<a class="anchor" aria-label="anchor" href="#erase-4"></a></h3>
 
 <div class="section">
 <h4 id="description-19">Description<a class="anchor" aria-label="anchor" href="#description-19"></a></h4>
@@ -803,7 +821,7 @@ The position to insert, must be the same length as <code>x</code>.</td></tr></ta
 </div>
 
 <div class="section">
-<h3 id="tord-4"><code><a id="OoprRoxy-OoprRoxyMethod-toRd" style="display:block;position:relative;top:-40px;"></a></code><hr>toRd<a class="anchor" aria-label="anchor" href="#tord-4"></a></h3>
+<h3 id="tord-4"><code class="command"><a id="OoprRoxy-OoprRoxyMethod-toRd" style="display:block;position:relative;top:-40px;"></a></code><hr>toRd<a class="anchor" aria-label="anchor" href="#tord-4"></a></h3>
 
 <div class="section">
 <h4 id="description-20">Description<a class="anchor" aria-label="anchor" href="#description-20"></a></h4>
@@ -846,27 +864,32 @@ The position to insert, must be the same length as <code>x</code>.</td></tr></ta
 <div class="section">
 <h3 id="fields-5">Fields<a class="anchor" aria-label="anchor" href="#fields-5"></a></h3>
 
-<dl><dt><code>title</code></dt>
+<dl><dt><code class="command">title</code></dt>
 <dd><p><em><code>[read-only]</code></em> <br><code>character(1L)</code> <br>
 The title of the section.</p></dd>
 
 
-<dt><code>block</code></dt>
+<dt><code class="command">block</code></dt>
 <dd><p><em><code>[read-only]</code></em> <br><code>roxy_block</code> <br>
 A roxy block containing an <code>oopr</code> class.</p></dd>
 
 
-<dt><code>members</code></dt>
+<dt><code class="command">access</code></dt>
+<dd><p><em><code>[read-only]</code></em> <br><code>character(1L)</code> <br>
+Access specifier of the constructor method.</p></dd>
+
+
+<dt><code class="command">members</code></dt>
 <dd><p><em><code>[read-only]</code></em> <br><code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code> <br>
 A (nested) list of tags for each member.</p></dd>
 
 
-<dt><code>rdname</code></dt>
+<dt><code class="command">rdname</code></dt>
 <dd><p><em><code>[read-only]</code></em> <br><code>character(1L)</code> <br>
 The name of the .Rd.</p></dd>
 
 
-<dt><code>sections</code></dt>
+<dt><code class="command">sections</code></dt>
 <dd><p><em><code>[container]</code></em> <br><code>OoprRoxySection</code> <br>
 The subsections inside the class section.</p></dd>
 
@@ -876,79 +899,98 @@ The subsections inside the class section.</p></dd>
 <div class="section">
 <h3 id="methods-5">Methods<a class="anchor" aria-label="anchor" href="#methods-5"></a></h3>
 
-<dl><dt><code><a href="#OoprRoxy-OoprRoxyClass-makeSections">makeSections</a></code></dt>
+<dl><dt><code class="command"><a href="#OoprRoxy-OoprRoxyClass-makeUsage">makeUsage</a></code></dt>
+<dd><p>Make usage section</p></dd>
+
+
+<dt><code class="command"><a href="#OoprRoxy-OoprRoxyClass-makeSections">makeSections</a></code></dt>
 <dd><p>Creates subsections for <code>@description</code> and <code>@details</code> tags.</p></dd>
 
 
-<dt><code><a href="#OoprRoxy-OoprRoxyClass-makeFields">makeFields</a></code></dt>
+<dt><code class="command"><a href="#OoprRoxy-OoprRoxyClass-makeFields">makeFields</a></code></dt>
 <dd><p>Creates a subsection for a list of fields/properties.</p></dd>
 
 
-<dt><code><a href="#OoprRoxy-OoprRoxyClass-makeMethods">makeMethods</a></code></dt>
+<dt><code class="command"><a href="#OoprRoxy-OoprRoxyClass-makeMethods">makeMethods</a></code></dt>
 <dd><p>Creates a subsection for a list of methods and inserts method sections.</p></dd>
 
 
-<dt><code><a href="#OoprRoxy-OoprRoxyClass-makeTag">makeTag</a></code></dt>
+<dt><code class="command"><a href="#OoprRoxy-OoprRoxyClass-makeTag">makeTag</a></code></dt>
 <dd><p>Places the class section under the blocks tags list</p></dd>
 
 
 </dl></div>
 
 <div class="section">
-<h3 id="makesections"><code><a id="OoprRoxy-OoprRoxyClass-makeSections" style="display:block;position:relative;top:-40px;"></a></code><hr>makeSections<a class="anchor" aria-label="anchor" href="#makesections"></a></h3>
+<h3 id="makeusage"><code class="command"><a id="OoprRoxy-OoprRoxyClass-makeUsage" style="display:block;position:relative;top:-40px;"></a></code><hr>makeUsage<a class="anchor" aria-label="anchor" href="#makeusage"></a></h3>
 
 <div class="section">
 <h4 id="description-22">Description<a class="anchor" aria-label="anchor" href="#description-22"></a></h4>
-<p>Creates subsections for <code>@description</code> and <code>@details</code> tags.</p>
+<p>Make usage section</p>
 </div>
 
 <div class="section">
 <h4 id="usage-16">Usage<a class="anchor" aria-label="anchor" href="#usage-16"></a></h4>
+<p></p><div class="sourceCode"><pre><code class="language-R"><span><span class="fu">makeUsage</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+</div>
+
+</div>
+
+<div class="section">
+<h3 id="makesections"><code class="command"><a id="OoprRoxy-OoprRoxyClass-makeSections" style="display:block;position:relative;top:-40px;"></a></code><hr>makeSections<a class="anchor" aria-label="anchor" href="#makesections"></a></h3>
+
+<div class="section">
+<h4 id="description-23">Description<a class="anchor" aria-label="anchor" href="#description-23"></a></h4>
+<p>Creates subsections for <code>@description</code> and <code>@details</code> tags.</p>
+</div>
+
+<div class="section">
+<h4 id="usage-17">Usage<a class="anchor" aria-label="anchor" href="#usage-17"></a></h4>
 <p></p><div class="sourceCode"><pre><code class="language-R"><span><span class="fu">makeSections</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 </div>
 
 </div>
 
 <div class="section">
-<h3 id="makefields"><code><a id="OoprRoxy-OoprRoxyClass-makeFields" style="display:block;position:relative;top:-40px;"></a></code><hr>makeFields<a class="anchor" aria-label="anchor" href="#makefields"></a></h3>
+<h3 id="makefields"><code class="command"><a id="OoprRoxy-OoprRoxyClass-makeFields" style="display:block;position:relative;top:-40px;"></a></code><hr>makeFields<a class="anchor" aria-label="anchor" href="#makefields"></a></h3>
 
 <div class="section">
-<h4 id="description-23">Description<a class="anchor" aria-label="anchor" href="#description-23"></a></h4>
+<h4 id="description-24">Description<a class="anchor" aria-label="anchor" href="#description-24"></a></h4>
 <p>Creates a subsection for a list of fields/properties.</p>
 </div>
 
 <div class="section">
-<h4 id="usage-17">Usage<a class="anchor" aria-label="anchor" href="#usage-17"></a></h4>
+<h4 id="usage-18">Usage<a class="anchor" aria-label="anchor" href="#usage-18"></a></h4>
 <p></p><div class="sourceCode"><pre><code class="language-R"><span><span class="fu">makeFields</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 </div>
 
 </div>
 
 <div class="section">
-<h3 id="makemethods"><code><a id="OoprRoxy-OoprRoxyClass-makeMethods" style="display:block;position:relative;top:-40px;"></a></code><hr>makeMethods<a class="anchor" aria-label="anchor" href="#makemethods"></a></h3>
+<h3 id="makemethods"><code class="command"><a id="OoprRoxy-OoprRoxyClass-makeMethods" style="display:block;position:relative;top:-40px;"></a></code><hr>makeMethods<a class="anchor" aria-label="anchor" href="#makemethods"></a></h3>
 
 <div class="section">
-<h4 id="description-24">Description<a class="anchor" aria-label="anchor" href="#description-24"></a></h4>
+<h4 id="description-25">Description<a class="anchor" aria-label="anchor" href="#description-25"></a></h4>
 <p>Creates a subsection for a list of methods and inserts method sections.</p>
 </div>
 
 <div class="section">
-<h4 id="usage-18">Usage<a class="anchor" aria-label="anchor" href="#usage-18"></a></h4>
+<h4 id="usage-19">Usage<a class="anchor" aria-label="anchor" href="#usage-19"></a></h4>
 <p></p><div class="sourceCode"><pre><code class="language-R"><span><span class="fu">makeMethods</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 </div>
 
 </div>
 
 <div class="section">
-<h3 id="maketag"><code><a id="OoprRoxy-OoprRoxyClass-makeTag" style="display:block;position:relative;top:-40px;"></a></code><hr>makeTag<a class="anchor" aria-label="anchor" href="#maketag"></a></h3>
+<h3 id="maketag"><code class="command"><a id="OoprRoxy-OoprRoxyClass-makeTag" style="display:block;position:relative;top:-40px;"></a></code><hr>makeTag<a class="anchor" aria-label="anchor" href="#maketag"></a></h3>
 
 <div class="section">
-<h4 id="description-25">Description<a class="anchor" aria-label="anchor" href="#description-25"></a></h4>
+<h4 id="description-26">Description<a class="anchor" aria-label="anchor" href="#description-26"></a></h4>
 <p>Places the class section under the blocks tags list</p>
 </div>
 
 <div class="section">
-<h4 id="usage-19">Usage<a class="anchor" aria-label="anchor" href="#usage-19"></a></h4>
+<h4 id="usage-20">Usage<a class="anchor" aria-label="anchor" href="#usage-20"></a></h4>
 <p></p><div class="sourceCode"><pre><code class="language-R"><span><span class="fu">makeTag</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 </div>
 
