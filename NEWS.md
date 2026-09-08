@@ -1,5 +1,21 @@
 # oopr 0.2.0.9000 (dev)
 
+## TODO
+
+* Final constructor to stop inheritance as compile-time check.
+
+* Abstract methods. Which can be checked if implemented at compile time if
+  constructor is marked final, otherwise will have to be run-time.
+
+## Changed
+
+* Classes with a private constructor can no longer be inherited at 
+  compile-time.
+
+* Classes with a non-public constructor can no longer be a class member at
+  compile-time.
+
+
 # oopr 0.2.0 (2026-09-06)
 
 ## Added

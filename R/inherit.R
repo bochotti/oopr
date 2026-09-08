@@ -167,10 +167,23 @@ inheritance_set <- \(env, inhr, err)
     for(j in seq_len(nrow(imeta)))
     {
       spec <- imeta[["access"]][j];
-      # private members are not inherited
-      if(spec == "private") { next; }
-
       name <- imeta[["names"]][j];
+
+      # private members are not inherited
+      if(spec == "private")
+      {
+        if(name == iname)
+        {
+          err$push(
+            cls = "ooprInheritingPrivateConstructor"
+           ,src = env$src[[1L]]
+           ,msg = "Cannot inherit class `%s` as its constructor is private."
+           ,name
+          );
+        }
+        next;
+      }
+
       # do not inherit constructors
       if(name == iname) { next; }
 

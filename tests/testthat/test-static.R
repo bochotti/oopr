@@ -105,7 +105,7 @@ test_that("static classmem",
 
   it("asserts the class members signature",
   {
-    oopr("memb",, { memb <- \(x) { this$a <- x; }; public:a <- 0L; })
+    oopr("memb",, { public:memb <- \(x) { this$a <- x; }; a <- 0L; })
     expect_error(
       oopr("test",, { public:static:a <- memb; })
      ,class = "ooprStaticClassMemSignatureUnmatched"

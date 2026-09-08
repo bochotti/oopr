@@ -107,6 +107,16 @@ test_that("inheritance_set",
     oopr("test", { base; }, { a <- 1L; b <- 2L; c <- 3L})
     expect_length(test@meta$subs("names", TRUE, inherits = ""), 0L);
   })
+
+  it("does not allow inheriting classes with private constructor",
+  {
+    oopr("base",, { private:base <- \( ) { } })
+    expect_error(
+      oopr("test", base, { })
+     ,class = "ooprInheritingPrivateConstructor"
+    )
+  })
+
 })
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -119,7 +129,7 @@ test_that("inheritance_definitions",
     expect_identical(body(test@encl$this$test)[[c(2:1)]], quote(base::assign));
 
     oopr("base",, {})
-    oopr("test", { base; }, { test <- \( ) { 1L; } })
+    oopr("test", { base; }, { public:test <- \( ) { 1L; } })
     expect_identical(body(test@encl$this$test)[[c(2:1)]], quote(base::assign));
 
     oopr('t', {base; test}, {})
@@ -135,7 +145,7 @@ test_that("inheritance_definitions",
 
   it("requires initialization if derived class has non-default formals",
   {
-    oopr("base",, { base <- \(x) { } })
+    oopr("base",, { public:base <- \(x) { } })
     expect_error(
       oopr("test", { base; }, { })
      ,class = "ooprDefNoInit"
@@ -146,7 +156,7 @@ test_that("inheritance_definitions",
      ,class = "ooprDefNoInit"
     );
 
-    oopr("base",, { base <- \(x = 1L) { } })
+    oopr("base",, { public:base <- \(x = 1L) { } })
     expect_no_error(
       oopr("test", { base; }, { })
     );
@@ -163,13 +173,13 @@ test_that("inheritance_definitions",
 
   it("requires initialization to match the signature",
   {
-    oopr("base",, { base <- \(x) { }})
+    oopr("base",, { public:base <- \(x) { }})
     expect_error(
       oopr("test", { base; }, { test <- \( ) { base(y = 1) } })
      ,class = "ooprDefInitSignatureNotMatched"
     );
 
-    oopr("base",, { base <- \(x, y = 1) { }})
+    oopr("base",, { public:base <- \(x, y = 1) { }})
     expect_error(
       oopr("test", { base; }, { test <- \( ) { base(y = 1) } })
      ,class = "ooprDefInitSignatureNotMatched"

@@ -72,7 +72,7 @@ test_that("definitions_classmem",
 
   it("requires initialization of classes with non-default arguments",
   {
-    oopr("memb",, { memb <- \(x) { }})
+    oopr("memb",, { public:memb <- \(x) { }})
     expect_error(
       oopr("test",, { a <- memb; })
      ,class = "ooprDefNoInit"
@@ -88,11 +88,26 @@ test_that("definitions_classmem",
 
   it("does not allow multiple initializations",
   {
-    oopr("memb",, { memb <- \( ) { }})
+    oopr("memb",, { public:memb <- \( ) { }})
     expect_error(
       oopr("test",, { test <- \( ) { this$a(); this$a(); }; a <- memb; })
      ,class = "ooprDefMultipleInit"
     );
+  })
+
+  it("does not allow classes with non-public constructors",
+  {
+    oopr("memb",, { private:memb <- \( ) { } })
+    expect_error(
+      oopr("test",, { a <- memb; })
+     ,class = "ooprClassMemNonPublicConstructor"
+    );
+    oopr("memb",, { protected:memb <- \( ) { } })
+    expect_error(
+      oopr("test",, { a <- memb; })
+     ,class = "ooprClassMemNonPublicConstructor"
+    );
+
   })
 })
 
