@@ -330,3 +330,32 @@ Base();
 oopr("Derived", Base, { })
 Derived();
 ```
+
+
+### Final Constructor
+
+To prevent a class from being inherited by other classes, mark its constructor as `final:`:
+
+```{r}
+# final constructor
+oopr("Base",,
+{
+public:
+  final:Base <- \( ) { this$x <- 10L; }
+  x <- integer(1L);
+})
+```
+
+```{r, error = TRUE, purl = FALSE}
+# not allowed
+oopr("Derived", Base, { })
+```
+
+```{r}
+# allowed
+Base();
+```
+
+Note: private and protected constructors cannot be marked as final, as this
+would not be intuitive.
+

@@ -2,10 +2,13 @@
 
 ## TODO
 
-* Final constructor to stop inheritance as compile-time check.
-
 * Abstract methods. Which can be checked if implemented at compile time if
   constructor is marked final, otherwise will have to be run-time.
+
+## Added
+
+* Public constructors can now be marked as final, to prevent being inherited
+  by other classes.
 
 ## Changed
 

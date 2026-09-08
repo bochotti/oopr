@@ -114,7 +114,16 @@ test_that("inheritance_set",
     expect_error(
       oopr("test", base, { })
      ,class = "ooprInheritingPrivateConstructor"
-    )
+    );
+  })
+
+  it("does not allow inheriting classes with final constructor",
+  {
+    oopr("base",, { public:final:base <- \( ) { } })
+    expect_error(
+      oopr("test", base, { })
+     ,class = "ooprInheritingFinalConstructor"
+    );
   })
 
 })
