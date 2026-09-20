@@ -53,6 +53,20 @@ definitions_classmem <- \(i, name, env, err)
       env$succ$set(i, FALSE);
       next;
     }
+    abs  <- oopr@meta$subs("names", abstract = TRUE);
+    if(length(abs))
+    {
+      abs <- setdiff(abs, oopr@name);
+      plr <- length(abs) > 1L;
+      err$push(
+        cls = "ooprClassMemAbstract"
+       ,src = env$src[[i]]
+       ,"Member `%s` cannot be class `%s` as it has abstract method%s %s."
+       ,name, oopr@name, if(plr) "s" else "", deparse1(abs)
+      );
+      env$succ$set(i, FALSE);
+      next;
+    }
     if(env$meta$static$get(i))
     {
       if(length(ats))

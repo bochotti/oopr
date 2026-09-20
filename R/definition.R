@@ -88,6 +88,23 @@ definitions_constructor <- \(i, name, env, err)
     );
     env$succ$set(i, FALSE);
   }
+  if(any(env$meta$abstract$data))
+  {
+    if(env$meta$subs("final", names = name))
+    {
+      abs <- env$meta$subs("names", abstract = TRUE);
+      plr <- length(abs) > 1L;
+      err$push(
+        cls = "ooprConstructorFinalWithAbstractMethod"
+       ,src = env$src[[i]]
+       ,msg = "Constructor method `%s` cannot be final as method%s %s %s
+               abstract."
+       ,name, if(plr) "s" else "", deparse1(abs), if(plr) "are" else "is"
+      );
+      env$succ$set(i, FALSE);
+    }
+    env$meta$abstract$set(i, TRUE);
+  }
   definitions_classmem(i, name, env, err);
   definitions_inheritance(i, name, env, err);
   return();

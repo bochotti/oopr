@@ -107,7 +107,15 @@ test_that("definitions_classmem",
       oopr("test",, { a <- memb; })
      ,class = "ooprClassMemNonPublicConstructor"
     );
+  })
 
+  it("does not allow classes with abstract methods",
+  {
+    oopr("memb",, { public:virtual:a <- \( ) { } = 0 })
+    expect_error(
+      oopr("test",, { a <- memb; })
+     ,class = "ooprClassMemAbstract"
+    );
   })
 })
 

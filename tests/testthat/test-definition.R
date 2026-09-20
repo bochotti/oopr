@@ -53,6 +53,19 @@ test_that("definitions_special",
     );
   })
 
+  it("sets constructor as abstract if any method also abstract",
+  {
+    oopr("t",, { public:t <- \( ) { }; virtual:a <- \( ) { } = 0 } )
+    expect_true(t@meta$abstract$get(1L));
+  })
+  it("does not allow final constructor with abstract methods",
+  {
+    expect_error(
+      oopr("t",, { public:final:t <- \( ) { }; virtual:a <- \( ) { } = 0 } )
+     ,class = "ooprConstructorFinalWithAbstractMethod"
+    );
+  })
+
 })
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##

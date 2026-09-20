@@ -15,10 +15,10 @@ knitr::opts_chunk$set(
 ```
 
 Inheritance is a way to re-ruse code and establish a hierarchical relationship
-between classes. 
+between classes.
 
-A relationship handles at least two classes: a base class and a derived class. 
-The derived class *inherits* features from the base class, such as receiving 
+A relationship handles at least two classes: a base class and a derived class.
+The derived class *inherits* features from the base class, such as receiving
 the members of the derived class. Typically, inheritance is justified when
 establishing an *is a* relationship, i.e., the derived class *is a* base class.
 
@@ -28,7 +28,7 @@ library(oopr)
 
 ## Usage
 
-The second argument of `oopr()` is used for inheritance. It expects another 
+The second argument of `oopr()` is used for inheritance. It expects another
 class via its symbol. Multiple inheritance is available by using a brace `{`.
 
 ```{r}
@@ -56,10 +56,10 @@ obj$speak();
 oopr("InheritanceExample", { Base1; Base2; },
 {
 public:
-  speak <- \( ) 
-  { 
-    this$shout(); 
-    this$whisper(); 
+  speak <- \( )
+  {
+    this$shout();
+    this$whisper();
   }
 })
 ```
@@ -114,19 +114,19 @@ The interaction between member access and class inheritance access is:
 
 This has some implications:
 
-  1.  Public inheritance allows members of a derived class to copy the 
+  1.  Public inheritance allows members of a derived class to copy the
       base class.
   2.  Protected members can be accessed by a derived class, but private
       members cannot.
-  3.  Inheriting a class privately will allow use of its members to the 
+  3.  Inheriting a class privately will allow use of its members to the
       derived class, but hide them from further derived classes.
 
 Note that constructor and destructor methods are never inherited.
 
 ## Redefining Base Members
 
-A derived class may create its own implementation of the base class method. 
-The base class implementation can still be used inside a derived class 
+A derived class may create its own implementation of the base class method.
+The base class implementation can still be used inside a derived class
 methods via `base$` instead of `this$`:
 
 ```{r}
@@ -143,10 +143,10 @@ public:
 oopr("Derived", public:Base,
 {
 public:
-  method <- \( ) 
-  { 
+  method <- \( )
+  {
     Base$method();
-    print("Method"); 
+    print("Method");
   }
 })
 ```
@@ -184,11 +184,11 @@ public:
 ## Virtual Methods
 
 The base class may allow derived classes to implement their own versions of
-a method, but require them to have the same function signature[^virtsig], 
-which is useful for looping over multiple instances of different classes that 
-all share a base class. 
+a method, but require them to have the same function signature[^virtsig],
+which is useful for looping over multiple instances of different classes that
+all share a base class.
 
-[^virtsig]: As R is not type safe, just the argument names apply, not the 
+[^virtsig]: As R is not type safe, just the argument names apply, not the
 return type.
 
 ```{r}
@@ -202,7 +202,7 @@ public:
 
 ```{r, error = TRUE, purl = FALSE}
 # does not match arguments
-oopr("Derived", public:Base, 
+oopr("Derived", public:Base,
 {
 public:
   method <- \( ) { }
@@ -211,18 +211,15 @@ public:
 
 ```{r, error = TRUE, purl = FALSE}
 # does not have a default argument
-oopr("Derived", public:Base, 
+oopr("Derived", public:Base,
 {
 public:
   method <- \(x = 1L, y) { }
 })
 ```
 
-Virtual methods are *overridden* should a derived class choose to, I consider
-this a form of "reverse inheritance". 
-
-Although popular in other languages, virtual methods with `oopr` cannot be
-specified as `private`.
+Virtual methods inside the base class instance are *overridden* if the derived
+class creates its own implementation of the method.
 
 ```{r}
 # method that relies on a virtual method
@@ -249,12 +246,71 @@ obj <- Derived();
 obj$speak()
 ```
 
+Although popular in other languages, virtual methods with `oopr` cannot be
+specified as `private:`.
+
+### Abstract
+
+Virtual methods can be marked as abstract. An abstract method requires derived
+classes to create their own implementation. Any class with an abstract method
+cannot have an instance constructed.
+
+To mark a virtual method as abstract, append `= 0` after its body.
+```{r}
+# mark an abstract method
+oopr("AbstractClass",,
+{
+public:
+  doWork <- \(x, y, z)
+  {
+    o <- this$doStep1(x, y);
+    o <- this$doStep2(o, z);
+    return(o);
+  }
+protected:
+  virtual:doStep1 <- \(x, y) { } = 0 #<- = 0 here
+  virtual:doStep2 <- \(o, z) { } = 0 #<- = 0 here
+})
+```
+
+```{r, error = TRUE, purl = FALSE}
+# Cannot create an instance
+AbstractClass()
+
+# Cannot be a class member
+oopr("AbstractClassMem",,
+{
+public:
+  abs <- AbstractClass
+})
+
+# Derived class cannot be final
+oopr("AbstractClassInhr", public:AbstractClass,
+{
+public:
+  final:AbstractClassInhr <- \( ) { }
+})
+```
+
+```{r}
+# correct
+oopr("DerivedClass", public:AbstractClass,
+{
+protected:
+  doStep1 <- \(x, y) { return(x + y); }
+  doStep2 <- \(o, z) { return(o * z);   }
+})
+
+obj <- DerivedClass();
+obj$doWork(1, 2, 3);
+```
+
 ## Constructing
 
-When the base class has a constructor method, then it must be explicitly 
+When the base class has a constructor method, then it must be explicitly
 initialized in the derived class[^constr].
 
-[^constr]: Unless the base class' constructor method has no arguments, 
+[^constr]: Unless the base class' constructor method has no arguments,
 or all arguments have a default value.
 
 ```{r}
@@ -277,7 +333,7 @@ customer method:
 
 ```{r}
 # call Base(...)
-oopr("Derived", public:Base, 
+oopr("Derived", public:Base,
 {
 public:
   Derived <- \(x) { Base(x); }

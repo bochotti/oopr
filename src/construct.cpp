@@ -18,6 +18,7 @@ public:
     , envr(CAR(Rf_lastElt(frames)))
     , name(name)
     , isInhr(OoprC::is(calr[this->name].get0()))
+    // , isInhr(*calr[this->name].get0() == gen) // TODO: serialization
     , ooprC(gen, !isInhr)
     , meta(ooprC.meta)
     , inst(ooprC.encl.parent(), true, 2 + ooprC.inhr.size())
@@ -59,15 +60,22 @@ public:
     for(R_xlen_t i = 0; i < len; ++i)
     {
       const RSym nm = meta.name(i);
-      if(nm == name && !meta.isAccess(i, "public"))
+      if(nm == name)
       {
-        if(meta.isAccess(i, "private"))
+        if(!meta.isAccess(i, "public"))
         {
-          stop("%s constructor is private", nm.c_str());
+          if(meta.isAccess(i, "private"))
+          {
+            stop("%s constructor is private", nm.c_str());
+          }
+          if(!isInhr)
+          {
+            stop("%s constructor is protected", nm.c_str());
+          }
         }
-        if(!isInhr)
+        if(!isInhr && meta.isAbstract(i))
         {
-          stop("%s constructor is protected", nm.c_str());
+          stop("%s constructor is abstract", nm.c_str());
         }
       }
       const REnv<SEXP>::Bind fr(from[nm]);

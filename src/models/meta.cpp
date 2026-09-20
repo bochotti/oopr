@@ -9,7 +9,8 @@
   X(static_,   "static",   RLgl)                               \
   X(class_,    "class",    RLgl)                               \
   X(inherit_,  "inherit",  RChr)                               \
-  X(virtual_,  "virtual",  RLgl)
+  X(virtual_,  "virtual",  RLgl)                               \
+  X(abstract_, "abstract", RLgl)
 
 #define ARGS2(arg1, arg2, arg3) SYM_2(arg1, arg2)
 #define LIST2(X)                                               \
@@ -116,6 +117,12 @@ bool OoprMeta::isInherit(const int i) const
 bool OoprMeta::isVirtual(const int i) const
 {
   return virtual_[i];
+}
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+bool OoprMeta::isAbstract(const int i) const
+{
+  return abstract_[i];
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //

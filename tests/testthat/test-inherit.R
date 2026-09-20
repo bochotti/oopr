@@ -524,6 +524,17 @@ test_that("specifiers_virtual",
     );
   })
 
+  it("can be abstract",
+  {
+    oopr("test",, { public:virtual:a <- \( ) { } = 0 })
+    expect_true(test@meta$abstract$get(1L));
+
+    expect_error(
+      oopr("test",, { public:virtual:final:a <- \( ) { } = 0 })
+     ,class = "ooprAbstractFinal"
+    );
+  })
+
 
 })
 
@@ -700,6 +711,14 @@ test_that("inheritance virtual",
     expect_false(identical(parent.env(parent.env(obj)$test)$bs$a, obj$a));
   })
 
+  it("does not allow construction if abstract method",
+  {
+    oopr("inhr",, { public:virtual:a <- \( ) { } = 0 })
+    expect_error(inhr(), "abstract");
+    oopr("test", public:inhr, { a <- \( ) { 1L; }})
+    expect_no_error(test());
+  })
+
 })
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -711,7 +730,7 @@ test_that("specifiers_final",
     expect_true(test@meta$final$get(1L))
   })
 
-  it("requires final to be virtual",
+  it("requires final to be a method",
   {
     expect_error(
       oopr("test",, { final:a <- 1L; })

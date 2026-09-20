@@ -703,7 +703,12 @@ public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   get:access <- \( )
   {
-    return(this$ooprC@meta$subs("access", names = this$title));
+    meta <- this$ooprC@meta;
+    acs  <- meta$subs("access", names = this$title);
+    if(acs != "public")                           { return(acs);        }
+    if(meta$subs("final",    names = this$title)) { return("final");    }
+    if(meta$subs("abstract", names = this$title)) { return("abstract"); }
+    return("public");
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -1089,7 +1094,8 @@ private:
     specs   <- character(section$size);
     names   <- section$names;
     for(which in c(
-      "access", "property", "S3", "static", "container", "virtual", "final"
+      "access", "property", "S3", "static", "container"
+     ,"virtual", "abstract", "final"
     ))
     {
       i <- this$ooprC@meta$subs(which, names = this$unWrapNames(names));

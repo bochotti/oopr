@@ -29,6 +29,7 @@ public:
   bool isClass(const int i)                      const;
   bool isInherit(const int i)                    const;
   bool isVirtual(const int i)                    const;
+  bool isAbstract(const int i)                   const;
   int  which(const std::string& name)            const;
   RChr<PSEXP> subName(
     const char* access
@@ -47,6 +48,7 @@ private:
   const int*                     class_;
   const std::vector<const char*> inherit_;
   const int*                     virtual_;
+  const int*                     abstract_;
 
 };
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //

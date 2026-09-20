@@ -1,14 +1,11 @@
 # oopr 0.2.0.9000 (dev)
 
-## TODO
-
-* Abstract methods. Which can be checked if implemented at compile time if
-  constructor is marked final, otherwise will have to be run-time.
-
 ## Added
 
 * Public constructors can now be marked as final, to prevent being inherited
   by other classes.
+  
+* Abstract virtual methods, which enforces derived classes to implement.
 
 ## Changed
 
