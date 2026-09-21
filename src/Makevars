@@ -5,7 +5,8 @@ OBJECTS.models = models/meta.o \
 OBJECTS.util	 = util/psexp.o \
 								 util/symbols.o \
 								 util/symlink.o \
-								 util/unwind.o
+								 util/unwind.o \
+								 util/misc.o
 
 OBJECTS.root	 = breakpoint.o \
 								 common.o \

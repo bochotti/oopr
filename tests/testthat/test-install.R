@@ -24,6 +24,118 @@ test_that("oopr_onInstall",
 
 })
 
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' Using serialize creates copies for each reference to a single object.
+#' So test that the onLoad places the refeences back
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("oopr_onLoad local",
+{
+  if(!requireNamespace("FAKE_PKG_123", quietly = TRUE))
+  {
+    at <- findInExpr(body(loadNamespace), \(e) {
+      iscall(e, "<-") && isname(e[[2L]], "makeNamespace");
+    });
+    eval(body(loadNamespace)[[at[[1L]]]]);
+    makeNamespace("FAKE_PKG_123");
+  }
+  top <- getNamespace("FAKE_PKG_123");
+
+  oopr("inhr",,
+  {
+  public:
+    f             <- 1L;
+    static:sf     <- 1L;
+    get:p         <- \( ) { return(this$f);  }
+    static:get:sp <- \( ) { return(this$sf); }
+    m             <- \( ) { return(this$f);  }
+    static:sm     <- \( ) { return(this$sf); }
+  }, top)
+
+  oopr("memb", public:inhr, { }, top)
+
+  oopr("test", public:inhr,
+  {
+  public:
+    cls          <- memb;
+    static:scls  <- memb;
+    cont         <- memb[];
+    static:scont <- memb[];
+  }, top)
+
+  oopr("test2", public:test,
+  {
+  public:
+    cls2          <- test;
+    static:scls2  <- test;
+  }, top)
+
+  oopr_onInstall(top);
+  oopr_onLoad("top", top);
+
+  compare_memfuns <- \(x, y, ignore = character(0L))
+  {
+    sx <- substitute(x);
+    sy <- substitute(y);
+    names <- intersect(names(x), names(y));
+    pull  <- \(sym, env)
+    {
+      if(bindingIsActive(sym, env))
+      {
+        return(activeBindingFunction(sym, env));
+      }
+      else
+      {
+        return(get0(sym, env, "function", FALSE));
+      }
+    }
+    for(name in setdiff(names, ignore))
+    {
+      elx <- pull(name, x);
+      ely <- pull(name, y);
+      if(!isS4(elx) && is.function(elx) && !isS4(ely) && is.function(ely))
+      {
+        xlab <- deparse1(call("$", sx, name));
+        ylab <- deparse1(call("$", sy, name));
+        expect_equal(
+          sexp_ptr(elx), sexp_ptr(ely), label = xlab, expected.label = ylab
+        );
+      }
+    }
+  }
+
+  it("maintains the same ooprC",
+  {
+    expect_equal(sexp_ptr(top$test@encl$inhr),      sexp_ptr(top$inhr));
+    expect_equal(sexp_ptr(top$test@encl$this$cls),  sexp_ptr(top$memb));
+    expect_equal(sexp_ptr(top$test@encl$this$cont), sexp_ptr(OoprVec));
+  })
+
+  it("maintains the same inherited functions",
+  {
+    compare_memfuns(top$test@encl$.this, top$test@encl$this);
+    compare_memfuns(top$test@encl$.this, top$inhr@encl$.this, "sf");
+    compare_memfuns(top$test@encl$.this, top$inhr@encl$this);
+    compare_memfuns(top$test@encl$this,  top$inhr@encl$.this, "sf");
+    compare_memfuns(top$test@encl$this,  top$inhr@encl$this);
+  })
+
+  it("maintains the same static classes",
+  {
+    expect_equal(
+      sexp_ptr(top$test@encl$this$scls)
+     ,sexp_ptr(top$test2@encl$this$scls)
+    );
+    # expect_equal(
+    #   sexp_ptr(activeBindingFunction("scls", top$test@encl$this))
+    #  ,sexp_ptr(activeBindingFunction("scls", top$test2@encl$this))
+    # );
+  })
+
+  top$test2@encl$this$scls2$scls
+  top$test2@encl$this$scls
+})
+
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 test_that("oopr_onLoad",
 {

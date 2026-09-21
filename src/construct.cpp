@@ -17,8 +17,7 @@ public:
     : calr(getCalr(frames))
     , envr(CAR(Rf_lastElt(frames)))
     , name(name)
-    , isInhr(OoprC::is(calr[this->name].get0()))
-    // , isInhr(*calr[this->name].get0() == gen) // TODO: serialization
+    , isInhr(*calr[this->name].get0() == gen)
     , ooprC(gen, !isInhr)
     , meta(ooprC.meta)
     , inst(ooprC.encl.parent(), true, 2 + ooprC.inhr.size())

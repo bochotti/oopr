@@ -27,22 +27,28 @@ Correctly install and load \code{oopr} classes when developing a package.
 }
 \details{
 Active bindings are not preserved during package installation (see
-\code{\link{bindenv}}), threatening some functionality of \code{oopr} classes.
+\code{\link{bindenv}}), threatening the functionality of \code{oopr} classes.
 
 Proposed solution is to serialise all \code{ooprC} objects within the
 package namespace during installation, then unserialise them upon package
 loading.
 
 The \code{ooprC} objects are serialised together during \code{oopr_onInstall} so
-they maintain any references between them (see \link{serialize}). However,
-defining any environments from outside the classes will lose its reference.
+they maintain any references between them (see \code{\link{serialize}}). Note that
+using environments assigned outside the classes will lose their reference.
 
-Inherited classes and class members from a different package are taken
-from their respective originating namespace during \code{oopr_onLoad}.
+Serializing has two major draw-backs:
+\enumerate{
+\item References to classes from other packages are \emph{not} preserved, which
+will break any static members.
+\item Objects no longer share bindings, and each binding is provided its own
+memory address (i.e. copied), which increases RAM usage.
+}
 
-TODO: would it be better to convert all active bindings back to their
-functions and save their location on install, then convert back to
-active bindings onLoad?
+Running \code{oopr_onLoad} within a packages \code{\link[=.onLoad]{.onLoad()}} will reverse the two
+items above. Inherited classes and class members from a different packages
+are taken from their respective originating namespace, and any inherited
+functions (including active binding functions) are de-duplicated.
 }
 \examples{
 \dontrun{

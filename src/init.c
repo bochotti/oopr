@@ -23,6 +23,8 @@ extern SEXP eval_context    (SEXP, SEXP, SEXP);
 extern SEXP isooprC         (SEXP, SEXP);
 extern SEXP isoopr          (SEXP, SEXP);
 extern SEXP get_PSEXPs      ( );
+extern SEXP amend_plist     (SEXP, SEXP, SEXP);
+extern SEXP sexp_ptr        (SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
     {"find_member_refs", (DL_FUNC) &find_member_refs, 1},
@@ -40,6 +42,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"isooprC",          (DL_FUNC) &isooprC,          2},
     {"isoopr",           (DL_FUNC) &isoopr,           2},
     {"get_PSEXPs",       (DL_FUNC) &get_PSEXPs,       0},
+    {"amend_plist",      (DL_FUNC) &amend_plist,      3},
+    {"sexp_ptr",         (DL_FUNC) &sexp_ptr,         1},
     {NULL, NULL, 0}
 };
 
