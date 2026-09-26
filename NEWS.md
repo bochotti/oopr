@@ -7,6 +7,9 @@
   
 * Abstract virtual methods, which enforces derived classes to implement.
 
+* Class members now ensure incoming values from assignment match the same
+  class type.
+
 ## Changed
 
 * Classes with a private constructor can no longer be inherited at 

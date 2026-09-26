@@ -142,7 +142,9 @@ int OoprMeta::which(const std::string &name) const
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-RChr<PSEXP> OoprMeta::subName(const char* access, const bool inverse) const
+RChr<PSEXP> OoprMeta::subName(
+  const char* access, const bool inverse, const char* ignore
+) const
 {
   const R_xlen_t size{this->size()};
   std::vector<const char*> names;
@@ -151,6 +153,7 @@ RChr<PSEXP> OoprMeta::subName(const char* access, const bool inverse) const
   {
     bool match = !std::strcmp(access_[i], access);
     if(inverse)  match = !match;
+    match      = match && std::strcmp(names_[i], ignore);
     if(match)    names.push_back(names_[i]);
   }
   return names;

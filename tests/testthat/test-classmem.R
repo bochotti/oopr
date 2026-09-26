@@ -466,4 +466,40 @@ test_that("classmem",
   expect_true(is.oopr(obj$a, "memb"));
   obj$a$a <- 2L;
   expect_equal(obj$a$a, 2L);
+
+  it("uses active bindings",
+  {
+    expect_true(bindingIsActive("a", parent.env(obj)$this));
+    expect_equal(
+      sexp_ptr(activeBindingFunction("a", obj))
+     ,sexp_ptr(activeBindingFunction("a", parent.env(obj)$this))
+    );
+    ptr <- sexp_ptr(activeBindingFunction("a", obj));
+    expect_error(
+      obj$a <- 2L
+     ,"Incoming value to member `a` must be oopr class `memb`"
+    );
+    obj$a <- memb();
+    expect_equal(obj$a$a, 1L);
+    expect_equal(
+      sexp_ptr(activeBindingFunction("a", obj))
+     ,sexp_ptr(activeBindingFunction("a", parent.env(obj)$this))
+    );
+    expect_equal(ptr, sexp_ptr(activeBindingFunction("a", obj)));
+  })
+
+  it("doesnt replace inherited",
+  {
+    oopr("test2", public:test, { })
+    obj <- test2();
+    bse <- parent.env(obj)$test;
+    expect_equal(
+      sexp_ptr(activeBindingFunction("a", obj))
+     ,sexp_ptr(activeBindingFunction("a", bse))
+    );
+    expect_equal(
+      sexp_ptr(activeBindingFunction("a", parent.env(obj)$this))
+     ,sexp_ptr(activeBindingFunction("a", parent.env(bse)$this))
+    );
+  })
 })

@@ -94,7 +94,7 @@ private:
     for(R_xlen_t i = 0; i < len; ++i)
     {
       SEXP name = Rf_installChar(STRING_ELT(names, i));
-      if(!R_BindingIsActive(name, x)) walk(R_getVar(name, x, FALSE));
+      walk(R_getVar(name, x, FALSE));
     }
   }
 

@@ -9,6 +9,7 @@
 ^doc$
 ^Meta$
 ^\.github$
+\.gdb_history$
 ^man/OoprRoxy\.Rd$
 ^man/OoprSource\.Rd$
 ^man/OoprBreakpoints\.Rd$

@@ -126,10 +126,18 @@ test_that("oopr_onLoad local",
       sexp_ptr(top$test@encl$this$scls)
      ,sexp_ptr(top$test2@encl$this$scls)
     );
-    # expect_equal(
-    #   sexp_ptr(activeBindingFunction("scls", top$test@encl$this))
-    #  ,sexp_ptr(activeBindingFunction("scls", top$test2@encl$this))
-    # );
+    expect_equal(
+      sexp_ptr(activeBindingFunction("scls", top$test@encl$this))
+     ,sexp_ptr(activeBindingFunction("scls", top$test2@encl$this))
+    );
+    expect_equal(
+      sexp_ptr(activeBindingFunction("scls", top$test@encl$this))
+     ,sexp_ptr(activeBindingFunction("scls", top$test@encl$.this))
+    );
+    expect_equal(
+      sexp_ptr(activeBindingFunction("scls", top$test2@encl$this))
+     ,sexp_ptr(activeBindingFunction("scls", top$test2@encl$.this))
+    );
   })
 
   top$test2@encl$this$scls2$scls

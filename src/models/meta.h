@@ -34,6 +34,7 @@ public:
   RChr<PSEXP> subName(
     const char* access
    ,const bool  inverse = false
+   ,const char* ignore  = ""
   )                                              const;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //

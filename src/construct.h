@@ -6,6 +6,7 @@
 #include "./util/psexp.h"
 #include "./util/unwind.h"
 #include "./util/symbols.h"
+#include "./util/misc.h"
 #include "./models/robj.h"
 #include "./models/oopr.h"
 #include "./models/meta.h"
@@ -15,6 +16,8 @@
  * copy, but with new environments.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 extern "C" SEXP oopr_make(SEXP gen, SEXP name, SEXP frames);
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+extern "C" SEXP cmem_bindfun(SEXP mem, SEXP obj, SEXP env, SEXP sym);
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #endif
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //

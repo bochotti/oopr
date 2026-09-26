@@ -3,9 +3,50 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #define LIST(X)                                                \
   X(thiz, "this")                                              \
-  X(intf, ".this")
+  X(intf, ".this")                                             \
+  X(rhs)
 SYMBOLS(LIST, sym)
 #undef  LIST
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+ *
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+SEXP classmem_bind(RSym mem, Oopr obj, REnv<SEXP> env, RSym encl)
+{
+  const char* cls = obj.cls()[0].data();
+  char text[1024];
+  std::snprintf(text, sizeof(text), R"(
+  {
+    lhs <- obj;
+    if(missing(rhs) || identical(rhs, lhs)) { return(lhs); }
+
+    if(!is.oopr(rhs, "%s"))
+    {
+      stop(call. = FALSE,
+        "Incoming value to member `%s` must be oopr class `%s`"
+      );
+    }
+    if(match("%s", c("OoprVec", "OoprMap"), 0L) && lhs$class != rhs$class)
+    {
+      stop(call. = FALSE, sprintf(
+        "Incoming %s to member `%s` must contain `%%s` classes"
+       ,lhs$class
+      ));
+    }
+    fun <- activeBindingFunction("%s", %s);
+    oopr:::amend_plist(body(fun), 2:3, rhs);
+    return(rhs);
+  }
+  )", cls, mem.c_str(), cls, cls, cls, mem.c_str(), mem.c_str(), encl.c_str());
+
+  PSEXP body = R_ParseString(text);
+  amend_plist(body, *RInt<PSEXP>{2, 3}, *obj);
+  PSEXP arg = Rf_allocList(1);
+  SET_TAG(arg, *sym.rhs);
+  SETCAR(arg, R_MissingArg);
+  return R_mkClosure(arg, *body, *env);
+}
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * A class with methods to create an instance of an oopr class.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -20,6 +61,7 @@ public:
     , isInhr(*calr[this->name].get0() == gen)
     , ooprC(gen, !isInhr)
     , meta(ooprC.meta)
+    , len(meta.size())
     , inst(ooprC.encl.parent(), true, 2 + ooprC.inhr.size())
     , thiz(inst, true, meta.size())
   { }
@@ -31,6 +73,7 @@ public:
   bool             isInhr{false};
   const OoprC      ooprC;
   const OoprMeta&  meta;
+  const R_xlen_t   len;
   REnv<PSEXP>      inst; // new instance enclosure
   REnv<PSEXP>      thiz; // new instance this
   REnv<PSEXP>      intf; // new instance .this
@@ -54,7 +97,6 @@ public:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
   void makeThis()
   {
-    const R_xlen_t len = meta.size();
     const REnv<SEXP> from(ooprC.oopr.thiz);
     for(R_xlen_t i = 0; i < len; ++i)
     {
@@ -140,6 +182,8 @@ public:
       }
       envr[name] = fun;
     }
+    bind.lock(false);
+    bind.remove();
     if(run)
     {
       RUnWind::eval(expr, *envr);
@@ -153,10 +197,9 @@ public:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
   void replaceInheritedMembers()
   {
-    const R_xlen_t len = meta.size();
     for(R_xlen_t i = 0; i < len; ++i)
     {
-      if(!meta.isInherit(i) || (isInhr && meta.isVirtual(i))) continue;
+      if(!meta.isInherit(i) || (isInhr && meta.isVirtual(i))) { continue; }
       const RSym         nm(meta.name(i));
       const REnv<SEXP>   inhr(inst[meta.inherit(i)]);
 
@@ -191,6 +234,25 @@ public:
   }
 
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+   * Replaces class members with an active binding which asserts type.
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+  void encapsulateClassMembers()
+  {
+    for(R_xlen_t i = 0; i < len; ++i)
+    {
+      if(!meta.isClass(i) || meta.isInherit(i) || meta.isStatic(i))
+      {
+        continue;
+      }
+      const RSym        nm(meta.name(i));
+      REnv<PSEXP>::Bind to(thiz[nm]);
+      PSEXP obj = *thiz[nm];
+      to.remove();
+      to.fun    = classmem_bind(nm, Oopr(obj, false), inst, sym.thiz);
+    }
+  }
+
+  /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
    * If a destructor is defined for this class, register it.
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
   void registerDestructor()
@@ -215,7 +277,7 @@ public:
   void makeInterface()
   {
     const RChr<PSEXP> names(
-      meta.subName(isInhr ? "private" : "public", isInhr)
+      meta.subName(isInhr ? "private" : "public", isInhr, name.c_str())
     );
     const RChr<SEXP> clazz(ooprC.oopr.cls());
     intf = interface(*thiz, *sym.thiz, *names, *clazz, false);
@@ -248,16 +310,8 @@ public:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
   void lock()
   {
-    for(REnv<PSEXP>* env : { &intf, &thiz })
-    {
-      REnv<PSEXP>::Bind bind((*env)[name]);
-      if(bind.exists())
-      {
-        bind.lock(false);
-        bind.remove();
-      }
-      env->lock();
-    }
+    intf.lock(false);
+    thiz.lock(false);
     inst.lock(true);
   }
 
@@ -292,9 +346,36 @@ SEXP oopr_make(SEXP gen, SEXP name, SEXP frames) try
   obj.makeThis();
   obj.callConstructor();
   obj.replaceInheritedMembers();
+  obj.encapsulateClassMembers();
   obj.registerDestructor();
   obj.makeInterface();
   obj.lock();
   return *obj.intf;
+}
+catchR
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+SEXP cmem_bindfun(SEXP mem, SEXP obj, SEXP env, SEXP sym) try
+{
+  struct make { static RSym sym(SEXP x, const char* nm)
+  {
+    if(RSym::is(x)) return x;
+    if(RChr<>::is(x))
+    {
+      const RChr<SEXP> chr(x);
+      if(chr.size() == 1) return chr[0].sym();
+    }
+    stop("`%s` must be a symbol or single character vector", nm);
+    return R_NilValue;
+  }};
+  RSym mem_(make::sym(mem, "mem"));
+  RSym sym_(make::sym(sym, "sym"));
+
+  if(!Oopr::is(obj))   { stop("`obj` must be an oopr"); }
+  if(!REnv<>::is(env)) { stop("`env` must be an environment"); }
+  Oopr       obj_(obj, false);
+  REnv<SEXP> env_(env);
+
+  return classmem_bind(mem_, obj_, env_, sym_);
 }
 catchR
