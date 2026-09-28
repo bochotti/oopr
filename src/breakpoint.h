@@ -4,11 +4,15 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #include "common.h"
 #include <vector>
+#include <numeric>
+#include <algorithm>
 #include "./util/unwind.h"
 #include "./util/psexp.h"
 #include "./util/symbols.h"
+#include "./util/misc.h"
 #include "./models/oopr.h"
 #include "./models/meta.h"
+#include "./reference.h"
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Find oopr class instances.
  * TODO: now that I have virtual... cannot find all definitions.
@@ -18,5 +22,7 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 extern "C" SEXP
 find_instances(SEXP ooprC, SEXP frames = R_NilValue, SEXP fun = R_NilValue);
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+extern "C" SEXP set_breakpoints(SEXP fun, SEXP ats, SEXP cond);
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #endif

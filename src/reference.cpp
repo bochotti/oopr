@@ -506,42 +506,46 @@ catchR
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Find source reference from a path.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-SEXP find_src_ref(SEXP at, SEXP expr) try
+SEXP find_src_ref(const RInt<SEXP> at, const RObj<SEXP, LANGSXP> expr)
 {
-  if(!Rf_isInteger(at)) stop("`at` must be an integer");
+  const R_xlen_t len = at.size();
+  SEXP           e   = *expr;
+
+  // collect each expr within the path
+  RList<PSEXP> parents(len);
+  for(R_xlen_t i = 0; i < len; ++i)
+  {
+    parents[i] = e;
+    for(int j = 1; j < at[i]; e = CDR(e), ++j)
+    {
+      if(e == R_NilValue) stop("`at` is out of bounds");
+    }
+    e = CAR(e);
+  }
+
+  // find the srcref, which is an attribute of the immediate parent
+  static RSym srcref("srcref");
+  for(R_xlen_t i = (len - 1); i >= 0; --i)
+  {
+    const RObj<SEXP, ALLSXP> parent = parents[i];
+    const RObj<SEXP, ALLSXP> src    = parent.attr(srcref);
+    if(*src == R_NilValue) { continue; }
+    const R_xlen_t j = at[i] - 1;
+    const RList<SEXP> src2 = src;
+    if(j < src2.size())    { return *src2[j]; }
+  }
+  return R_NilValue;
+}
+
+SEXP find_src_refR(SEXP at, SEXP expr) try
+{
+  if(!RInt<>::is(at))  { stop("`at` must be an integer"); }
   switch(TYPEOF(expr))
   {
   case CLOSXP:  expr = R_ClosureExpr(expr);
   case LANGSXP: break;
   default:      stop("`expr` must be a call object");
   }
-
-  const R_xlen_t len = Rf_xlength(at);
-  const RInt<SEXP> path(at);
-
-  // collect each expr within the path
-  RList<PSEXP> parents(len);
-  for(R_xlen_t i = 0; i < len; ++i)
-  {
-    parents[i] = expr;
-    for(int j = 1; j < path[i]; expr = CDR(expr), ++j)
-    {
-      if(expr == R_NilValue) stop("`at` is out of bounds");
-    }
-    expr = CAR(expr);
-  }
-
-  // find the srcref, which is an attribute of the immediate parent
-  SEXP srcref = Rf_install("srcref");
-  for(R_xlen_t i = (len - 1); i >= 0; --i)
-  {
-    const RObj<SEXP, ALLSXP> parent = parents[i];
-    const RObj<SEXP, ALLSXP> src    = parent.attr(srcref);
-    if(*src == R_NilValue) continue;
-    const R_xlen_t j = path[i] - 1;
-    const RList<SEXP> src2 = src;
-    if(j < src2.size()) return *src2[j];
-  }
-  return R_NilValue;
+  return find_src_ref(at, expr);
 }
 catchR

@@ -1,6 +1,7 @@
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 test_that("OoprBreakpointsFunction",
 {
+  has_breakpoint <- \(fun) { return(!is.null(attr(body(fun), "orig", TRUE))); }
   tmp <- tempfile(fileext = ".R");
   on.exit(unlink(tmp));
   text <- r"{
@@ -30,8 +31,8 @@ test_that("OoprBreakpointsFunction",
   it("loads",
   {
     expect_equal(obj$name, "method");
-    expect_equal(obj$ooprC, test);
-    expect_equal(obj$encl, obj$ooprC@encl);
+    # expect_equal(obj$ooprC, test);
+    expect_equal(obj$encl, test@encl);
     expect_false(obj$property);
     expect_equal(obj$fun, test@encl$this$method)
   })
@@ -62,14 +63,14 @@ test_that("OoprBreakpointsFunction",
   it("can set a breakpoint",
   {
     expect_no_error(obj$setBreakpoints(c("2", "3,2")));
-    expect_s4_class(test@encl$this$method, "functionWithTrace");
+    expect_true(has_breakpoint(test@encl$this$method));
     expect_equal(
       body(test@encl$this$method)[[c(2, 2)]]
-     ,quote(.doTrace(browser()))
+     ,quote(if(TRUE) .doTrace(browser()))
     );
     expect_equal(
       body(test@encl$this$method)[[c(3, 2, 2)]]
-     ,quote(.doTrace(browser()))
+     ,quote(if(TRUE) .doTrace(browser()))
     );
     expect_equal(obj$breaks, c("2" = 7, "3,2" = 9));
   })
@@ -77,18 +78,18 @@ test_that("OoprBreakpointsFunction",
   it("can remove breakpoints",
   {
     obj$setBreakpoints();
-    expect_false(inherits(test@encl$this$method, "functionWithTrace"));
+    expect_false(has_breakpoint(test@encl$this$method));
   })
 
   it("can set breakpoints on class instances",
   {
     obj$setBreakpoints("2");
     test1 <- test();
-    expect_s4_class(test1$method, "functionWithTrace");
+    expect_true(has_breakpoint(test1$method));
     obj$setBreakpoints();
-    expect_false(inherits(test1$method, "functionWithTrace"));
+    expect_false(has_breakpoint(test1$method));
     obj$setBreakpoints("2");
-    expect_s4_class(test1$method, "functionWithTrace");
+    expect_true(has_breakpoint(test1$method));
   })
 
   it("obtains the active binding function of a property",
@@ -97,9 +98,9 @@ test_that("OoprBreakpointsFunction",
     expect_true(obj$property);
     expect_identical(obj$fun, activeBindingFunction("property", obj$encl$this));
     obj$setBreakpoints("2");
-    expect_s4_class(
-      activeBindingFunction("property", obj$encl$this), "functionWithTrace"
-    );
+    expect_true(has_breakpoint(
+      activeBindingFunction("property", obj$encl$this)
+    ));
   })
 
   text <- r"{
@@ -118,9 +119,9 @@ test_that("OoprBreakpointsFunction",
     d1 <- der1();
     d3 <- der3();
     obj$setBreakpoints("2");
-    expect_s4_class(d1$method, "functionWithTrace");
-    expect_s4_class(parent.env(d3)$this$method, "functionWithTrace");
-    expect_s4_class(parent.env(d3)$base$method, "functionWithTrace");
+    expect_true(has_breakpoint(d1$method));
+    expect_true(has_breakpoint(parent.env(d3)$this$method));
+    expect_true(has_breakpoint(parent.env(d3)$base$method));
     obj$setBreakpoints();
   })
 
@@ -128,7 +129,7 @@ test_that("OoprBreakpointsFunction",
   {
     d2 <- der2();
     obj$setBreakpoints("2");
-    expect_false(inherits(d2$method, "functionWithTrace"));
+    expect_false(has_breakpoint(d2$method));
     obj$setBreakpoints();
   })
 
@@ -136,7 +137,7 @@ test_that("OoprBreakpointsFunction",
   {
     t <- test();
     obj$setBreakpoints("2")
-    expect_s4_class(t$memb$method, "functionWithTrace");
+    expect_true(has_breakpoint(t$memb$method));
     obj$setBreakpoints();
   })
 
@@ -212,6 +213,7 @@ test_that("OoprBreakpointsClass",
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 test_that("OoprBreakpointsFile",
 {
+  has_breakpoint <- \(fun) { return(!is.null(attr(body(fun), "orig", TRUE))); }
   tmp <- tempfile(fileext = ".R");
   on.exit(unlink(tmp));
   text <- r"{
@@ -284,10 +286,39 @@ test_that("OoprBreakpointsFile",
   {
     orig <- test1@encl$this$method;
     obj$setBreakpoints("method", "test1", c("2", "3,2"));
-    expect_s4_class(test1@encl$this$method, "functionWithTrace");
-    expect_false(inherits(test2@encl$this$method, "functionWithTrace"));
+    expect_true(has_breakpoint(test1@encl$this$method));
+    expect_false(has_breakpoint(test2@encl$this$method));
     obj$setBreakpoints("method");
-    expect_identical(test1@encl$this$method, orig);
+    expect_false(has_breakpoint(test1@encl$this$method));
+  })
+
+  it("can set breakpoints on virtual methods",
+  {
+      text <- r"{
+      oopr("base",,
+      {
+      public:
+        virtual:method <- \( ) { } = 0;
+      })
+      oopr("derived", public:base,
+      {
+      public:
+        method <- \( )
+        {
+          3L;
+          {
+            4L;
+          }
+        }
+      })
+      }";
+      cat(text, file = tmp);
+      local <- environment();
+      source(tmp, local = local, keep.source = TRUE);
+      obj <- OoprBreakpointsFile(tmp, local);
+      x <- derived();
+      obj$setBreakpoints("method", "derived", "3,2");
+      expect_true(has_breakpoint(parent.env(parent.env(x)$base)$this$method));
   })
 
 })

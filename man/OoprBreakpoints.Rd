@@ -108,14 +108,9 @@ Breakpoint Internals
 \lbr{}\code{character(1L)} \cr
 The name of the function.}
 
-\item{\command{ooprC}}{
-\lbr{}\code{ooprC} \cr
-The \code{ooprC} class that the function resides.}
-
 \item{\command{encl}}{
 \lbr{}\code{environment} \cr
-The enclosure inside \code{ooprC}. Can change to set breakpoints
-for class instances.}
+The enclosure inside \code{ooprC}.}
 
 \item{\command{property}}{
 \lbr{}\code{logical(1L)} \cr
@@ -124,10 +119,14 @@ breakpoints need to be set on the active binding
 function.}
 
 \item{\command{fun}}{
-\lbr{}\code{function} \cr
-Returns the un-traced version of the function from
-\verb{$encl$this}. If set, it assigns into \verb{$encl$this} and
-\verb{$encl$.this} if applicable.}
+\emph{\verb{[read-only]}} \cr
+\code{function} \cr
+Returns the method or active binding called \code{this$name}.}
+
+\item{\command{body}}{
+\emph{\verb{[read-only]}} \cr
+\code{expression} \cr
+Returns the body of \code{this$fun} without any breakpoints.}
 
 \item{\command{srcref}}{
 \emph{\verb{[read-only]}} \cr
@@ -227,14 +226,19 @@ function, e.g. \code{body(fun)[[steps]]}.
 }
 
 \subsection{Usage}{
-\rc{\preformatted{setBreakpoints(steps = character())}}
+\rc{\preformatted{setBreakpoints(
+  steps = character()
+ ,conds = list()
+)}}
 }
 
 \subsection{Arguments}{
 \ar{#1}{#2}\tabular{ll}{
 \code{steps} \tab \code{character()} \br
 Integer positions separated by \verb{,}. If \code{length(steps) == 0L},
-then all breakpoints are removed.}
+then all breakpoints are removed. \cr
+\code{conds} \tab \code{list()} \br
+A list of expressions to coincide with each step.}
 }
 
 \subsection{Details}{

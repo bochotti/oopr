@@ -98,14 +98,10 @@ public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   #' @param name  `character(1L)` \cr
   #'              The name of the function.
-  #'
-  #' @param ooprC `ooprC` \cr
-  #'              The `ooprC` class that the function resides.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   OoprBreakpointsFunction <- \(name, ooprC)
   {
     this$name     <- name;
-    this$ooprC    <- ooprC;
     this$encl     <- ooprC@encl;
     this$property <- nzchar(ooprC@meta$subs("property", names = name));
   }
@@ -116,12 +112,10 @@ public:
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   name     <- character();
-  ooprC    <- NULL;
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   #' @field encl `environment` \cr
-  #'             The enclosure inside `ooprC`. Can change to set breakpoints
-  #'             for class instances.
+  #'             The enclosure inside `ooprC`.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   encl     <- emptyenv();
 
@@ -135,14 +129,12 @@ public:
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   #' @field fun `function` \cr
-  #'            Returns the un-traced version of the function from
-  #'            `$encl$this`. If set, it assigns into `$encl$this` and
-  #'            `$encl$.this` if applicable.
+  #'            Returns the method or active binding called `this$name`.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   get:fun <- \( )
   {
     name <- this$name;
-    if(!length(name)) return(NULL);
+    if(!length(name)) { return(NULL); }
     if(this$property)
     {
       out <- activeBindingFunction(name, this$encl$this);
@@ -151,38 +143,20 @@ public:
     {
       out <- get(name, envir = this$encl$this, inherits = FALSE);
     }
-    if(isS4(out) && inherits(out, "functionWithTrace"))
-    {
-      out <- out@original;
-    }
     return(out);
   }
-  set:fun <- \(x)
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @field body `expression` \cr
+  #'             Returns the body of `this$fun` without any breakpoints.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  get:body <- \( )
   {
-    if(!is.function(x)) return();
-    name <- this$name;
-    for(thiz in c(this$encl$this, this$encl$.this))
-    {
-      # wont be in .this if
-      #  - non-static ooprC@encl,
-      #  - private, or
-      #  - non-inherited protected
-      if(!exists(name, envir = thiz, inherits = FALSE)) next;
-      if(bindingIsLocked(name, thiz))
-      {
-        unlockBinding(name, thiz);
-        do.call(on.exit, list(substitute(lockBinding(name, thiz)), TRUE));
-      }
-      if(this$property)
-      {
-        makeActiveBinding(name, x, thiz);
-      }
-      else
-      {
-        assign(name, x, envir = thiz);
-      }
-    }
-    return(x);
+    fun  <- this$fun;
+    if(!is.function(fun)) { return(NULL); }
+    body <- body(fun);
+    body <- attr(body, "orig", exact = TRUE) %||% body;
+    return(body);
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -210,9 +184,9 @@ public:
   isInSync <- \( )
   {
     srcref <- this$srcref;
-    if(is.null(srcref)) return(FALSE);
+    if(is.null(srcref)) { return(FALSE); }
     file <- attr(srcref, "srcfile", TRUE)$filename;
-    if(is.null(file) || !file.exists(file)) return(FALSE);
+    if(is.null(file) || !file.exists(file)) { return(FALSE); }
 
     inClass <- as.character(srcref);
     inFile                 <- readLines(file, warn = FALSE);
@@ -236,7 +210,7 @@ public:
   hasLine <- \(line)
   {
     srcref <- this$srcref;
-    if(is.null(srcref)) return(FALSE);
+    if(is.null(srcref)) { return(FALSE); }
     return(srcref[1L] <= line && line <= srcref[3L]);
   }
 
@@ -256,9 +230,9 @@ public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   getSteps <- \(line)
   {
-    fun <- this$fun;
-    if(!is.function(fun)) return("");
-    steps <- this$findSteps(body(fun), line);
+    body <- this$body;
+    if(is.null(body)) { return(""); }
+    steps <- this$findSteps(body, line);
     steps <- paste(steps, collapse = ",");
     if(nzchar(steps))
     {
@@ -275,6 +249,9 @@ public:
   #'              Integer positions separated by `,`. If `length(steps) == 0L`,
   #'              then all breakpoints are removed.
   #'
+  #' @param conds `list()` \cr
+  #'              A list of expressions to coincide with each step.
+  #'
   #' @details
   #' Uses [`base::trace`] to create a traced function, steps are ordered by
   #' their depth of nesting so `trace` doesn't overwrite its own breakpoints.
@@ -283,110 +260,52 @@ public:
   #' `this` invisibly. `steps` is also saved inside a private member for
   #' `$breaks` to return line numbers set.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  setBreakpoints <- \(steps = character())
+  setBreakpoints <- \(steps = character(), conds = list())
   {
-    fun <- this$fun;
-    this$steps_ <- character(0L);
-    if(length(steps))
+    if(length(conds))
     {
-      this$steps_ <- steps;
-      at <- lapply(strsplit(steps, ","), as.integer);
-      at <- at[order(-vapply(at, length, integer(1L)))];
-      suppressMessages(
-        trace("fun", browser, at = at, print = FALSE, where = environment())
-      );
-      body(fun@.Data) <- this$addSrcrefsToBreaks(body(fun), body(fun@original));
+      if(length(steps) != length(conds))
+      {
+        stop("`steps` & `conds` must be the same length");
+      }
     }
-    this$fun  <- fun;
-    this$setInstances(fun);
+    else
+    {
+      conds <- !logical(length(steps));
+    }
+    conds       <- as.list(conds);
+    fun         <- this$fun;
+    this$steps_ <- steps;
+    ats         <- lapply(strsplit(steps, ","), as.integer);
+    .Call(Cpp_set_breakpoints, fun, ats, conds);
     return(invisible(this));
   }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 private:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  fun_   <- NULL;
   lines_ <- integer(0L);
   steps_ <- character(0L);
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   findSteps <- \(x, line)
   {
-    if(!is.call(x)) return(integer(0L));
+    if(!is.call(x)) { return(integer(0L)); }
     srcs <- attr(x, "srcref", TRUE);
     for(i in seq_along(x))
     {
       src <- srcs[[i]];
-      if(!is.null(src) && !(src[1L] <= line && line <= src[3L])) next;
+      if(!is.null(src) && !(src[1L] <= line && line <= src[3L])) { next; }
       nest <- this$findSteps(x[[i]], line);
-      if(length(nest))                          return(c(i, nest));
-      if(!is.null(src) && !isname(x[[i]], "{")) return(i);
+      if(length(nest))                          { return(c(i, nest)); }
+      if(!is.null(src) && !isname(x[[i]], "{")) { return(i); }
     }
     return(integer(0L));
   }
 
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  #' The srcref at the requested lines are added to the newly added breakpoints
-  #' to ensure that the line number is available when being hit.
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  addSrcrefsToBreaks <- \(expr, oexpr)
-  {
-    if(!(is.call(expr) && is.call(oexpr) && length(expr) == length(oexpr)))
-    {
-      return(expr);
-    }
-    for(i in seq_along(expr))
-    {
-      if(   iscall(expr[[i]], "{") && length(expr[[i]]) > 1L
-         && iscall(expr[[i]][[2L]], ".doTrace")
-      )
-      {
-        src <- attr(expr, "srcref")[[i]] %||% attr(oexpr, "srcref")[[i]];
-        attr(expr[[i]], "srcref") <- rep(list(src), length(expr[[i]]));
-      }
-      else
-      {
-        expr[[i]] <- this$addSrcrefsToBreaks(expr[[i]], oexpr[[i]]);
-      }
-    }
-    return(expr);
-  }
-
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  #' Instances are found (refer `./src/breakpoint.cpp`) and they also have
-  #' their functions amended. If the instance becomes out of sync of the
-  #' source file, then its untraced version is set instead.
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  setInstances <- \(fun)
-  {
-    name      <- this$name;
-    instances <- .Call(Cpp_find_instances, this$ooprC, sys.frame(-2L), name);
-    if(!length(instances)) return();
-    encl     <- this$encl;
-    property <- this$property;
-    on.exit(this$encl <- encl);
-    for(inst in instances)
-    {
-      thiz  <- inst$this;
-      if(!exists(name, envir = thiz, inherits = FALSE)) next;
-      active <- bindingIsActive(name, thiz);
-      if((property && !active) || !property && active)  next;
-      # setting $encl changes references of $fun property
-      this$encl <- inst;
-      old       <- this$fun;
-      if(isS4(fun) && inherits(fun, "functionWithTrace"))
-      {
-        environment(fun@original) <- environment(old);
-      }
-      environment(fun) <- environment(old);
-      # if in sync, then the definition matches `fun`
-      # otherwise, force the non-traced version (of the instance)
-      this$fun  <- if(this$isInSync()) fun else old;
-    }
-  }
-
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-})
+}) ## OoprBreakpointsFunction
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -531,7 +450,8 @@ private:
   }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-})
+}) ## OoprBreakpointsClass
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -697,7 +617,8 @@ private:
   }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-})
+}) ## OoprBreakpointsFile
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
