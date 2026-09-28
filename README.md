@@ -6,6 +6,8 @@
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/bochotti/oopr/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/bochotti/oopr/actions/workflows/R-CMD-check.yaml)
+[![covr2gh
+coverage](/../covr2gh-storage/badges/main/coverage_badge.svg)](/../actions/workflows/covr2gh.yaml)
 <!-- badges: end -->
 
 This package was created to assist with writing classes in R code.
@@ -93,7 +95,7 @@ private:
 
 john <- Human("john", "smith", 50L);
 print(john);
-#> <Human: 0x6090ab0843e8>
+#> <Human: 0x5713cbfe1ec8>
 #>  ├─$name : chr "john smith"
 #>  └─$greet:\()
 john$greet();

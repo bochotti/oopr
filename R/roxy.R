@@ -968,15 +968,13 @@ private:
   fillMembers <- \( )
   {
     names <- this$ooprC@meta$subs("names", access = c("public", "protected"));
+    names <- names[names != this$title]
     cargs <- names(formals(this$ooprC@encl$this[[this$title_]]));
     miss  <- logical(length(names));
 
     for(i in seq_along(names))
     {
       name <- names[i];
-
-      # skip constructor
-      if(name == this$title) { next; }
 
       # protected members are optional
       if(this$ooprC@meta$subs("access", names = name) == "protected") next;

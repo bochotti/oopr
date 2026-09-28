@@ -8,9 +8,9 @@
 SYMBOLS(LIST, sym)
 #undef  LIST
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
- *
+ * Class members reside inside the body of an active binding function.
+ * This allows for ensuring the "class" of the member is always the same.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
 SEXP classmem_bind(RSym mem, Oopr obj, REnv<SEXP> env, RSym encl)
 {
   const char* cls = obj.cls()[0].data();

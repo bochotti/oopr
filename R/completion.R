@@ -191,6 +191,9 @@ private:
       stop("`file` is a .Rmd file with uneven ``` blocks");
     }
     edges <- split.default(edges, unlist(lapply(seq_len(len / 2), rep, 2L)));
+    edges <- edges[
+      vapply(edges, \(x) grepl("```\\s*\\{\\s*[rR]", text[x[1L]]), logical(1L))
+    ];
     lines <- lapply(edges, \(edge)
     {
       i <- seq.default(edge[1L], edge[2L]);

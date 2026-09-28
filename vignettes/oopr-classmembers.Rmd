@@ -65,6 +65,35 @@ not work as intended as R expressions are evaluated from right to left. An
 expression such as `obj$mem$a <- 1L;` will evaluate `mem$a <- 1L;`
 before the set property for `obj$mem` is called. 
 
+A useful set property to ensure the class instance is never replaced could be:
+```{r}
+oopr("ClassMemPropertyExample",,
+{
+public:
+  get:x <- \( ) { return(this$x_); }
+  set:x <- \(rhs)
+  {
+    if(!identical(this$x_, rhs)) 
+    { 
+      stop(call. = FALSE, "`x` cannot be replaced"); 
+    }
+    return(this$x_);
+  }
+private:
+  x_ <- MemberClass;
+})
+```
+
+```{r, error = TRUE, purl = FALSE}
+obj <- ClassMemPropertyExample();
+
+# allowed
+obj$x$x <- 2L;
+
+# not allowed
+obj$x <- MemberClass();
+```
+
 ## Containers
 
 Members can become containers of classes using syntactic sugar. Suffixing `[]` 
