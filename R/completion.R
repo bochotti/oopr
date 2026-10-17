@@ -793,7 +793,10 @@ public:
       {
         oopr <- get0(class, ns);
       }
-      if(!is.ooprC(oopr, class)) return(NULL);
+      if(!is.ooprC(oopr, class))
+      {
+        stop(sprintf("ooprC `%s` cannot be found", class));
+      }
       oopr <- oopr@encl$this;
     }
     package <- environmentName(topenv(oopr));
@@ -826,10 +829,17 @@ public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   static:getHelp <- \(type, topic, source, class, package)
   {
-    comp <- OoprCompletionHelp(topic, source, class, package);
-    if(comp$fail) return(NULL);
-    comp$makeHelp(type);
-    return(comp$out);
+    tryCatch(
+    {
+      comp <- OoprCompletionHelp(topic, source, class, package);
+      if(comp$fail) return(NULL);
+      comp$makeHelp(type);
+      return(comp$out);
+    }
+    ,error = \(e)
+    {
+      return(NULL);
+    })
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -949,7 +959,6 @@ help_formals_handler.oopr <- \(topic, source)
   }
   topic   <- deparse1(str2lang(topic));
   formals <- sprintf("%s = ", names(formals(.subset2(source, topic))));
-  help    <- OoprCompletionHelp@encl$.this$makeHelpHandler(source);
+  help    <- OoprCompletionHelp[["makeHelpHandler"]](source);
   return(list(formals = formals, helpHandler = help))
 }
-

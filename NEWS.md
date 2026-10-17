@@ -9,6 +9,8 @@
 
 * Class members now ensure incoming values from assignment match the same
   class type.
+  
+* `[[` & `[[<-` operators for `ooprC` objects, which do not call completion.
 
 ## Changed
 
