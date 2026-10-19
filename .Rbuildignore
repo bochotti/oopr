@@ -12,5 +12,5 @@
 \.gdb_history$
 ^man/OoprRoxy\.Rd$
 ^man/OoprSource\.Rd$
-^man/OoprBreakpoints\.Rd$
 ^man/OoprCompletion\.Rd$
+^man/OoprBreakpointsImpl\.Rd$

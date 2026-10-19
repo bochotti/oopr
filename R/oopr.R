@@ -203,15 +203,6 @@ str.oopr <- \(
     cat(sub("function ", "\\\\", deparse(x, 500L, nlines = 1L)), '\n');
     return(invisible(x));
   }
-  str.functionWithTrace <- \(x, ...)
-  {
-    cat("X");
-    if(isS4(x))
-    {
-      x <- x@original;
-    }
-    NextMethod();
-  }
 
   out <- capture.output({
     top <- format(object);
@@ -283,7 +274,7 @@ print.oopr <- \(x, max.level = 5L, ...)
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-dollar_attr <- \(x, names)
+dollar_attr <- \(x, names)                                      # nocov start #
 {
   types <- integer(length(names));
   meta  <- character(length(names));
@@ -333,7 +324,7 @@ dollar_attr <- \(x, names)
 
   help <- OoprCompletionHelp[["makeHelpHandler"]](x);
   return(list(types = as.integer(types), meta = meta, helpHandler = help));
-}
+}                                                               # nocov end   #
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @name is.oopr

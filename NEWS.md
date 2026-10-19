@@ -12,6 +12,8 @@
   
 * `[[` & `[[<-` operators for `ooprC` objects, which do not call completion.
 
+* `OoprBreakpoints` now has an interface through the R console.
+
 ## Changed
 
 * Classes with a private constructor can no longer be inherited at 

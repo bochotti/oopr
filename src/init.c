@@ -26,6 +26,7 @@ extern SEXP amend_plist     (SEXP, SEXP, SEXP);
 extern SEXP sexp_ptr        (SEXP);
 extern SEXP cmem_bindfun    (SEXP, SEXP, SEXP, SEXP);
 extern SEXP set_breakpoints (SEXP, SEXP, SEXP);
+extern SEXP LCS             (SEXP, SEXP);
 
 static const R_CallMethodDef CallEntries[] =
 {
@@ -47,6 +48,7 @@ static const R_CallMethodDef CallEntries[] =
     {"sexp_ptr",         (DL_FUNC) &sexp_ptr,         1},
     {"cmem_bindfun",     (DL_FUNC) &cmem_bindfun,     4},
     {"set_breakpoints",  (DL_FUNC) &set_breakpoints,  3},
+    {"LCS",              (DL_FUNC) &LCS,              2},
     {NULL, NULL, 0}
 };
 

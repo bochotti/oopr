@@ -217,7 +217,7 @@ private:
 #' @description
 #' Use completion in RStudio.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-oopr("OoprCompletionRStudio", public:OoprCompletionSource,
+oopr("OoprCompletionRStudio", public:OoprCompletionSource,      # nocov start #
 {
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 public:
@@ -282,7 +282,7 @@ private:
   }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-}) ## OoprCompletionRStudio
+}) ## OoprCompletionRStudio                                     # nocov end   #
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 
 

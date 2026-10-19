@@ -15,15 +15,15 @@
     }
     if(Sys.getenv("R_OOPR_BREAKPOINTS") == "true")
     {
-      OoprBreakpoints@encl$this$loadInGlobal(TRUE, TRUE);
+      try(OoprBreakpoints[["rstudio"]] <- TRUE, TRUE);
     }
   }
 }
 .onUnload <- \(libpath)
 {
-  if(OoprBreakpoints@encl$this$allLoadedInGlobal())
+  if(OoprBreakpoints[["rstudio"]])
   {
-    OoprBreakpoints@encl$this$loadInGlobal(FALSE, TRUE);
+    OoprBreakpoints[["rstudio"]] <- FALSE;
   }
   if(identical(get0("this", envir = .AutoloadEnv, inherits = FALSE), this))
   {

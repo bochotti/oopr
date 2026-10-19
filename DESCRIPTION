@@ -5,7 +5,7 @@ Authors@R:
     person("Nathan", "Bachetti", , "nathanbachetti@gmail.com", role = c("aut", "cre"))
 Description: Create classes to implement object oriented programming principles
     in R. Use specifiers to change the behaviour of class members. Class
-    creation is met with a series of checks to reduce run-time errors.
+    creation triggers a series of static code checks to reduce run-time errors.
 License: GPL (>= 3)
 Encoding: UTF-8
 Suggests: 

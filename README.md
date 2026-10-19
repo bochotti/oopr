@@ -18,10 +18,12 @@ functionality, but this package implements the idea differently.
 
 2.  Members can have different behavior via the use of specifiers.
 
-3.  Upon creating a class, a series of checks are performed to reduce
-    the risk of run-time errors.
+3.  Upon creating a class, a series of static code checks are performed
+    to reduce the risk of run-time errors.
 
-4.  Code-completion and breakpoints are supported in RStudio.
+4.  Breakpoint manager to debug across class instances.
+
+5.  Code-completion is supported in RStudio.
 
 Classes are useful for bundling data and actions together, and to
 “group” common functions.
@@ -95,7 +97,7 @@ private:
 
 john <- Human("john", "smith", 50L);
 print(john);
-#> <Human: 0x5713cbfe1ec8>
+#> <Human: 0x5dfcb69316b0>
 #>  ├─$name : chr "john smith"
 #>  └─$greet:\()
 john$greet();

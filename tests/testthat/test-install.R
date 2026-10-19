@@ -31,15 +31,7 @@ test_that("oopr_onInstall",
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 test_that("oopr_onLoad local",
 {
-  if(!requireNamespace("FAKE_PKG_123", quietly = TRUE))
-  {
-    at <- findInExpr(body(loadNamespace), \(e) {
-      iscall(e, "<-") && isname(e[[2L]], "makeNamespace");
-    });
-    eval(body(loadNamespace)[[at[[1L]]]]);
-    makeNamespace("FAKE_PKG_123");
-  }
-  top <- getNamespace("FAKE_PKG_123");
+  top <- fake_namespace("FAKE_PKG_123");
 
   oopr("inhr",,
   {
