@@ -64,6 +64,25 @@ test_that("specifiers_special",
      ,class = "ooprNonAccessSpecifierSpecial"
     );
   })
+
+  it("does allow final specifier for public constructors",
+  {
+    expect_no_error(
+      oopr("test",, { public:final:test <- \( ) { } })
+    );
+    expect_error(
+      oopr("test",, { public:final:~test <- \( ) { }})
+     ,class = "ooprNonAccessSpecifierSpecial"
+    );
+    expect_error(
+      oopr("test",, { protected:final:test <- \( ) { } })
+     ,class = "ooprFinalConstructorNotPublic"
+    );
+    expect_error(
+      oopr("test",, { private:final:test <- \( ) { } })
+     ,class = "ooprFinalConstructorNotPublic"
+    );
+  })
 })
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##

@@ -1,3 +1,34 @@
+# oopr 0.3.0 (2026-10-19)
+
+## Added
+
+* Public constructors can now be marked as final, to prevent being inherited
+  by other classes.
+  
+* Abstract virtual methods, which enforces derived classes to implement.
+
+* Class members now ensure incoming values from assignment match the same
+  class type.
+  
+* `[[` & `[[<-` operators for `ooprC` objects, which do not call completion.
+
+* `OoprBreakpoints` now has an interface through the R console.
+
+## Changed
+
+* Classes with a private constructor can no longer be inherited at 
+  compile-time.
+
+* Classes with a non-public constructor can no longer be a class member at
+  compile-time.
+
+## Fixed
+
+* Completion for method arguments works again, regression from 0.2.0.
+
+* Help completion for members no longer displays `A` in R < 4.3.0.
+
+
 # oopr 0.2.0 (2026-09-06)
 
 ## Added

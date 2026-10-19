@@ -1,85 +1,8 @@
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-#' @name oopr_breakpoints
-#' @title Breakpoints for oopr
+#' @name OoprBreakpointsImpl
 #' @include init.R
 #' @include container.R
 #' @include source.R
-#' @export
-#' @description
-#' Use RStudio breakpoints with `oopr` classes.
-#'
-#' @param on    `logical(1L)` \cr
-#'              To enable/disable breakpoints. If the default, `NA`, checks
-#'              whether they are currently enabled.
-#'
-#' @param force `logical(1L)` \cr
-#'              Force assigning or removing the required functions to/from
-#'              the global environment.
-#'
-#' @details
-#' Setting breakpoints inside `oopr` classes is the same process as setting
-#' them for normal functions - use the gutter or `SHIFT+F9`.
-#'
-#' This feature requires intercepting RStudio calls to functions that
-#' normally reside within `tools:rstudio`, by assigning functions of the same
-#' name inside the global environment. It is disabled by default as it is
-#' potentially destructive for an R session. Environmental variable
-#' `R_OOPR_BREAKPOINTS=true` can be used to enable this functionality when
-#' `oopr` namespace is loaded.
-#'
-#' Breakpoints can be set for both methods and properties. One limitation is
-#' that breakpoints cannot be set on single line functions with a specifier,
-#' ```
-#' get:x <- \( ) { return("x"); }
-#' ````
-#' as RStudio thinks the line is at the top-level.
-#'
-#' When a breakpoint is set class instances are searched in the global
-#' environment and package namespace (if applicable). If the function inside
-#' an instance does not match the source file, then all breakpoints are
-#' removed for that function in that instance.
-#'
-#' Tested with RStudio version 2026.1.1.403, there are no guarantees for
-#' earlier or later versions.
-#'
-#' @returns
-#' `logical(1L)` indicating whether this functionality is enabled. Any
-#' breakpoints set are printed to the console.
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-oopr_breakpoints <- \(on = NA, force = FALSE)
-{
-  stopifnot(
-    is.logical(on)    && length(on)    == 1L
-   ,is.logical(force) && length(force) == 1L && !is.na(force)
-  );
-  if(!match("tools:rstudio", search(), 0L)) stop("RStudio must be available");
-
-  if(is.na(on))
-  {
-    if(OoprBreakpoints$allLoadedInGlobal())
-    {
-      if(length(OoprBreakpoints$printBreaks()))
-      {
-        return(invisible(TRUE));
-      }
-      else
-      {
-        return(TRUE);
-      }
-    }
-    else
-    {
-      return(FALSE);
-    }
-  }
-  else
-  {
-    return(OoprBreakpoints$loadInGlobal(on, force));
-  }
-}
-
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-#' @name OoprBreakpoints
 #' @keywords internal .Rbuildignore
 #' @title Breakpoint Internals
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -87,7 +10,267 @@ NULL
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-#' @rdname OoprBreakpoints
+#' @rdname OoprBreakpointsImpl
+#' @description
+#' Map srcref line numbers.
+#'
+#' @details
+#' Utilises a longest common subsequence algorithm.
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+oopr("OoprBreakpointsMap",,
+{
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+public:
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @param old `function` \cr
+  #'            Old function.
+  #'
+  #' @param new `function` \cr
+  #'            New function.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  OoprBreakpointsMap <- \(old, new)
+  {
+    this$load(old, new);
+    return(invisible(this));
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @field map `integer()` \cr
+  #'            The lines which can be set.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  get:map <- \( )
+  {
+    return(this$map_ + this$nst_);
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @inherit OoprBreakpointsMap$OoprBreakpointsMap
+  #' @description
+  #' Add a new map.
+  #'
+  #' @returns
+  #' `this` invisibly.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  load <- \(old, new)
+  {
+    old <- attr(old, "srcref", TRUE);
+    new <- attr(new, "srcref", TRUE);
+    this$ost_ <- (old[1L] %||% 1L) - 1L;
+    this$nst_ <- (new[1L] %||% 1L) - 1L;
+    if(identical(old, new) && !is.null(old) && !is.null(new))
+    {
+      this$map_ <- seq_len(old[3L] - old[1L] + 1);
+    }
+    else
+    {
+      this$map_ <- .Call(Cpp_LCS, as.character(old), as.character(new));
+    }
+    return(invisible(this));
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @description
+  #' Map the new lines to the old lines.
+  #'
+  #' @param lines `integer()` \cr
+  #'        The new line numbers.
+  #'
+  #' @returns
+  #' `integer(length(lines))`. If a new line does not exist in the old lines,
+  #' then `NA`.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  toOld <- \(lines)
+  {
+    return(match(lines - this$nst_, this$map_) + this$ost_);
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @description
+  #' Map the old lines to the new lines.
+  #'
+  #' @param lines `integer()` \cr
+  #'        The new old numbers.
+  #'
+  #' @returns
+  #' `integer(length(lines))`. If an old line does not exist in the new lines,
+  #' then `NA`.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  toNew <- \(lines)
+  {
+    return(this$map_[lines - this$ost_] + this$nst_);
+  }
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+private:
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  map_ <- integer(0L);
+  ost_ <- integer(1L);
+  nst_ <- integer(1L);
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+}) ## OoprBreakpointsMap
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @rdname OoprBreakpointsImpl
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+oopr("OoprBreakpointsBreak",,
+{
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+public:
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @param body `language` \cr
+  #'             The body of the function to set the breakpoint.
+  #' @param line `integer(1L)` \cr
+  #'             The line number.
+  #' @param cond `langauge` \cr
+  #'             The condition that triggers the breakpoint.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  OoprBreakpointsBreak <- \(body, line, cond)
+  {
+    this$line_  <- line;
+    this$steps_ <- this$findSteps(body, line);
+    this$cond_  <- cond;
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  get:line <- \( )
+  {
+    return(this$line_);
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  get:cond <- \( )
+  {
+    return(this$cond_);
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @field steps `integer()` \cr
+  #'              The steps required to set breakpoint at `$line`.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  get:steps <- \( )
+  {
+    return(this$steps_);
+  }
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+private:
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  line_  <- integer(0L);
+  steps_ <- integer(0L);
+  cond_  <- logical(0L);
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' The srcrefs inside the `body` are searched to find where the line
+  #' can be found. Steps is the integer position to enter the body of the
+  #' function, e.g. `body(fun)[[steps]]`.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  findSteps <- \(x, line)
+  {
+    if(!is.call(x)) { return(integer(0L)); }
+    srcs <- attr(x, "srcref", TRUE);
+    for(i in seq_along(x))
+    {
+      src <- srcs[[i]];
+      if(!is.null(src) && !(src[1L] <= line && line <= src[3L])) { next; }
+      nest <- this$findSteps(x[[i]], line);
+      if(length(nest))                          { return(c(i, nest)); }
+      if(!is.null(src) && !isname(x[[i]], "{")) { return(i); }
+    }
+    return(integer(0L));
+  }
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+}) ## OoprBreakpointsBreak
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @rdname OoprBreakpointsImpl
+#' @description
+#' Used to track changes to breakpoints among files/classes/functions.
+#'
+#' @details
+#' Holds vector of value, and/or container of the same class.
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+oopr("OoprBreakpointsCond",, { })
+oopr("OoprBreakpointsCond",,
+{
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+public:
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @description
+  #' Add a value.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  push <- \(x)
+  {
+    this$value_ <- c(this$value_, x);
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @description
+  #' Clear all values & children.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  clear <- \( )
+  {
+    this$value_ <- NULL;
+    this$child_$resize();
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @description
+  #' Create a child class.
+  #'
+  #' @param ... `character()` \cr
+  #'            Key of the new class in the container, pasted together.
+  #'
+  #' @returns
+  #' The new child class.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  child <- \(...)
+  {
+    key <- paste(...);
+    if(!this$child_$exists(key))
+    {
+      this$child_$emplace(key);
+    }
+    return(this$child_[key]);
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @description
+  #' Convert contents to a last
+  #'
+  #' @returns
+  #' `list()`
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  list <- \( )
+  {
+    out <- this$value_;
+    if(this$child_$size)
+    {
+      out <- c(out, this$child_$apply(\(k, v) v$list()));
+    }
+    return(out);
+  }
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+private:
+  value_  <- NULL;
+  child_  <- OoprBreakpointsCond[[]];
+  parent_ <- NULL;
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+}) ## OoprBreakpointsCond
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @rdname OoprBreakpointsImpl
 #' @description
 #' Represents a function object inside a class.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -96,106 +279,74 @@ oopr("OoprBreakpointsFunction",,
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  #' @param name  `character(1L)` \cr
-  #'              The name of the function.
-  #'
-  #' @param ooprC `ooprC` \cr
-  #'              The `ooprC` class that the function resides.
+  #' @param fun `function` \cr
+  #'            The function to set breakpoints for.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  OoprBreakpointsFunction <- \(name, ooprC)
+  OoprBreakpointsFunction <- \(fun)
   {
-    this$name     <- name;
-    this$ooprC    <- ooprC;
-    this$encl     <- ooprC@encl;
-    this$property <- nzchar(ooprC@meta$subs("property", names = name));
+    stopifnot(is.function(fun));
+    this$fun_ <- fun;
+    this$map_(fun, fun);
   }
   ~OoprBreakpointsFunction <- \( )
   {
-    this$setBreakpoints();
+    if(this$breaks_$size) { try(this$rm(this$breaks$lines), TRUE); }
   }
-
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  name     <- character();
-  ooprC    <- NULL;
-
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  #' @field encl `environment` \cr
-  #'             The enclosure inside `ooprC`. Can change to set breakpoints
-  #'             for class instances.
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  encl     <- emptyenv();
-
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  #' @field property `logical(1L)` \cr
-  #'                 Whether the function is a property. If so, then
-  #'                 breakpoints need to be set on the active binding
-  #'                 function.
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  property <- logical();
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   #' @field fun `function` \cr
-  #'            Returns the un-traced version of the function from
-  #'            `$encl$this`. If set, it assigns into `$encl$this` and
-  #'            `$encl$.this` if applicable.
+  #'            The method or active binding.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   get:fun <- \( )
   {
-    name <- this$name;
-    if(!length(name)) return(NULL);
-    if(this$property)
-    {
-      out <- activeBindingFunction(name, this$encl$this);
-    }
-    else
-    {
-      out <- get(name, envir = this$encl$this, inherits = FALSE);
-    }
-    if(isS4(out) && inherits(out, "functionWithTrace"))
-    {
-      out <- out@original;
-    }
-    return(out);
+    return(this$fun_);
   }
-  set:fun <- \(x)
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @field body `expression` \cr
+  #'             Returns the body of `$fun` without any breakpoints.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  get:body <- \( )
   {
-    if(!is.function(x)) return();
-    name <- this$name;
-    for(thiz in c(this$encl$this, this$encl$.this))
-    {
-      # wont be in .this if
-      #  - non-static ooprC@encl,
-      #  - private, or
-      #  - non-inherited protected
-      if(!exists(name, envir = thiz, inherits = FALSE)) next;
-      if(bindingIsLocked(name, thiz))
-      {
-        unlockBinding(name, thiz);
-        do.call(on.exit, list(substitute(lockBinding(name, thiz)), TRUE));
-      }
-      if(this$property)
-      {
-        makeActiveBinding(name, x, thiz);
-      }
-      else
-      {
-        assign(name, x, envir = thiz);
-      }
-    }
-    return(x);
+    fun  <- this$fun;
+    body <- body(fun);
+    body <- attr(body, "orig", TRUE) %||% body;
+    return(body);
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   #' @field srcref `srcref` \cr
-  #'               The srcref for `this$fun`.
+  #'               The srcref for `$fun`.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  get:srcref <- \( ) { return(attr(this$fun, "srcref", TRUE)); }
+  get:srcref <- \( )
+  {
+    return(attr(this$fun, "srcref", TRUE));
+  }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  #' @field breaks `integer()` \cr
-  #'               Line numbers of each call to `$getSteps`.
+  #' @field breaks `data.frame` \cr
+  #'               The `line`, `steps` and `cond` of each set breakpoint.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  get:breaks <- \( ) { return(sort.default(this$lines_[this$steps_])); }
+  get:breaks <- \( )
+  {
+    nrow <- this$breaks_$size;
+    out  <- list(
+      line  = integer(nrow)
+     ,steps = rep_len(list(), nrow)
+     ,cond  = rep_len(list(), nrow)
+    );
+    i <- 1L;
+    for(brk in this$breaks_$data)
+    {
+      for(col in names(out))
+      {
+        out[[col]][[i]] <- brk[[col]];
+      }
+      i <- i + 1L;
+    }
+    out$line <- this$map_$toNew(out$line);
+    return(list2DF(out));
+  }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   #' @description
@@ -207,12 +358,12 @@ public:
   #' @returns
   #' `logical(1L)`.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  isInSync <- \( )
+  synced <- \( )
   {
     srcref <- this$srcref;
-    if(is.null(srcref)) return(FALSE);
+    if(is.null(srcref)) { return(FALSE); }
     file <- attr(srcref, "srcfile", TRUE)$filename;
-    if(is.null(file) || !file.exists(file)) return(FALSE);
+    if(is.null(file) || !file.exists(file)) { return(FALSE); }
 
     inClass <- as.character(srcref);
     inFile                 <- readLines(file, warn = FALSE);
@@ -227,171 +378,221 @@ public:
   #' @description
   #' Check whether a line number is inside the function.
   #'
-  #' @param line `integer(1L)` \cr
-  #'             The line number.
+  #' @param lines `integer()` \cr
+  #'              The line numbers.
+  #'
+  #' @param old   `logical(1L)` \cr
+  #'              Whether the lines have already been mapped to old lines.
   #'
   #' @returns
-  #' `logical(1L)`.
+  #' `logical(length(lines))`.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  hasLine <- \(line)
+  has <- \(lines, old = FALSE)
   {
+    out    <- logical(length(lines));
     srcref <- this$srcref;
-    if(is.null(srcref)) return(FALSE);
-    return(srcref[1L] <= line && line <= srcref[3L]);
-  }
+    if(is.null(srcref) || this$nonCurl) { return(out); }
 
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  #' @inherit OoprBreakpointsFunction$hasLine
-  #'
-  #' @description
-  #' Get the steps of the function required to reach a line number.
-  #'
-  #' @details
-  #' The srcrefs inside the body of `$fun` is searched to find where the line
-  #' can be found. Steps is the integer position to enter the body of the
-  #' function, e.g. `body(fun)[[steps]]`.
-  #'
-  #' @returns
-  #' `character(1L)` of the steps separated by `,`.
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  getSteps <- \(line)
-  {
-    fun <- this$fun;
-    if(!is.function(fun)) return("");
-    steps <- this$findSteps(body(fun), line);
-    steps <- paste(steps, collapse = ",");
-    if(nzchar(steps))
+    lines <- suppressWarnings(as.numeric(lines));
+    if(!old)
     {
-      this$lines_[steps] <- line;
+      lines <- this$map_$toOld(lines);
     }
-    return(steps);
-  }
-
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  #' @description
-  #' Set breakpoints inside the class, and any class instances.
-  #'
-  #' @param steps `character()` \cr
-  #'              Integer positions separated by `,`. If `length(steps) == 0L`,
-  #'              then all breakpoints are removed.
-  #'
-  #' @details
-  #' Uses [`base::trace`] to create a traced function, steps are ordered by
-  #' their depth of nesting so `trace` doesn't overwrite its own breakpoints.
-  #'
-  #' @returns
-  #' `this` invisibly. `steps` is also saved inside a private member for
-  #' `$breaks` to return line numbers set.
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  setBreakpoints <- \(steps = character())
-  {
-    fun <- this$fun;
-    this$steps_ <- character(0L);
-    if(length(steps))
+    body <- this$body;
+    for(i in seq_along(lines))
     {
-      this$steps_ <- steps;
-      at <- lapply(strsplit(steps, ","), as.integer);
-      at <- at[order(-vapply(at, length, integer(1L)))];
-      suppressMessages(
-        trace("fun", browser, at = at, print = FALSE, where = environment())
+      line   <- lines[i];
+      out[i] <-
+      (
+           !is.na(line)
+        && srcref[1L] <= line && line <= srcref[3L]
+        && length(OoprBreakpointsBreak(body, line, TRUE)$steps)
       );
-      body(fun@.Data) <- this$addSrcrefsToBreaks(body(fun), body(fun@original));
     }
-    this$fun  <- fun;
-    this$setInstances(fun);
+    return(out);
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @inherit OoprBreakpointsFunction$has
+  #' @description
+  #' Add breakpoints to the function
+  #'
+  #' @param lines `integer()` \cr
+  #'              Line numbers to add.
+  #'
+  #' @param conds `list()` \cr
+  #'              A list of unevaluated expressions representing the
+  #'              condition of each breakpoint. Expressions must evaluate to
+  #'              `logical(1L)`. Defaults to all lines being `TRUE`.
+  #'
+  #' @details
+  #' Existing breakpoints are removed and reapplied.
+  #'
+  #' @returns
+  #' `this` invisibly.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  add <- \(lines, conds = list(), old = FALSE)
+  {
+    if(!length(conds))
+    {
+      conds <- !logical(length(lines));
+    }
+    else if(length(lines) != length(conds))
+    {
+      stop("`lines` and `conds` must be the same length")
+    }
+    if(this$nonCurl)
+    {
+      stop("cannot set a breakpoint for a non { body");
+    }
+    if(!old)
+    {
+      has <- this$has(lines);
+      if(!all(has))
+      {
+        stop(sprintf(
+          "cannot set `lines` %s, available lines are %s"
+         ,deparse(lines[!has]), deparse1(this$map_$map)
+        ));
+      }
+      lines <- this$map_$toOld(lines);
+    }
+    this$rm(lines, old = TRUE);
+    body <- this$body;
+    for(i in seq_along(lines))
+    {
+      line <- lines[i];
+      key  <- as.character(line);
+      this$breaks_$emplace(key, body, lines[i], conds[[i]]);
+      steps <- this$breaks_$apply(\(k, v) v$steps);
+      if(anyDuplicated.default(steps) || !length(steps[[key]]))
+      {
+        this$breaks_$erase(key);
+      }
+    }
+    this$setBreaks();
+    return(invisible(this));
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @inherit OoprBreakpointsFunction$has
+  #' @description
+  #' Remove breakpoints.
+  #'
+  #' @param lines `integer()` \cr
+  #'              Line numbers to remove. The default unsets all lines.
+  #'
+  #' @returns
+  #' `this` invisibly.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  rm <- \(lines = integer(), old = FALSE)
+  {
+    if(!length(lines))
+    {
+      lines <- unlist(this$breaks_$apply(\(k, v) { v$line; }));
+    }
+    else if(!old)
+    {
+      lines <- this$map_$toOld(lines);
+    }
+
+    lines <- as.character(lines);
+    for(line in lines) if(this$breaks_$exists(line))
+    {
+      this$breaks_$erase(line);
+    }
+    this$setBreaks();
+    return(invisible(this));
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @description
+  #' Update the srcref mapping or load a new function.
+  #'
+  #' @param fun  `function` \cr
+  #'             The function to load.
+  #'
+  #' @param new  `logical(1L)` \cr
+  #'             Whether to over-write `$fun`.
+  #'
+  #' @param cond `OoprBreakpointsCond` \cr
+  #'             Condition to track changes.
+  #'
+  #' @returns
+  #' `this` invisibly.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  load <- \(fun, new = FALSE, cond = OoprBreakpointsCond())
+  {
+    lines <- as.integer(unlist(this$breaks_$apply(\(k, v) { v$line; })));
+    old   <- this$map_$toNew(lines);
+    this$map_$load(this$fun, fun);
+    map   <- this$map_$toNew(lines);
+    if(new)
+    {
+      conds <- this$breaks_$apply(\(k, v) { v$cond; });
+      this$rm();
+      this$fun_ <- fun;
+      this$map_$load(fun, fun);
+      if(this$nonCurl)
+      {
+        map[seq_along(map)] <- NA_integer_;
+      }
+      else if(!all(is.na(map)))
+      {
+        this$add(map[!is.na(map)], conds[!is.na(map)]);
+      }
+    }
+    else if(any(is.na(map)))
+    {
+      this$rm(lines[is.na(map)], old = TRUE);
+    }
+    if(!identical(old, map))
+    {
+      cond$push(this$makeChangeChar(old, map));
+    }
     return(invisible(this));
   }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 private:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  fun_   <- NULL;
-  lines_ <- integer(0L);
-  steps_ <- character(0L);
+  fun_    <- NULL;
+  breaks_ <- OoprBreakpointsBreak[[]];
+  map_    <- OoprBreakpointsMap;
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  findSteps <- \(x, line)
+  get:nonCurl <- \( )
   {
-    if(!is.call(x)) return(integer(0L));
-    srcs <- attr(x, "srcref", TRUE);
-    for(i in seq_along(x))
-    {
-      src <- srcs[[i]];
-      if(!is.null(src) && !(src[1L] <= line && line <= src[3L])) next;
-      nest <- this$findSteps(x[[i]], line);
-      if(length(nest))                          return(c(i, nest));
-      if(!is.null(src) && !isname(x[[i]], "{")) return(i);
-    }
-    return(integer(0L));
+    return(!iscall(this$body, "{"))
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  #' The srcref at the requested lines are added to the newly added breakpoints
-  #' to ensure that the line number is available when being hit.
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  addSrcrefsToBreaks <- \(expr, oexpr)
+  setBreaks <- \( )
   {
-    if(!(is.call(expr) && is.call(oexpr) && length(expr) == length(oexpr)))
-    {
-      return(expr);
-    }
-    for(i in seq_along(expr))
-    {
-      if(   iscall(expr[[i]], "{") && length(expr[[i]]) > 1L
-         && iscall(expr[[i]][[2L]], ".doTrace")
-      )
-      {
-        src <- attr(expr, "srcref")[[i]] %||% attr(oexpr, "srcref")[[i]];
-        attr(expr[[i]], "srcref") <- rep(list(src), length(expr[[i]]));
-      }
-      else
-      {
-        expr[[i]] <- this$addSrcrefsToBreaks(expr[[i]], oexpr[[i]]);
-      }
-    }
-    return(expr);
+    fun   <- this$fun;
+    ats   <- this$breaks_$apply(\(k, v) v$steps);
+    conds <- this$breaks_$apply(\(k, v) v$cond);
+    .Call(Cpp_set_breakpoints, fun, ats, conds);
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  #' Instances are found (refer `./src/breakpoint.cpp`) and they also have
-  #' their functions amended. If the instance becomes out of sync of the
-  #' source file, then its untraced version is set instead.
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  setInstances <- \(fun)
+  makeChangeChar <- \(old, new)
   {
-    name      <- this$name;
-    instances <- .Call(Cpp_find_instances, this$ooprC, sys.frame(-2L), name);
-    if(!length(instances)) return();
-    encl     <- this$encl;
-    property <- this$property;
-    on.exit(this$encl <- encl);
-    for(inst in instances)
-    {
-      thiz  <- inst$this;
-      if(!exists(name, envir = thiz, inherits = FALSE)) next;
-      active <- bindingIsActive(name, thiz);
-      if((property && !active) || !property && active)  next;
-      # setting $encl changes references of $fun property
-      this$encl <- inst;
-      old       <- this$fun;
-      if(isS4(fun) && inherits(fun, "functionWithTrace"))
-      {
-        environment(fun@original) <- environment(old);
-      }
-      environment(fun) <- environment(old);
-      # if in sync, then the definition matches `fun`
-      # otherwise, force the non-traced version (of the instance)
-      this$fun  <- if(this$isInSync()) fun else old;
-    }
+    lo <- max(nchar(old), 0L);
+    ln <- max(nchar(new[!is.na(new)]), 0L);
+    old <- sprintf("%*i", lo, old);
+    new <- ifelse(is.na(new), "[removed]", sprintf("-> %*i", ln, new));
+    return(sprintf("%s %s", old, new));
   }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-})
+}) ## OoprBreakpointsFunction
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-#' @rdname OoprBreakpoints
+#' @rdname OoprBreakpointsImpl
 #' @description
 #' Represents a class inside a file.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -405,17 +606,14 @@ public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   OoprBreakpointsClass <- \(ooprC)
   {
-    if(!is.ooprC(ooprC))       return();
-    name  <- ooprC@name;
-    # make sure to get the actual class, not a copy of
-    ooprC <- get0(name, parent.env(ooprC@encl), inherits = FALSE);
-    if(!is.ooprC(ooprC, name)) return();
-    this$ooprC <- ooprC;
-    this$loadFunctions();
+    this$load(ooprC, TRUE);
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  ooprC <- NULL;
+  get:ooprC <- \( )
+  {
+    return(this$ooprC_);
+  }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   #' @field name `character(1L)` \cr
@@ -423,120 +621,209 @@ public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   get:name <- \( )
   {
-    if(is.null(this$ooprC)) return(character(0L)) else return(this$ooprC@name);
+    return(this$ooprC@name);
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  #' @field functions `OoprBreakpointsFunction` \cr
-  #'        An array of each function inside the class.
+  #' @inherit OoprBreakpointsFunction$breaks
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  functions <- OoprBreakpointsFunction[[]];
-
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  #' @description
-  #' Check if the class contains a function and/or a line.
-  #'
-  #' @param name `character(1L)` \cr
-  #'             The name of the function.
-  #'
-  #' @param line `integer(1L)` \cr
-  #'             Optionally, a line that the function should contain.
-  #'
-  #' @returns
-  #' `logical(1L)`.
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  has <- \(name, line = integer(0L))
+  get:breaks <- \( )
   {
-    if(!this$functions$exists(name)) return(FALSE);
-    return(!length(line) || this$functions[name]$hasLine(line));
-  }
-
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  #' @inherit OoprBreakpointsClass$has
-  #'
-  #' @description
-  #' Check if a function is in sync.
-  #'
-  #' @details
-  #' If the function is not in the class `TRUE` is returned.
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  isInSync <- \(name)
-  {
-    return(!this$has(name) || this$functions[name]$isInSync());
-  }
-
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  #' @inherit OoprBreakpointsFunction$getSteps
-  #'
-  #' @description
-  #' Get the steps required to get to a line in a function.
-  #'
-  #' @param name `character(1L)` \cr
-  #'             Then name of the function.
-  #'
-  #' @details
-  #' The trick here is to append the steps with the name of the class. This
-  #' way when receiving them for setting a breakpoints, the class holding the
-  #' function is known.
-  #'
-  #' @returns
-  #' `list(name = character(1L), line = integer(1L), at = character(1L))`.
-  #' `at` is in the form `"class:steps"`, where `steps` are the integer
-  #' position of the function body, separated by `,`. If no steps can be
-  #' found, then `list()` is returned.
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  getSteps <- \(name, line)
-  {
-    if(!this$has(name, line)) return(list());
-    steps <- this$functions[name]$getSteps(line);
-    if(!nzchar(steps))        return(list());
-    if(make.names(name) != name)
+    out <- this$funs_$apply(\(k, v)
     {
-      name <- sprintf("`%s`", name);
+      breaks <- v$breaks;
+      breaks$name <- if(nrow(breaks)) k else character(0L);
+      return(breaks);
+    });
+    out <- list2DF(.mapply(c, out, list(use.names = FALSE)));
+    names(out) <- c("line", "steps", "cond", "name");
+    return(out)
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @description
+  #' Check if functions are in sync.
+  #'
+  #' @param names `character()` \cr
+  #'              Functions to check. By default, checks all functions.
+  #'
+  #' @returns
+  #' `logical(1L)`
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  synced <- \(names = character(0L))
+  {
+    if(!length(names))
+    {
+      names <- this$funs_$keys;
     }
-    steps <- sprintf("%s:%s", this$name, steps);
-    out   <- list(name = name, line = line, at = steps);
-    out   <- lapply(out, `class<-`, "rs.scalar");
+    for(name in names)
+    {
+      if(this$funs_$exists(name) && !this$funs_[name]$synced())
+      {
+        return(FALSE);
+      }
+    }
+    return(TRUE);
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @inherit OoprBreakpointsFunction$has
+  #' @description
+  #' Check if a any class' functions contains a line.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  has <- \(lines)
+  {
+    out <- logical(length(lines));
+    for(i in seq_along(lines))
+    {
+      for(name in this$funs_$keys)
+      {
+        if(out[i]) { next; }
+        out[i] <- this$funs_[name]$has(lines[i]);
+      }
+    }
     return(out);
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  #' @inherit OoprBreakpointsFunction$setBreakpoints
+  #' @description
+  #' See which function contains the line.
   #'
-  #' @param name  `character(1L)` \cr
-  #'              Then name of the function.
+  #' @param lines `integer()` \cr
+  #'              The line numbers.
   #'
-  #' @returns
-  #' `this` invisibly.
+  #' @return
+  #' `character(length(lines))`, being the function names. If `line` is not
+  #' covered, then a zero-character string.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  setBreakpoints <- \(name, steps = character(0L))
+  where <- \(lines)
   {
-    this$functions[name]$setBreakpoints(steps);
+    out <- character(length(lines));
+    for(i in seq_along(lines))
+    {
+      for(name in this$funs_$keys)
+      {
+        if(nzchar(out[i])) { next; }
+        if(this$funs_[name]$has(lines[i]))
+        {
+          out[i] <- name;
+        }
+      }
+    }
+    return(out);
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @inherit OoprBreakpointsFunction$add
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  add <- \(lines, conds)
+  {
+    i <- split.default(seq_along(lines), this$where(lines));
+    i <- i[nzchar(names(i))];
+    for(nm in names(i))
+    {
+      this$funs_[nm]$add(lines[i[[nm]]], conds[i[[nm]]]);
+    }
+    return(invisible(this));
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @inherit OoprBreakpointsFunction$rm
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  rm <- \(lines = integer(0L))
+  {
+    if(!length(lines))
+    {
+      this$funs_$apply(\(k, v) v$rm(lines));
+      return();
+    }
+    i <- split.default(seq_along(lines), this$where(lines));
+    i <- i[nzchar(names(i))];
+    for(nm in names(i))
+    {
+      this$funs_[nm]$rm(lines[i[[nm]]]);
+    }
+    return(invisible(this));
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @inherit OoprBreakpointsFunction$load
+  #' @description
+  #' Update the srcref mapping or load a new class.
+  #'
+  #' @param ooprC `ooprC` \cr
+  #'              The function to load.
+  #'
+  #' @param new   `logical(1L)` \cr
+  #'              Whether to over-write `$ooprC`.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  load <- \(ooprC, new = FALSE, cond = OoprBreakpointsCond())
+  {
+    stopifnot(is.ooprC(ooprC));
+    meta <- ooprC@meta;
+    thiz <- ooprC@encl$this;
+    keys <- this$funs_$keys;
+    for(key in keys)
+    {
+      i   <- which(meta$names$subs(key));
+      fun <- this$getFun(i, key, meta, thiz);
+      if(is.null(fun))
+      {
+        this$funs_$erase(key);
+        cond$child(key, "[removed]");
+      }
+      else
+      {
+        this$funs_[key]$load(fun, new, cond$child(key, "[changed]"));
+      }
+    }
+    if(new)
+    {
+      for(i in seq_len(meta$size))
+      {
+        name <- meta$names$get(i);
+        if(match(name, keys, 0L)) { next; }
+        fun <- this$getFun(i, name, meta, thiz);
+        if(!is.null(fun))
+        {
+          this$funs_$emplace(name, fun);
+          cond$child(name, "[added]");
+        }
+      }
+      this$ooprC_ <- ooprC;
+    }
     return(invisible(this));
   }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 private:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  loadFunctions <- \( )
+  ooprC_ <- NULL;
+  funs_  <- OoprBreakpointsFunction[[]];
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  getFun <- \(i, name, meta, thiz)
   {
-    ooprC <- this$ooprC;
-    meta  <- ooprC@meta;
-    for(i in which(meta$subs(inherit = "")))
+    if(!length(i) || nzchar(meta$inherit$get(i))) { return(NULL); }
+    if(nzchar(meta$property$get(i)))
     {
-      if(!(nzchar(meta$property$get(i)) || meta$method$get(i))) next;
-      name <- meta$names$get(i);
-      this$functions$emplace(name, name, ooprC);
+      return(tryCatch(activeBindingFunction(name, thiz), error = \(e) NULL));
     }
+    else if(meta$method$get(i))
+    {
+      return(get0(name, thiz, "function", FALSE));
+    }
+    return(NULL);
   }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-})
+}) ## OoprBreakpointsClass
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-#' @rdname OoprBreakpoints
+#' @rdname OoprBreakpointsImpl
 #' @description
 #' Represents a source file that contains `oopr` classes.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -546,22 +833,111 @@ oopr("OoprBreakpointsFile", OoprSource,
 public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   #' @param file `character(1L)` \cr
-  #'             The name of the source file.
-  #'
-  #' @param env  `environment` \cr
-  #'             The environment that holds the class definitions. Either a
-  #'             package namespace or the global environment.
+  #'             The name of the source file. Will be normalized
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  OoprBreakpointsFile <- \(file, env)
+  OoprBreakpointsFile <- \(file)
   {
-    OoprSource$file <- file;
-    this$loadClassesFromEnvironment(env);
+    OoprSource$file <- this$apath(file);
+    this$pkg_       <- this$getPackageName(file);
+    this$load(TRUE);
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @field file `character(1L)` \cr
+  #'             The file path relative to the working directory.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   get:file <- \( )
   {
-    return(OoprSource$file);
+    tryCatch(
+    {
+      split <- \(x) strsplit(x, "/")[[1L]];
+      path <- split(OoprSource$file);
+      rltv <- split(getwd());
+
+      if(.Platform$OS.type == "windows" && path[1L] != rltv[1L]) { stop(); }
+
+      dist <- min(length(path), length(rltv));
+      for(i in seq_len(dist))
+      {
+        if(rltv[i] != path[i])
+        {
+          dist <- max(1L, i - 1L);
+          break;
+        }
+      }
+
+      out <- c(".", rep("..", length(rltv) - dist), path[-seq_len(dist)]);
+      return(do.call(file.path, as.list(out)));
+    }
+    ,error = \(e)
+    {
+      return(OoprSource$file);
+    })
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @exportS3Method "==" OoprBreakpointsFile
+  #' @description
+  #' Check file equivalence.
+  #'
+  #' @param e2 `character(1L)` \cr
+  #'           A file path.
+  #'
+  #' @returns
+  #' `logical(1L)`
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  S3:`==` <- \(e2)
+  {
+    return(identical(OoprSource$file, this$apath(e2)));
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @field pkg `character(1L)` \cr
+  #'            The package name of `$file`, if applicable.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  get:pkg <- \( )
+  {
+    return(this$pkg_);
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @field top `environment` \cr
+  #'            If `nzchar(pkg)` then the namespace, otherwise the global
+  #'            environment. `getNamespace` is called with each access, as to
+  #'            not carry references to (older) namespaces if re-loaded.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  get:top <- \( )
+  {
+    pkg <- this$pkg_;
+    if(nzchar(pkg) && requireNamespace(pkg, quietly = TRUE))
+    {
+      return(getNamespace(pkg));
+    }
+    else
+    {
+      return(globalenv());
+    }
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @field reloaded `logical(1L)` \cr
+  #'                 Whether `$top` namespace differs.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  get:reloaded <- \( )
+  {
+    if(!this$classes_$size) { return(TRUE); }
+    if(nzchar(this$pkg_))
+    {
+      top <- topenv(this$classes_$data[[1L]]$ooprC@encl);
+      return(!identical(top, this$top));
+    }
+    for(class in this$classes_$keys)
+    {
+      ooprC1 <- this$classes_[class]$ooprC;
+      ooprC2 <- get0(class, this$top, inherits = FALSE)
+      if(!identical(ooprC1, ooprC2)) { return(TRUE); }
+    }
+    return(FALSE);
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -571,30 +947,28 @@ public:
   timestamp <- .POSIXct(0);
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  #' @field classes `OoprBreakpointsClass` \cr
-  #'                The classes defined inside the source file.
+  #' @field modified `logical(1L)` \cr
+  #'                 Whether `$file` has been modified since the last load.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  classes <- OoprBreakpointsClass[[]];
+  get:modified <- \( )
+  {
+    return(file.mtime(this$file) > this$timestamp);
+  }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  #' @description
-  #' Check if the source file has been modified, if so reload the classes.
-  #'
-  #' @param env  `environment` \cr
-  #'             The environment that holds the class definitions. Either a
-  #'             package namespace or the global environment.
-  #'
-  #' @returns
-  #' `this` invisibly.
+  #' @inherit OoprBreakpointsClass$breaks
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  syncClassesWithFile <- \(env)
+  get:breaks <- \( )
   {
-    if(file.mtime(this$file) > this$timestamp)
+    out <- this$classes_$apply(\(k, v)
     {
-      this$classes$resize();
-      this$loadClassesFromEnvironment(env)
-    }
-    return(invisible(this));
+      breaks <- v$breaks;
+      breaks$class <- if(nrow(breaks)) k else character(0L);
+      return(breaks);
+    });
+    out <- list2DF(.mapply(c, out, list(use.names = FALSE)));
+    names(out) <- c("line", "steps", "cond", "name", "class");
+    return(out)
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -604,92 +978,153 @@ public:
   #' Check if any class inside the file contains a function and/or a line.
   #'
   #' @returns
-  #' Named `logical()` the same length as `$classes`, indicating which class
-  #' holds the function and/or line. If only `name` is provided, can have
-  #' more than one `TRUE`.
+  #' Named `logical()` the same length as `lines`, indicating whether any
+  #' class holds the line.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  has <- \(name, line = integer(0L))
+  has <- \(lines)
   {
-    return(unlist(this$classes$apply(\(key, val) { val$has(name, line); })));
-  }
-
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  #' @inherit OoprBreakpointsClass$isInSync
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  isInSync <- \(name)
-  {
-    synced <- this$classes$apply(\(key, val) { val$isInSync(name); });
-    return(all(unlist(synced)));
-  }
-
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  #' @inherit OoprBreakpointsClass$getSteps
-  #'
-  #' @description
-  #' Get the steps of multiple lines across the file.
-  #'
-  #' @param lines `list(integer(1L))` \cr
-  #'              A list of line numbers.
-  #'
-  #' @returns
-  #' A list the same length of `lines`, containing further lists in the form:
-  #' `list(name = character(1L), line = integer(1L), at = character(1L))`.
-  #' Lines that cannot be found are returned as `list()`.
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  getSteps <- \(name, lines)
-  {
-    out <- rep_len(list(), length(lines));
+    out <- logical(length(lines));
     for(i in seq_along(lines))
     {
-      line <- lines[[i]];
-      has  <- this$has(name, line);
-      if(!any(has)) next;
-      class <- names(has)[has];
-      out[[i]] <- this$classes[class]$getSteps(name, line);
+      for(class in this$classes_$keys)
+      {
+        if(out[i]) { next; }
+        out[i] <- this$classes_[class]$has(lines[i]);
+      }
     }
     return(out);
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  #' @inherit OoprBreakpointsClass$setBreakpoints
-  #'
+  #' @inherit OoprBreakpointsClass$where
   #' @description
-  #' Set breakpoints for a function across classes.
-  #'
-  #' @param classes `character()` \cr
-  #'                The classes to set breakpoints for. If
-  #'                `length(classes) == 0L`, then all classes.
+  #' See which class contains a line.
   #'
   #' @returns
-  #' `this` invisibly.
+  #' `character(length(lines))`, being the class name/s. If a line is not
+  #' covered, then a zero character string.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  setBreakpoints <- \(name, classes = character(0L), steps = character(0L))
+  where <- \(lines)
   {
-    if(!length(classes))
+    out <- character(length(lines));
+    for(i in seq_along(lines))
     {
-      classes <- this$has(name);
-      classes <- names(classes)[classes];
+      for(class in this$classes_$keys)
+      {
+        if(nzchar(out[i])) { next; }
+        if(this$classes_[class]$has(lines[i]))
+        {
+          out[i] <- class;
+        }
+      }
     }
-    for(class in classes)
+    return(out);
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @inherit OoprBreakpointsClass$synced
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  synced <- \(names = character(0L))
+  {
+    synced <- this$classes_$apply(\(key, val) { val$synced(names); });
+    return(unlist(synced));
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @inherit OoprBreakpointsClass$add
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  add <- \(lines, conds)
+  {
+    i <- split.default(seq_along(lines), this$where(lines));
+    i <- i[nzchar(names(i))];
+    for(nm in names(i))
     {
-      this$classes[class]$setBreakpoints(name, steps);
+      this$classes_[nm]$add(lines[i[[nm]]], conds[i[[nm]]]);
     }
     return(invisible(this));
   }
 
-## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-private:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  loadClassesFromEnvironment <- \(env)
+  #' @inherit OoprBreakpointsClass$rm
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  rm <- \(lines = integer(0L))
   {
-    OoprSource$parse();
-    if(length(OoprSource$defs))
+    if(!length(lines))
     {
-      for(class in names(OoprSource$defs))
+      this$classes_$apply(\(k, v) v$rm(lines));
+    }
+    else
+    {
+      i <- split.default(seq_along(lines), this$where(lines));
+      i <- i[nzchar(names(i))];
+      for(nm in names(i))
       {
-        ooprC <- get0(class, envir = env, inherits = FALSE);
-        if(!is.ooprC(ooprC, class)) next;
-        this$classes$emplace(class, ooprC);
+        this$classes_[nm]$rm(lines[i[[nm]]]);
+      }
+    }
+    return(invisible(this));
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @inherit OoprBreakpoints$class$load
+  #'
+  #' @param new `logical(1L)` \cr
+  #'            Whether to obtain new `ooprC`s from `$env`.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  load <- \(new = this$reloaded, cond = OoprBreakpointsCond())
+  {
+    tryCatch(
+    {
+      OoprSource$parse();
+    }
+    ,error = \(e)
+    {
+      class(e) <- c("OoprBreakpointsParseError", class(e));
+      stop(e);
+    });
+
+    if(!new) tryCatch(
+    {
+      OoprSource$eval(top = this$top);
+    }
+    ,error = \(e)
+    {
+      class(e) <- c("OoprBreakpointsCompileError", class(e));
+      stop(e);
+    });
+
+    names <- names(OoprSource$defs);
+    objs  <- OoprSource$objs;
+    keys  <- this$classes_$keys;
+    for(key in keys)
+    {
+      if(!match(key, names, 0L))
+      {
+        this$classes_$erase(key);
+        cond$child(key, "[removed]");
+      }
+      else
+      {
+        ooprC <- if(new) get0(key, this$top, "any", FALSE) else objs[[key]];
+        if(!is.ooprC(ooprC, key))
+        {
+          this$classes_$erase(key);
+          cond$child(key, "[removed]");
+        }
+        else
+        {
+          this$classes_[key]$load(ooprC, new, cond$child(key, "[changed]"));
+        }
+      }
+    }
+    if(new) for(name in names)
+    {
+      if(match(name, keys, 0L)) { next; }
+      ooprC <- get0(name, this$top, "any", FALSE);
+      if(is.ooprC(ooprC, name))
+      {
+        this$classes_$emplace(name, ooprC);
+        cond$child(name, "[added]");
       }
     }
     this$timestamp <- file.mtime(this$file);
@@ -697,68 +1132,332 @@ private:
   }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-})
+private:
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  pkg_     <- character(1L);
+  classes_ <- OoprBreakpointsClass[[]];
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  apath <- \(path)
+  {
+    tryCatch(
+    {
+      return(suppressWarnings(normalizePath(path, "/")));
+    }
+    ,error = \(e)
+    {
+      return(path);
+    });
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  getPackageName <- \(file)
+  {
+    file <- this$apath(file);
+    dir  <- dirname(file);
+    if(basename(dir) != "R") { return(character(1L)); }
+    root <- dirname(dir);
+    desc <- file.path(root, "DESCRIPTION");
+    if(!file.exists(desc))   { return(character(1L)); }
+    pkg  <- as.vector(read.dcf(desc, fields = "Package"));
+    if(!length(pkg))         { return(character(1L)); }
+    return(pkg);
+  }
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+}) ## OoprBreakpointsFile
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+
 
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-#' @rdname OoprBreakpoints
+#' @rdname OoprBreakpointsImpl
 #' @description
-#' The controller of the breakpoints. Process of setting a breakpoint is:
-#'   1. Check the function is in sync.
-#'   2. Get the steps of the functions body to arrive at a line.
-#'   3. Get the environment that the function is assigned to.
-#'   4. Set the breakpoints into the function.
-#' Only steps 3 & 4 are conducted when unsetting a breakpoint.
-#'
-#' RStudio maintains its own database for breakpoints and is  recorded by
-#' file and function name. However, multiple classes in a file could share a
-#' function name.
+#' Implementation of `oopr` breakpoints.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-oopr("OoprBreakpoints",,
+oopr("OoprBreakpointsImpl",,
 {
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  #' @field files `OoprBreakpointsFile` \cr
-  #'              The source files that have/had breakpoints.
+  #' @field volatile `logical(1L)` \cr
+  #'                 Whether to automatically update breakpoints when changes
+  #'                 to source files or environments occur. Updates only
+  #'                 occur when this class is interacted with.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  static:files <- OoprBreakpointsFile[[]];
+  static:get:volatile <- \( )
+  {
+    return(this$volatile_);
+  }
+  static:set:volatile <- \(x)
+  {
+    stopifnot(is.logical(x) && length(x) == 1L && !is.na(x))
+    this$volatile_ <- x;
+  }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  static:allLoadedInGlobal <- \( )
+  #' @field quiet `logical(1L)` \cr
+  #'              Whether to silence messages when breakpoints auto update.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  static:get:quiet <- \( )
   {
-    for(nm in names(this$funs_)) if(!this$isLoadedInGlobal(nm)) return(FALSE);
+    return(this$quiet_);
+  }
+  static:set:quiet <- \(x)
+  {
+    stopifnot(is.logical(x) && length(x) == 1L && !is.na(x))
+    this$quiet_ <- x;
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @field breaks `data.frame(6L)` \cr
+  #'               Currently set breakpoints; giving the file, class, name,
+  #'               line, steps, and condition. File paths are always relative
+  #'               to the current working directory. Lines displayed are
+  #'               referred to the last modified state of the file, not
+  #'               necessarily to a functions `srcref`.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  static:get:breaks <- \( )
+  {
+    out <- list();
+    if(this$files_$size)
+    {
+      this$checkForChanges();
+      out <- this$files_$apply(\(v)
+      {
+        breaks <- v$breaks;
+        breaks$file <- if(nrow(breaks)) v$file else character(0L);
+        return(breaks);
+      });
+      out <- .mapply(c, out, list(use.names = FALSE));
+    }
+    else
+    {
+      out <- rep.int(list(integer(0L), list(), character(0L)), 1:3);
+    }
+    names(out) <- c("line", "steps", "cond", "name", "class", "file");
+    out <- out[c(6:4, 1:3)];
+    out <- list2DF(out);
+    out <- out[order(out$file, out$line), ]
+    class(out) <- c("OoprBreakpointsBreak", "data.frame");
+    return(out)
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @inherit OoprBreakpointsFile$add
+  #' @description
+  #' Add breakpoints.
+  #'
+  #' @param file  `character(1L)` \cr
+  #'              Path to a `.R` file.
+  #'
+  #' @details
+  #' If `$volatile == TRUE`, then `lines` must align with the most recent
+  #' modified version of `file`.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  static:add <- \(file, lines, conds = list())
+  {
+    stopifnot(
+      is.character(file) && length(file)  == 1L && file.exists(file)
+     ,is.numeric(lines)  && length(lines) >= 1L && all(lines %% 1L == 0L)
+    );
+    conds <- substitute(conds);
+    if(!iscall(conds, "list"))
+    {
+      stop("`conds` must be a list of expressions");
+    }
+    conds <- conds[-1L];
+    if(!length(conds))
+    {
+      conds <- as.list(!logical(length(lines)));
+    }
+    else if(length(conds) != length(lines))
+    {
+      stop("`conds` must be the same length as `lines`");
+    }
+
+    this$checkForChanges();
+    i <- this$which(file);
+    if(!i)
+    {
+      this$files_$emplace(file = file);
+      i <- this$files_$size;
+    }
+
+    this$files_[i]$add(lines, conds);
+    succ <- match(lines, this$files_[i]$breaks$line, 0L);
+    if(!all(succ))
+    {
+      warning(sprintf("Lines %s unable to be set", deparse1(lines[!succ])));
+    }
+    return(invisible(this));
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @inherit OoprBreakpointsFile$rm
+  #' @inherit OoprBreakpointsImpl$add
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  static:rm <- \(file, lines = integer(0L))
+  {
+    stopifnot(
+      is.character(file) && length(file)  == 1L && file.exists(file)
+     ,is.numeric(lines)  && all(lines %% 1L == 0L)
+    );
+    this$checkForChanges();
+    i <- this$which(file);
+    if(i)
+    {
+      this$files_[i]$rm(lines);
+      if(!length(lines)) { this$files_$erase(i); }
+    }
+    return(invisible(this));
+  }
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+protected:
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  OoprBreakpointsImpl <- \( ) { }
+  static:files_       <- OoprBreakpointsFile[];
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  static:which <- \(path)
+  {
+    i <- 1L;
+    for(file in this$files_$data)
+    {
+      if(file == path) { return(i); }
+      i <- i + 1L;
+    }
+    return(0L);
+  }
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+private:
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  static:quiet_    <- FALSE;
+  static:volatile_ <- TRUE;
+  static:cond_     <- OoprBreakpointsCond;
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  static:checkForChanges <- \( )
+  {
+    if(!this$volatile_) { return(); }
+    on.exit({this$cond_$clear()});
+    size <- this$files_$size;
+    if(size) for(i in seq.int(size, 1))
+    {
+      file <- this$files_[i];
+      if(!file.exists(file$file))
+      {
+        this$files_$erase(i);
+        this$cond_$child(file$file, "[removed]");
+      }
+      else if(file$modified || file$reloaded)
+      {
+        tryCatch(
+        {
+          file$load(cond = this$cond_$child(file$file, "[changed]"));
+        }
+        ,OoprBreakpointsParseError   = \(e) { this$toWarn(e, "parsing");   }
+        ,OoprBreakpointsCompileError = \(e) { this$toWarn(e, "compiling"); }
+        );
+      }
+    }
+    if(!this$quiet_)
+    {
+      list <- this$cond_$list();
+      if(length(list))
+      {
+        msg <- paste(collapse = "\n", capture.output(tree(list)));
+        msg <- sprintf("OoprBreakpoints changes\n%s\n", msg);
+        msg <- simpleMessage(msg, call = NULL);
+        class(msg) <- c("OoprBreakpointsChange", class(msg));
+        message(msg);
+      }
+    }
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  static:toWarn <- \(e, x)
+  {
+    e$call    <- quote(OoprBreakpoints);
+    e$message <- sprintf("Error %s:\n%s", x, e$message);
+    class(e)[2:3] <- c("simpleWarning", "warning");
+    warning(e);
+  }
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+}) ## OoprBreakpointsImpl
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @rdname OoprBreakpointsImpl
+#' @description
+#' The controller for RStudio breakpoints.
+#'
+#' @details
+#' RStudio's process of setting a breakpoint is:
+#'   1. Check the function is in sync.
+#'   2. Get the steps of the functions body to arrive at a line.
+#'   3. Get the environment that the function is assigned to.
+#'   4. Set the breakpoints into the function.
+#' Only steps 3 & 4 apply when unsetting a breakpoint, or reloading a file.
+#'
+#'
+#' RStudio maintains its own record of breakpoints and is recorded by
+#' file and function name. However, multiple classes in a file could share a
+#' function name.
+#'
+#' TODO: newer versions of RStudio use `.rs.setBreakpoint`.
+#'
+#' @section RStudio:
+#' Setting breakpoints inside `oopr` classes is the same process as setting
+#' them for normal functions - use the gutter or `SHIFT+F9`.
+#'
+#' RStudio calls its R functions inside `tools:rstudio` from the global
+#' environment. By assigning functions of the same name, these calls can be
+#' intercepted.
+#'
+#' This feature is disabled by default as it is potentially destructive for
+#' an R session. Environmental variable `R_OOPR_BREAKPOINTS=true` can be used
+#' to enable this functionality when `oopr` namespace is loaded.
+#'
+#' Breakpoints cannot be set on single line functions with a specifier,
+#' ```
+#' get:x <- \( ) { return("x"); }
+#' ````
+#' as RStudio thinks the line is at the top-level.
+#'
+#' Tested with RStudio version 2026.1.1.403, there are no guarantees for
+#' earlier or later versions.
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+oopr("OoprBreakpointsRStudio", OoprBreakpointsImpl,             # nocov start #
+{
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+public:
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  static:load <- \( )
+  {
+    if(exists(".rs.setBreakpoint", envir = this$rs, inherits = FALSE))
+    {
+      stop("Not supported in this version of RStudio");
+    }
+    for(fun in names(this$funs_))
+    {
+      rsFun <- this$funs_[fun];
+      assign(rsFun, this[[fun]], envir = globalenv());
+    }
     return(TRUE);
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  static:loadInGlobal <- \(on, force)
+  static:unload <- \( )
   {
-    if(!force)
-    {
-      ok <- vapply(names(this$funs_), logical(1L), FUN = \(nm) (
-           !exists(this$funs_[nm], envir = globalenv(), inherits = FALSE)
-        || this$isLoadedInGlobal(nm)
-      ));
-      if(!all(ok))
-      {
-        stop(sprintf(
-          "Symbols %s are already assigned to the global environment"
-         ,deparse1(unname(this$funs_[!ok]))
-        ));
-      }
-    }
-
-    if(on) for(thisFun in names(this$funs_))
-    {
-      rsFun <- this$funs_[thisFun];
-      assign(rsFun, this[[thisFun]], envir = globalenv());
-    }
-    else
-    {
-      rm(list = this$funs_, envir = globalenv());
-    }
+    loaded <- vapply(names(this$funs_), this$isLoadedInGlobal, logical(1L));
+    loaded <- names(loaded)[loaded];
+    rm(list = this$funs_[loaded], envir = globalenv());
     return(TRUE);
   }
 
@@ -780,8 +1479,6 @@ public:
   #'
   #' @seealso
   #' `.rs.isFunctionInSyncImpl`
-  #' `.rs.getUntracedFunction`
-  #' `.rs.getEnvironmentOfFunction`
   #'
   #' @returns
   #' `logical(1L)`
@@ -791,30 +1488,25 @@ public:
     # if a function exists in the namespace, check it first
     if(this$isNonClassFunction(name, pkg))
     {
-      if(!this$rsFun("isFunctionInSync", name, file, pkg)) return(FALSE);
+      if(!this$rsFun("isFunctionInSync", name, file, pkg)) { return(FALSE); }
     }
 
     # now check for ooprs in the file
-    env  <- if(nzchar(pkg)) getNamespace(pkg) else globalenv();
     name <- as.character(str2lang(name));
-
-    if(!this$files$exists(file))
+    i <- this$which(file);
+    if(!i)
     {
-      this$files$emplace(file, file, env);
+      this$files_$emplace(file = file);
+      i <- this$files_$size;
     }
-    else
+    file <- this$files_[i];
+    if(file$reloaded) { file$load(); }
+    synced <- file$synced(name);
+    if(!length(synced))
     {
-      this$files[file]$syncClassesWithFile(env);
+      this$files_$erase(i);
     }
-
-    if(this$files[file]$classes$empty)
-    {
-      this$inSync_ <-  TRUE;
-    }
-    else
-    {
-      this$inSync_ <- this$files[file]$isInSync(name);
-    }
+    this$inSync_ <- all(synced);
     return(this$inSync_);
   }
 
@@ -822,24 +1514,28 @@ public:
   #' @inherit OoprBreakpoints$isFunctionInSync
   #'
   #' @description
-  #' Gets the steps required for a line.
+  #' Gets the "steps" required for a line.
   #'
   #' @param lines `list()` \cr
-  #'              A list of `integer(1L)` of the line numbers.
+  #'              A list of `integer(1L)` of the line numbers to be added.
   #'
   #' @details
-  #' `lines` include only the lines to be added.
+  #' The trick here is to prefix the steps with `"oopr:"` as RStudio does
+  #' *not* validate the `steps` field. The function setting the breakpoints
+  #' will know which breakpoints are for `oopr` classes.
   #'
   #' @seealso
   #' `.rs.getFunctionSteps`
   #'
   #' @returns
-  #' `list(name =, line =, at = )` - `at` should be separated by `,`.
+  #' A `list` of
+  #' `list(name = character(1L), line = integer(1L), at = character(1L))`,
+  #' where `at` is in the form `"oopr:line"` if relating to an `oopr` class.
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   static:getFunctionSteps <- \(name, file, pkg, lines)
   {
     out <- list();
-    if(!this$inSync_) return(out);
+    if(!this$inSync_) { return(out); }
     on.exit(this$inSync_ <- FALSE);
 
     if(this$isNonClassFunction(name, pkg))
@@ -847,10 +1543,19 @@ public:
       out <- this$rsFun("rpc.get_function_steps", name, file, pkg, lines);
     }
 
-    name  <- as.character(str2lang(name));
-    if(this$files$exists(file) && any(this$files[file]$has(name)))
+    i <- this$which(file);
+    if(!i) { return(out); }
+
+    classes <- this$files_[i]$where(lines);
+    for(i in seq_along(classes))
     {
-      out <- c(out, this$files[file]$getSteps(name, lines));
+      cls  <- classes[i];
+      line <- lines[[i]];
+      if(!nzchar(cls)) { next; }
+      at   <- sprintf("oopr:%i", line);
+      part <- list(name = name, line = line, at = at);
+      part <- lapply(part, `class<-`, "rs.scalar");
+      out  <- c(out, list(part));
     }
     return(out);
   }
@@ -877,8 +1582,7 @@ public:
     # only do this the first time
     if(!nzchar(pkg))
     {
-      name <- as.character(str2lang(name));
-      if(this$files$exists(file) && any(this$files[file]$has(name)))
+      if(this$which(file))
       {
         this$file_ <- file;
         out <- out %||% emptyenv();
@@ -900,10 +1604,9 @@ public:
   #'              A list of `character(1L)` of breakpoints to set.
   #'
   #' @details
-  #' The function is fully untraced first, meaning that `steps` always
-  #' contains all active breakpoints (except those being removed) plus any
-  #' that are being added. If `length(steps) == 0L`, then all breakpoints are
-  #' being removed.
+  #' `steps` contains all active breakpoints (except those being removed) plus
+  #' any that are being added. If `length(steps) == 0L`, then all breakpoints
+  #' are being removed.
   #'
   #' @returns
   #' `name`
@@ -914,23 +1617,24 @@ public:
     file <- this$file_;
     on.exit(this$file_ <- character(0L));
 
-    if(length(file))
+    i <- this$which(file);
+    if(i)
     {
       # clear breakpoints first
-      this$files[file]$setBreakpoints(name);
+      file   <- this$files_[i];
+      breaks <- this$breaks;
+      lines  <- breaks[breaks$file == file$file & breaks$name == name, "line"];
+      if(length(lines)) { file$rm(lines); }
+      if(file$reloaded) { file$load();    }
 
-      # collect the class breakpoints (they have `:`)
-      steps <- this$splitOoprSteps(file, steps);
-      cteps <- steps$class;
-      steps <- steps$fun;
-      for(class in names(cteps))
-      {
-        this$files[file]$setBreakpoints(name, class, cteps[[class]]);
-      }
+      lines <- steps[grepl("^oopr:", steps)];
+      lines <- suppressWarnings(as.integer(sub("^.*:", "", lines)));
+      lines <- lines[!is.na(lines)];
+      if(length(lines)) { file$add(lines, !logical(length(lines))); }
     }
 
-    # make sure class breakpoints do not make it to functions
-    steps <- steps[!grepl(":", steps)];
+    # make sure class breakpoints do not make it to normal functions
+    steps <- steps[!grepl("^oopr:", steps)];
 
     name <- sprintf("`%s`", name);
     if(this$isNonClassFunction(name, env))
@@ -940,44 +1644,10 @@ public:
     return(name);
   }
 
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  #' @description
-  #' Print currently set breakpoints.
-  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  static:printBreaks <- \( )
-  {
-    rm  <- \(x) { x[vapply(x, length, integer(1L)) > 0L]; }
-    out <- rm(this$files$apply(\(key, file)
-    {
-      rm(file$classes$apply(\(key, class)
-      {
-        out <- rm(class$functions$apply(\(key, fun)
-        {
-          if(length(fun$breaks))
-          {
-            lines  <- attr(fun$srcref, "srcfile")$lines;
-            width  <- trunc(log10(length(lines))) + 1L;
-            breaks <- format.default(fun$breaks, width = width);
-            breaks <- sprintf("#%s [%s]", breaks, names(breaks));
-            return(breaks);
-          }
-        }));
-        names(out) <- sprintf("$%s", names(out));
-        return(out);
-      }))
-    }))
-    for(file in names(out))
-    {
-      cat(file, "\n");
-      tree(out[[file]]);
-    }
-    return(invisible(out));
-  }
-
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 private:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  OoprBreakpoints <- \( ) { }
+  OoprBreakpointsRStudio <- \( ) { }
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   static:funs_  <- c(
     isFunctionInSync         = ".rs.isFunctionInSync"
@@ -997,10 +1667,19 @@ private:
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  static:get:rs <- \( )
+  {
+    if(match("tools:rstudio", search(), 0L))
+    {
+      return(as.environment("tools:rstudio"));
+    }
+    stop("RStudio must be available");
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   static:rsFun <- \(fun, ...)
   {
-    if(!match("tools:rstudio", search(), 0L)) stop("RStudio must be available");
-    fun <- get(sprintf(".rs.%s", fun), "tools:rstudio",, "function", FALSE);
+    fun <- get(sprintf(".rs.%s", fun),, this$rs, "function", FALSE);
     fun(...);
   }
 
@@ -1019,21 +1698,148 @@ private:
     return(FALSE);
   }
 
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+}) ## OoprBreakpointsRStudio                                    # nocov end   #
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @name oopr_breakpoints
+#' @title Breakpoints for oopr
+#' @description
+#' Set breakpoints for `oopr` classes.
+#'
+#' @details
+#' Breakpoints for `oopr` classes are set within the class object and all
+#' instances that are spawned from it.
+#'
+#' When interacting with `oopr` breakpoints, changes to source files and
+#' their associated environment (either global or package) are checked for
+#' changes. This allows eligible breakpoints to be applied to classes
+#' that have been reloaded, and line numbers to be synced with the file.
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+NULL
+
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @rdname oopr_breakpoints
+#' @export
+#' @inheritSection OoprBreakpointsImpl RStudio
+#' @examples
+#' tmp <- tempfile();
+#' on.exit(unlink(tmp));
+#' cat(file = tmp, r"{
+#' oopr("test",,
+#' {
+#' public:
+#'   method <- \( )
+#'   {
+#'     "break me!";
+#'   }
+#' })
+#' }");
+#' source(tmp, keep.source = TRUE);
+#' obj <- test();
+#'
+#' OoprBreakpoints$add(tmp, 7L);
+#' print(OoprBreakpoints);
+#' \dontrun{obj$method();}
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+oopr("OoprBreakpoints", public:OoprBreakpointsImpl,
+{
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-  static:splitOoprSteps <- \(file, steps)
+  #' @field rstudio `logical(1L)` \cr
+  #'                 Tap into RStudios breakpoint mechanism. See section
+  #'                 **RStudio** below. Cannot be used with `$volatile`.
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  static:get:rstudio <- \( )
   {
-    class   <- list();
-    for(cls in this$files[file]$classes$keys)
+    return(this$rstudio_);
+  }
+  static:set:rstudio <- \(x)
+  {
+    stopifnot(is.logical(x) && length(x) == 1L && !is.na(x));
+    if(!(
+         identical(.Platform$GUI, "RStudio")
+      && match("tools:rstudio", search(), 0L)
+    ))
     {
-      if(!length(steps)) break;
-      pfx <- sprintf("%s:", cls);
-      has <- startsWith(unlist(steps), pfx);
-      if(!any(has)) next;
-      class[[cls]] <- substr(steps[has], nchar(pfx) + 1L, nchar(steps[has]));
-      steps <- steps[!has];
+      stop("RStudio must be available for this feature", call. = FALSE);
     }
-    return(list(fun = steps, class = class));
+    if(x)                                                       # nocov start #
+    {
+      OoprBreakpointsImpl$volatile <- FALSE;
+      OoprBreakpointsRStudio[["load"]]();
+    }
+    else
+    {
+      OoprBreakpointsRStudio[["unload"]]();
+    }
+    this$rstudio_ <- x;                                         # nocov end   #
+  }
+
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  #' @inherit OoprBreakpointsImpl$volatile
+  ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+  static:get:volatile <- \( )
+  {
+    return(OoprBreakpointsImpl$volatile);
+  }
+  static:set:volatile <- \(x)
+  {
+    if(this$rstudio_)
+    {
+      stop("$volatile cannot be set with RStudio", call. = FALSE);    # nocov #
+    }
+    OoprBreakpointsImpl$volatile <- x;
   }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-})
+private:
+  OoprBreakpoints <- \( ) { }                                         # nocov #
+  static:rstudio_ <- FALSE;
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+}) ## OoprBreakpoints
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' @exportS3Method utils::str OoprBreakpointsBreak
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+str.OoprBreakpointsBreak <- \(object, indent.str, ...)
+{
+  if(!nrow(object))
+  {
+    class(object) <- "data.frame";
+    NextMethod();
+    return(invisible(object));
+  }
+  rsplit <- \(x, nm, fun = identity, ...)
+  {
+    if(!length(nm))
+    {
+      return(do.call(fun, list(x, ...)));
+    }
+    else
+    {
+      fct <- x[[nm[[1L]]]];
+      fct <- factor(fct, unique(fct));
+      return(lapply(split(x, fct), rsplit, nm[-1L], fun, ...));
+    }
+  }
+  len  <- max(nchar(object$line))
+  nest <- rsplit(object, c("file", "class", "name"), \(data)
+  {
+      cond <- vapply(data$cond, deparse1, character(1L));
+      return(sprintf("%*s [%s]", len, data$line, cond));
+  });
+  cat(" \u252C\n");
+  tree(nest, indent.str);
+  cat(indent.str, "\n");
+  return(invisible(object));
+}

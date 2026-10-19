@@ -2,9 +2,9 @@
 #ifndef OOPR_MODELS_OOPR_H
 #define OOPR_MODELS_OOPR_H
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-#include "common.h"
-#include "./util/symbols.h"
-#include "./models/meta.h"
+#include "../common.h"
+#include "../util/symbols.h"
+#include "meta.h"
 #include <string>
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 class OoprC;

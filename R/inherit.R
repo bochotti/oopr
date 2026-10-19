@@ -167,10 +167,35 @@ inheritance_set <- \(env, inhr, err)
     for(j in seq_len(nrow(imeta)))
     {
       spec <- imeta[["access"]][j];
+      name <- imeta[["names"]][j];
+
+      if(name == iname)
+      {
+        if(spec == "private")
+        {
+          err$push(
+            cls = "ooprInheritingPrivateConstructor"
+           ,src = env$src[[1L]]
+           ,msg = "Cannot inherit class `%s` as its constructor is private."
+           ,name
+          );
+          next;
+        }
+        if(imeta$final[j])
+        {
+          err$push(
+            cls = "ooprInheritingFinalConstructor"
+           ,src = env$src[[1L]]
+           ,msg = "Cannot inherit class `%s` as its constructor is final."
+           ,name
+          );
+          next;
+        }
+      }
+
       # private members are not inherited
       if(spec == "private") { next; }
 
-      name <- imeta[["names"]][j];
       # do not inherit constructors
       if(name == iname) { next; }
 
@@ -319,6 +344,22 @@ specifiers_virtual <- \(i, name, spec, meta, env, err)
     }
     meta$virtual$set(i, TRUE);
     spec$set(i, list(set[!has]));
+    body <- if(meta$method$get(i)) body(env$this[[name]]) else NULL;
+    if(iscall(body, "=") && iscall(body[[2L]], "{") && identical(body[[3L]], 0))
+    {
+      body(env$this[[name]]) <- body[[2L]];
+      meta$abstract$set(i, TRUE);
+      if(match("final", set, 0L))
+      {
+        err$push(
+          cls = "ooprAbstractFinal"
+         ,src = env$src[[i]]
+         ,msg = "Member `%s` cannot be both abstract and final."
+         ,name
+        );
+        env$succ$set(i, FALSE);
+      }
+    }
   }
   return(env$succ$get(i));
 }

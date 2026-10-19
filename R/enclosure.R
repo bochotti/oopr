@@ -43,7 +43,7 @@ enclosure <- \(env, parent)
     name <- meta$names$get(i);
     if(nzchar(meta$property$get(i)))
     {
-      # property funds need to be converted to active bindings
+      # property funs need to be converted to active bindings
       fun <- this[[name]];
       if(!nzchar(inhr))
       {
@@ -58,19 +58,29 @@ enclosure <- \(env, parent)
       if(!nzchar(inhr))
       {
         environment(this[[name]]) <- encl;
-        if(meta$S3$get(i)) enclosure_S3(name, env$name, this, parent);
+        if(meta$S3$get(i)) { enclosure_S3(name, env$name, this, parent); }
       }
       lockBinding(name, this);
+    }
+    else if(meta$class$get(i) && meta$static$get(i))
+    {
+      if(nzchar(inhr))
+      {
+        fun <- activeBindingFunction(name, encl[[inhr]]@encl$this);
+      }
+      else
+      {
+        x   <- eval(this[[name]], parent, NULL);
+        fun <- .Call(Cpp_cmem_bindfun, name, x, encl, "this")
+      }
+      rm(list = name, envir = this);
+      makeActiveBinding(name, fun, this);
     }
     else if(nzchar(inhr))
     {
       # inherited fields refer to their own enclosure
       rm(list = name, envir = this);
       symlink(encl[[inhr]]@encl$this, "this", this, name);
-    }
-    else if(meta$class$get(i) && meta$static$get(i))
-    {
-      this[[name]] <- eval(this[[name]], parent, NULL);
     }
     if(!meta$static$get(i))
     {

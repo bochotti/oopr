@@ -48,6 +48,7 @@ meta <- \(size = 0L)
   container<- vector("logical",   size);
   inherit  <- vector("character", size);
   virtual  <- vector("logical",   size);
+  abstract <- vector("logical",   size);
   final    <- vector("logical",   size);
   rm(size);
   makeActiveBinding("size", \( ) { return(names$size); }, environment());

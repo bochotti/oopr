@@ -40,6 +40,33 @@ definitions_classmem <- \(i, name, env, err)
         || identical(e[[1L]], call("[[", quote(this), as.name(name)))
       )
     });
+    oopr <- eval(call[[1L]], env$prnt, NULL);
+    acs  <- oopr@meta$subs("access", names = oopr@name);
+    if(acs != "public")
+    {
+      err$push(
+        cls = "ooprClassMemNonPublicConstructor"
+       ,src = env$src[[i]]
+       ,"Member `%s` cannot be class `%s` as its constructor is %s."
+       ,name, oopr@name, acs
+      );
+      env$succ$set(i, FALSE);
+      next;
+    }
+    abs  <- oopr@meta$subs("names", abstract = TRUE);
+    if(length(abs))
+    {
+      abs <- setdiff(abs, oopr@name);
+      plr <- length(abs) > 1L;
+      err$push(
+        cls = "ooprClassMemAbstract"
+       ,src = env$src[[i]]
+       ,"Member `%s` cannot be class `%s` as it has abstract method%s %s."
+       ,name, oopr@name, if(plr) "s" else "", deparse1(abs)
+      );
+      env$succ$set(i, FALSE);
+      next;
+    }
     if(env$meta$static$get(i))
     {
       if(length(ats))
@@ -53,7 +80,6 @@ definitions_classmem <- \(i, name, env, err)
         );
         env$succ$set(i, FALSE);
       }
-      oopr <- eval(call[[1L]], env$prnt, NULL);
       call <- matchsig(oopr, call);
       if(!is.call(call))
       {
@@ -70,7 +96,7 @@ definitions_classmem <- \(i, name, env, err)
       env$spec$set(i, list(0L));
       next;
     }
-    env$this[[name]] <- eval(call[[1L]], env$prnt, NULL);
+    env$this[[name]] <- oopr;
     call[[1L]] <- call("$", quote(this), as.name(name));
     fun <- definitions_init(i, name, ats, call, envir, along, fun, env, err);
   }

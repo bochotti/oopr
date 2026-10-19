@@ -191,6 +191,9 @@ private:
       stop("`file` is a .Rmd file with uneven ``` blocks");
     }
     edges <- split.default(edges, unlist(lapply(seq_len(len / 2), rep, 2L)));
+    edges <- edges[
+      vapply(edges, \(x) grepl("```\\s*\\{\\s*[rR]", text[x[1L]]), logical(1L))
+    ];
     lines <- lapply(edges, \(edge)
     {
       i <- seq.default(edge[1L], edge[2L]);
@@ -214,7 +217,7 @@ private:
 #' @description
 #' Use completion in RStudio.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-oopr("OoprCompletionRStudio", public:OoprCompletionSource,
+oopr("OoprCompletionRStudio", public:OoprCompletionSource,      # nocov start #
 {
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 public:
@@ -279,7 +282,7 @@ private:
   }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-}) ## OoprCompletionRStudio
+}) ## OoprCompletionRStudio                                     # nocov end   #
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 
 
@@ -740,19 +743,16 @@ private:
     {
       attr(rd, "Rd_tag") <- "\\description";
     }
-    verb <- list(`attr<-`("A", "Rd_tag", "VERB"));
-    verb <- lapply(c("\\name", "\\title"), \(x) `attr<-`(verb, "Rd_tag", x));
-    rd   <- c(verb, list(rd));
     tmp  <- tempfile();
     on.exit(unlink(tmp));
-    tools::Rd2HTML(rd, tmp, standalone = FALSE);
+    tools::Rd2HTML(list(rd), tmp, fragment = TRUE);
     out  <- readLines(tmp);
     out  <- out[nzchar(out)];
     if(desc)
     {
       out <- out[out != "<h3>Description</h3>"];
     }
-    return(out[-1L]);
+    return(out);
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -790,7 +790,10 @@ public:
       {
         oopr <- get0(class, ns);
       }
-      if(!is.ooprC(oopr, class)) return(NULL);
+      if(!is.ooprC(oopr, class))
+      {
+        stop(sprintf("ooprC `%s` cannot be found", class));
+      }
       oopr <- oopr@encl$this;
     }
     package <- environmentName(topenv(oopr));
@@ -823,10 +826,17 @@ public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   static:getHelp <- \(type, topic, source, class, package)
   {
-    comp <- OoprCompletionHelp(topic, source, class, package);
-    if(comp$fail) return(NULL);
-    comp$makeHelp(type);
-    return(comp$out);
+    tryCatch(
+    {
+      comp <- OoprCompletionHelp(topic, source, class, package);
+      if(comp$fail) return(NULL);
+      comp$makeHelp(type);
+      return(comp$out);
+    }
+    ,error = \(e)
+    {
+      return(NULL);
+    })
   }
 
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -939,14 +949,13 @@ private:
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 help_formals_handler.oopr <- \(topic, source)
 {
-  if(is.oopr(source, "oopr_this"))
+  if(inherits(source, "oopr_this"))
   {
     comp   <- OoprCompletion();
     source <- if(comp$isCompletion()) comp$obj() %||% stop() else stop();
   }
   topic   <- deparse1(str2lang(topic));
   formals <- sprintf("%s = ", names(formals(.subset2(source, topic))));
-  help    <- OoprCompletionHelp@encl$.this$makeHelpHandler(source);
+  help    <- OoprCompletionHelp[["makeHelpHandler"]](source);
   return(list(formals = formals, helpHandler = help))
 }
-

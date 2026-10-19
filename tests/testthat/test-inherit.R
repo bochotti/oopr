@@ -107,6 +107,25 @@ test_that("inheritance_set",
     oopr("test", { base; }, { a <- 1L; b <- 2L; c <- 3L})
     expect_length(test@meta$subs("names", TRUE, inherits = ""), 0L);
   })
+
+  it("does not allow inheriting classes with private constructor",
+  {
+    oopr("base",, { private:base <- \( ) { } })
+    expect_error(
+      oopr("test", base, { })
+     ,class = "ooprInheritingPrivateConstructor"
+    );
+  })
+
+  it("does not allow inheriting classes with final constructor",
+  {
+    oopr("base",, { public:final:base <- \( ) { } })
+    expect_error(
+      oopr("test", base, { })
+     ,class = "ooprInheritingFinalConstructor"
+    );
+  })
+
 })
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -119,7 +138,7 @@ test_that("inheritance_definitions",
     expect_identical(body(test@encl$this$test)[[c(2:1)]], quote(base::assign));
 
     oopr("base",, {})
-    oopr("test", { base; }, { test <- \( ) { 1L; } })
+    oopr("test", { base; }, { public:test <- \( ) { 1L; } })
     expect_identical(body(test@encl$this$test)[[c(2:1)]], quote(base::assign));
 
     oopr('t', {base; test}, {})
@@ -135,7 +154,7 @@ test_that("inheritance_definitions",
 
   it("requires initialization if derived class has non-default formals",
   {
-    oopr("base",, { base <- \(x) { } })
+    oopr("base",, { public:base <- \(x) { } })
     expect_error(
       oopr("test", { base; }, { })
      ,class = "ooprDefNoInit"
@@ -146,7 +165,7 @@ test_that("inheritance_definitions",
      ,class = "ooprDefNoInit"
     );
 
-    oopr("base",, { base <- \(x = 1L) { } })
+    oopr("base",, { public:base <- \(x = 1L) { } })
     expect_no_error(
       oopr("test", { base; }, { })
     );
@@ -163,13 +182,13 @@ test_that("inheritance_definitions",
 
   it("requires initialization to match the signature",
   {
-    oopr("base",, { base <- \(x) { }})
+    oopr("base",, { public:base <- \(x) { }})
     expect_error(
       oopr("test", { base; }, { test <- \( ) { base(y = 1) } })
      ,class = "ooprDefInitSignatureNotMatched"
     );
 
-    oopr("base",, { base <- \(x, y = 1) { }})
+    oopr("base",, { public:base <- \(x, y = 1) { }})
     expect_error(
       oopr("test", { base; }, { test <- \( ) { base(y = 1) } })
      ,class = "ooprDefInitSignatureNotMatched"
@@ -505,6 +524,17 @@ test_that("specifiers_virtual",
     );
   })
 
+  it("can be abstract",
+  {
+    oopr("test",, { public:virtual:a <- \( ) { } = 0 })
+    expect_true(test@meta$abstract$get(1L));
+
+    expect_error(
+      oopr("test",, { public:virtual:final:a <- \( ) { } = 0 })
+     ,class = "ooprAbstractFinal"
+    );
+  })
+
 
 })
 
@@ -681,6 +711,14 @@ test_that("inheritance virtual",
     expect_false(identical(parent.env(parent.env(obj)$test)$bs$a, obj$a));
   })
 
+  it("does not allow construction if abstract method",
+  {
+    oopr("inhr",, { public:virtual:a <- \( ) { } = 0 })
+    expect_error(inhr(), "abstract");
+    oopr("test", public:inhr, { a <- \( ) { 1L; }})
+    expect_no_error(test());
+  })
+
 })
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -692,7 +730,7 @@ test_that("specifiers_final",
     expect_true(test@meta$final$get(1L))
   })
 
-  it("requires final to be virtual",
+  it("requires final to be a method",
   {
     expect_error(
       oopr("test",, { final:a <- 1L; })

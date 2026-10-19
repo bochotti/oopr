@@ -9,7 +9,8 @@
   X(static_,   "static",   RLgl)                               \
   X(class_,    "class",    RLgl)                               \
   X(inherit_,  "inherit",  RChr)                               \
-  X(virtual_,  "virtual",  RLgl)
+  X(virtual_,  "virtual",  RLgl)                               \
+  X(abstract_, "abstract", RLgl)
 
 #define ARGS2(arg1, arg2, arg3) SYM_2(arg1, arg2)
 #define LIST2(X)                                               \
@@ -119,6 +120,12 @@ bool OoprMeta::isVirtual(const int i) const
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+bool OoprMeta::isAbstract(const int i) const
+{
+  return abstract_[i];
+}
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 bool OoprMeta::isAccess(const int i, const char* access) const
 {
   return !std::strcmp(access_[i], access);
@@ -135,7 +142,9 @@ int OoprMeta::which(const std::string &name) const
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-RChr<PSEXP> OoprMeta::subName(const char* access, const bool inverse) const
+RChr<PSEXP> OoprMeta::subName(
+  const char* access, const bool inverse, const char* ignore
+) const
 {
   const R_xlen_t size{this->size()};
   std::vector<const char*> names;
@@ -144,6 +153,7 @@ RChr<PSEXP> OoprMeta::subName(const char* access, const bool inverse) const
   {
     bool match = !std::strcmp(access_[i], access);
     if(inverse)  match = !match;
+    match      = match && std::strcmp(names_[i], ignore);
     if(match)    names.push_back(names_[i]);
   }
   return names;

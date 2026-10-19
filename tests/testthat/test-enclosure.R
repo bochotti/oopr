@@ -100,11 +100,30 @@ test_that("enclosure",
 
   it("keeps fields as-is",
   {
-    oopr("test",, { a <- 1L });
+    oopr("test",, { a <- 1L })
     expect_false(bindingIsActive('a', test@encl$this));
     expect_equal(test@encl$this$a, 1L);
   })
 
+  it("creates binding for static classes",
+  {
+    oopr("memb",, { public:a <- 1L })
+    oopr("test",, { public:static:a <- memb })
+    expect_true(bindingIsActive("a", test@encl$this));
+    expect_equal(
+      sexp_ptr(activeBindingFunction("a", test@encl$this))
+     ,sexp_ptr(activeBindingFunction("a", test@encl$.this))
+    );
+    oopr("test2", public:test, {});
+    expect_equal(
+      sexp_ptr(activeBindingFunction("a", test@encl$this))
+     ,sexp_ptr(activeBindingFunction("a", test2@encl$this))
+    );
+    expect_equal(
+      sexp_ptr(activeBindingFunction("a", test@encl$.this))
+     ,sexp_ptr(activeBindingFunction("a", test2@encl$.this))
+    );
+  })
   # it("does not lock static and places in .this",
   # {
   #   test <- oopr("test",, { static:a <- 1L });

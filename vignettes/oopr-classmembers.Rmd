@@ -12,8 +12,7 @@ editor_options:
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment  = "#>",
-  error    = TRUE
+  comment  = "#>"
 )
 ```
 
@@ -40,6 +39,59 @@ public:
 ```{r}
 obj <- ClassMemExample();
 print(obj);
+```
+
+## Protection
+
+Class members are automatically protected via an active binding. When assigning
+into a class member, the incoming value is checked for the same class:
+
+```{r, error = TRUE, purl = FALSE}
+# allowed
+obj$mem$x <- 2L;
+
+# not allowed
+obj$mem <- 1L;
+
+# allowed
+obj$mem <- MemberClass();
+
+# not allowed
+obj$mem <- ClassMemExample();
+```
+
+Using set properties (or the absence of one for read-only) with classes may 
+not work as intended as R expressions are evaluated from right to left. An
+expression such as `obj$mem$a <- 1L;` will evaluate `mem$a <- 1L;`
+before the set property for `obj$mem` is called. 
+
+A useful set property to ensure the class instance is never replaced could be:
+```{r}
+oopr("ClassMemPropertyExample",,
+{
+public:
+  get:x <- \( ) { return(this$x_); }
+  set:x <- \(rhs)
+  {
+    if(!identical(this$x_, rhs)) 
+    { 
+      stop(call. = FALSE, "`x` cannot be replaced"); 
+    }
+    return(this$x_);
+  }
+private:
+  x_ <- MemberClass;
+})
+```
+
+```{r, error = TRUE, purl = FALSE}
+obj <- ClassMemPropertyExample();
+
+# allowed
+obj$x$x <- 2L;
+
+# not allowed
+obj$x <- MemberClass();
 ```
 
 ## Containers
@@ -84,7 +136,9 @@ public:
   MemberClass <- \(x) { this$x <- x; }
   x <- 1L; 
 })
+```
 
+```{r, error = TRUE, purl = FALSE}
 # not allowed, needs constructing
 oopr("ClassMemExample",,
 {

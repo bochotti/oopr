@@ -103,21 +103,38 @@ specifiers_access <- \(i, name, spec, meta, env, err)
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @intern
-#' Only allow access specifiers for constructor & destructor
+#' Only allow access specifiers for constructor & destructor, and final for
+#' constructor. Final constructors should be marked as "public".
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 specifiers_special <- \(i, name, spec, env, err)
 {
   if(!match(name, sprintf("%s%s", c("", "~"), env$name), 0L)) { return(TRUE); }
-  set <- spec$get(i)[[1L]];
-  if(length(set))
+  set  <- spec$get(i)[[1L]];
+  ctor <- !startsWith(name, "~");
+  fnl  <- length(set) == 1L && set == "final";
+  if(length(set) && !(ctor && fnl))
   {
     err$push(
       cls = "ooprNonAccessSpecifierSpecial"
      ,src = env$src[[i]]
-     ,msg = "%s `%s` has a non-access specifier."
-     ,if(startsWith(name, "~")) "Destructor" else "Constructor"
+     ,msg = "%s method `%s` cannot have specifier%s %s."
+     ,if(ctor) "Constructor" else "Destructor"
+     ,name
+     ,if(length(set) > 1L) "s" else ""
+     ,deparse1(set)
+    );
+    env$succ$set(i, FALSE);
+    return(FALSE);
+  }
+  if(ctor && fnl && env$meta$access$get(i) != "public")
+  {
+    err$push(
+      cls = "ooprFinalConstructorNotPublic"
+     ,src = env$src[[i]]
+     ,msg = "Constructor `%s` must be public to be specified as final."
      ,name
     );
+    env$succ$set(i, FALSE);
     return(FALSE);
   }
   return(TRUE);

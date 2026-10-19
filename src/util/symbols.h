@@ -2,9 +2,9 @@
 #ifndef OOPR_UTIL_SYMBOLS_H
 #define OOPR_UTIL_SYMBOLS_H
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-#include "common.h"
+#include "../common.h"
 #include "unwind.h"
-#include "./models/robj.h"
+#include "../models/robj.h"
 #include <string>
 #include <unordered_map>
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //

@@ -65,3 +65,18 @@ local_packageInstall <- \(
   withr::local_package(name, lib.loc = libs, .local_envir = envir);
 }
 
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+#' Create a namespace
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+fake_namespace <- \(name = "FAKE_PKG_123")
+{
+  if(!requireNamespace(name, quietly = TRUE))
+  {
+    at <- findInExpr(body(loadNamespace), \(e) {
+      iscall(e, "<-") && isname(e[[2L]], "makeNamespace");
+    });
+    eval(body(loadNamespace)[[at[[1L]]]]);
+    makeNamespace(name);
+  }
+  return(getNamespace(name));
+}

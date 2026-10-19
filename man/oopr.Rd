@@ -121,3 +121,6 @@ john <- Human("john", "smith", 50L);
 print(john);
 john$greet();
 }
+\seealso{
+\code{browseVignettes("oopr")}
+}

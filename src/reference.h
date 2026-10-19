@@ -30,7 +30,8 @@ extern "C" SEXP find_member_refs(SEXP expr);
  * Provide a path and function/expression to obtain the relevant source
  * reference, which identifies the position within the source file.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-extern "C" SEXP find_src_ref(SEXP at, SEXP expr);
+SEXP find_src_ref(const RInt<SEXP> at, const RObj<SEXP, LANGSXP> expr);
+extern "C" SEXP find_src_refR(SEXP at, SEXP expr);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * Searches an expression to find missing variables.

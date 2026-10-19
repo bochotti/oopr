@@ -2,50 +2,206 @@
 % Please edit documentation in R/breakpoint.R
 \name{oopr_breakpoints}
 \alias{oopr_breakpoints}
+\alias{OoprBreakpoints}
 \title{Breakpoints for oopr}
 \usage{
-oopr_breakpoints(on = NA, force = FALSE)
-}
-\arguments{
-\item{on}{\code{logical(1L)} \cr
-To enable/disable breakpoints. If the default, \code{NA}, checks
-whether they are currently enabled.}
-
-\item{force}{\code{logical(1L)} \cr
-Force assigning or removing the required functions to/from
-the global environment.}
+OoprBreakpoints
 }
 \value{
-\code{logical(1L)} indicating whether this functionality is enabled. Any
-breakpoints set are printed to the console.
+
+\newcommand{\br}{\if{html}{\out{<br>}}\if{latex}{\out{\newline{}}}}
+\newcommand{\lbr}{\if{latex}{\out{\hspace{0em}\newline{}}}}
+\newcommand{\hr}{\if{html}{\out{<hr>}}\if{latex}{\out{\hrule\vspace{0.5em}}}}
+\newcommand{\rc}{\if{html}{\out{<pre><code class="language-R">}}#1\if{html}{\out{</code></pre>}}}
+\newcommand{\ht}{\if{html}{\out{<a id="#1" style="display:block;position:relative;top:-40px;"></a>}}\if{latex}{\out{\belowpdfbookmark{#2}{#1}\hypertarget{#1}{}}}}
+\newcommand{\hl}{\if{html}{\out{<a href="##1">#2</a>}}\if{latex}{\out{\hyperlink{#1}{#2}}}}
+\newcommand{\ar}{\if{html}{\out{<h3 class="r-arguments-title" style="display:none;"></h3>}}\if{latex}{\out{\def\Tabular#1#2{\Tabularr{#1}{#2}}}}}
+\if{latex}{\out{
+\ExplSyntaxOn
+\cs_gset:Npn \Tabularr #1 #2
+{
+  \begin{ldescription}
+  \seq_set_split:Nnn \l_tmpa_seq { \\\\ } { #2 }
+  \seq_map_inline:Nn \l_tmpa_seq
+  {
+    \tl_if_blank:nF { ##1 }
+    {
+      \seq_set_split:Nnn \l_tmpb_seq { & } { ##1 }
+      \tl_set:Nx \l_tmpb_tl { \seq_item:Nn \l_tmpb_seq { 1 } }
+      \tl_remove_once:Nn \l_tmpb_tl { ~ }
+      \item[ \l_tmpb_tl ] \seq_item:Nn \l_tmpb_seq { 2 }
+    }
+  }
+  \end{ldescription}
+}
+\ExplSyntaxOff
+}}
+
+\describe{
+\item{\command{\hl{oopr_breakpoints-OoprBreakpoints}{OoprBreakpoints}}}{
+\emph{\verb{[private]}}\cr
+\emph{\verb{[4 fields]}} \emph{\verb{[2 methods]}}}
+}
+
 }
 \description{
-Use RStudio breakpoints with \code{oopr} classes.
+Set breakpoints for \code{oopr} classes.
 }
 \details{
+Breakpoints for \code{oopr} classes are set within the class object and all
+instances that are spawned from it.
+
+When interacting with \code{oopr} breakpoints, changes to source files and
+their associated environment (either global or package) are checked for
+changes. This allows eligible breakpoints to be applied to classes
+that have been reloaded, and line numbers to be synced with the file.
+}
+\section{\ht{oopr_breakpoints-OoprBreakpoints}{OoprBreakpoints}\hr\hr{}OoprBreakpoints}{
+
+\subsection{Fields}{
+\describe{
+\item{\command{rstudio}}{
+\emph{\verb{[static]}} \cr
+\code{logical(1L)} \cr
+Tap into RStudios breakpoint mechanism. See section
+\strong{RStudio} below. Cannot be used with \verb{$volatile}.}
+
+\item{\command{volatile}}{
+\emph{\verb{[static]}} \cr
+\code{logical(1L)} \cr
+Whether to automatically update breakpoints when changes
+to source files or environments occur. Updates only
+occur when this class is interacted with.}
+
+\item{\command{quiet}}{
+\emph{\verb{[static]}} \cr
+\code{logical(1L)} \cr
+Whether to silence messages when breakpoints auto update.}
+
+\item{\command{breaks}}{
+\emph{\verb{[read-only]}} \emph{\verb{[static]}} \cr
+\code{data.frame(6L)} \cr
+Currently set breakpoints; giving the file, class, name,
+line, steps, and condition. File paths are always relative
+to the current working directory. Lines displayed are
+referred to the last modified state of the file, not
+necessarily to a functions \code{srcref}.}
+}
+}
+
+\subsection{Methods}{
+\describe{
+\item{\command{\hl{oopr_breakpoints-OoprBreakpoints-add}{add}}}{
+\emph{\verb{[static]}} \cr
+Add breakpoints.}
+
+\item{\command{\hl{oopr_breakpoints-OoprBreakpoints-rm}{rm}}}{
+\emph{\verb{[static]}} \cr
+Remove breakpoints.}
+}
+}
+
+\subsection{\command{\ht{oopr_breakpoints-OoprBreakpoints-add}{add}}\hr{}add}{
+\subsection{Description}{
+\lbr{}Add breakpoints.
+}
+
+\subsection{Usage}{
+\rc{\preformatted{add(file, lines, conds = list())}}
+}
+
+\subsection{Arguments}{
+\ar{#1}{#2}\tabular{ll}{
+\code{file} \tab \code{character(1L)} \br
+Path to a \code{.R} file. \cr
+\code{lines} \tab \code{integer()} \br
+Line numbers to add. \cr
+\code{conds} \tab \code{list()} \br
+A list of unevaluated expressions representing the
+condition of each breakpoint. Expressions must evaluate to
+\code{logical(1L)}. Defaults to all lines being \code{TRUE}.}
+}
+
+\subsection{Details}{
+\lbr{}If \verb{$volatile == TRUE}, then \code{lines} must align with the most recent
+modified version of \code{file}.
+}
+
+\subsection{Returns}{
+\lbr{}\code{this} invisibly.
+}
+}
+
+\subsection{\command{\ht{oopr_breakpoints-OoprBreakpoints-rm}{rm}}\hr{}rm}{
+\subsection{Description}{
+\lbr{}Remove breakpoints.
+}
+
+\subsection{Usage}{
+\rc{\preformatted{rm(file, lines = integer(0L))}}
+}
+
+\subsection{Arguments}{
+\ar{#1}{#2}\tabular{ll}{
+\code{file} \tab \code{character(1L)} \br
+Path to a \code{.R} file. \cr
+\code{lines} \tab \code{integer()} \br
+Line numbers to remove. The default unsets all lines.}
+}
+
+\subsection{Details}{
+\lbr{}If \verb{$volatile == TRUE}, then \code{lines} must align with the most recent
+modified version of \code{file}.
+}
+
+\subsection{Returns}{
+\lbr{}\code{this} invisibly.
+}
+}
+\lbr\hr\hr
+}
+
+\section{RStudio}{
+
 Setting breakpoints inside \code{oopr} classes is the same process as setting
 them for normal functions - use the gutter or \code{SHIFT+F9}.
 
-This feature requires intercepting RStudio calls to functions that
-normally reside within \code{tools:rstudio}, by assigning functions of the same
-name inside the global environment. It is disabled by default as it is
-potentially destructive for an R session. Environmental variable
-\code{R_OOPR_BREAKPOINTS=true} can be used to enable this functionality when
-\code{oopr} namespace is loaded.
+RStudio calls its R functions inside \code{tools:rstudio} from the global
+environment. By assigning functions of the same name, these calls can be
+intercepted.
 
-Breakpoints can be set for both methods and properties. One limitation is
-that breakpoints cannot be set on single line functions with a specifier,
+This feature is disabled by default as it is potentially destructive for
+an R session. Environmental variable \code{R_OOPR_BREAKPOINTS=true} can be used
+to enable this functionality when \code{oopr} namespace is loaded.
+
+Breakpoints cannot be set on single line functions with a specifier,
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{get:x <- \\( ) \{ return("x"); \}
 }\if{html}{\out{</div>}}
 
 as RStudio thinks the line is at the top-level.
 
-When a breakpoint is set class instances are searched in the global
-environment and package namespace (if applicable). If the function inside
-an instance does not match the source file, then all breakpoints are
-removed for that function in that instance.
-
 Tested with RStudio version 2026.1.1.403, there are no guarantees for
 earlier or later versions.
+}
+
+\examples{
+tmp <- tempfile();
+on.exit(unlink(tmp));
+cat(file = tmp, r"{
+oopr("test",,
+{
+public:
+  method <- \( )
+  {
+    "break me!";
+  }
+})
+}");
+source(tmp, keep.source = TRUE);
+obj <- test();
+
+OoprBreakpoints$add(tmp, 7L);
+print(OoprBreakpoints);
+\dontrun{obj$method();}
 }

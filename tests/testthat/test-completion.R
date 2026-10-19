@@ -277,3 +277,105 @@ test_that("OoprCompletion",
   })
 
 })
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("OoprCompletionSource",
+{
+  it("pulls R blocks from .rmd files",
+  {
+    temp <- tempfile(fileext = ".Rmd");
+    cat(file = temp, gsub("\n\\s+", "\n", r"{
+    some text
+    ```{r}
+    sum();
+    ```
+    some more text
+    ```{r}
+    mean();
+    ```
+    below shouldnt be included
+    ```
+    verbatim
+    ```
+    }"));
+    obj <- OoprCompletionSource();
+    obj$load(file = temp, row = 1L, col = 1L);
+    text <- obj$text;
+    text <- text[nzchar(text)];
+    expect_equal(text, c("sum();", "mean();"));
+  })
+})
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("OoprRd",
+{
+  obj <- OoprRd("OoprVec", "oopr");
+  it("finds classes by name",
+  {
+    expect_equal(obj$topic,   "OoprVec");
+    expect_equal(obj$package, "oopr");
+    expect_true(inherits(obj$rd, "Rd"));
+  })
+
+  it("can obtain description of fields",
+  {
+    text <- paste(obj$getDescription("size"), collapse = "\n");
+    expect_match(text, "The amount of instanced classes in the container");
+  })
+
+  it("can obtain description of methods",
+  {
+    text <- paste(obj$getDescription("insert"), collapse = "\n");
+    expect_match(text, "Insert an already instanced class");
+  })
+
+  it("can obtain description of arguments",
+  {
+    text <- obj$getArguments("insert");
+    expect_named(text, c("pos", "x"));
+    expect_match(text["pos"], "The index to insert the class");
+    expect_match(text["x"], "instance of class");
+  })
+
+  it("can obtain methods with special names ``",
+  {
+    text <- paste(obj$getDescription("`[`"), collapse = "\n");
+    expect_match(text, "Access an element of the container");
+  })
+})
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+test_that("OoprCompletionHelp",
+{
+  it("provides help for methods",
+  {
+    obj <- OoprCompletionHelp("resize", "OoprVec", "OoprVec", "oopr");
+    obj$makeHelp("completion");
+    expect_equal(obj$out$signature, "resize(n) ");
+    expect_match(obj$out$description, "Pre-allocate or destroy");
+    obj$makeHelp("parameter")
+    expect_equal(obj$out$args, "n");
+    expect_match(obj$out$arg_descriptions, "The desired length");
+  })
+
+  it("provides help for fields",
+  {
+    obj <- OoprCompletionHelp("data", "OoprVec", "OoprVec", "oopr");
+    obj$makeHelp("completion")
+    expect_equal(obj$out$signature, "list(0L)");
+    expect_match(obj$out$description, "The container");
+  })
+
+  it("creates a string to create instance",
+  {
+    expr <- OoprCompletionHelp@encl$.this$makeHelpHandler(OoprVec@encl$this);
+    expr <- str2lang(expr);
+    fun  <- do.call(local, list(expr));
+    expect_equal(formals(fun)$class, "OoprVec");
+    expect_equal(formals(fun)$package, "oopr");
+    out <- fun("completion", "resize", "OoprVec");
+    expect_equal(out$signature, "resize(n) ");
+    expect_match(out$description, "Pre-allocate or destroy");
+  })
+
+})

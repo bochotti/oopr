@@ -42,6 +42,9 @@
 #'
 #' **DO NOT** use an assignment operator.
 #'
+#' @seealso
+#' `browseVignettes("oopr")`
+#'
 #' @examples
 #' ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' #  human as a class
@@ -200,15 +203,6 @@ str.oopr <- \(
     cat(sub("function ", "\\\\", deparse(x, 500L, nlines = 1L)), '\n');
     return(invisible(x));
   }
-  str.functionWithTrace <- \(x, ...)
-  {
-    cat("X");
-    if(isS4(x))
-    {
-      x <- x@original;
-    }
-    NextMethod();
-  }
 
   out <- capture.output({
     top <- format(object);
@@ -280,7 +274,7 @@ print.oopr <- \(x, max.level = 5L, ...)
 }
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
-dollar_attr <- \(x, names)
+dollar_attr <- \(x, names)                                      # nocov start #
 {
   types <- integer(length(names));
   meta  <- character(length(names));
@@ -305,11 +299,6 @@ dollar_attr <- \(x, names)
         meta[i] <- switch(meta[i], lgc = "lgl", meta[i]);
       }
     }
-    if(isS4(mem) && inherits(mem, "functionWithTrace"))
-    {
-      types[i] <- 6L;
-      meta[i]  <- "X";
-    }
   }
   ,error = \(e)
   {
@@ -328,9 +317,9 @@ dollar_attr <- \(x, names)
     do.call(on.exit, list(expr, TRUE, FALSE), envir = ins);
   }
 
-  help <- OoprCompletionHelp@encl$.this$makeHelpHandler(x);
+  help <- OoprCompletionHelp[["makeHelpHandler"]](x);
   return(list(types = as.integer(types), meta = meta, helpHandler = help));
-}
+}                                                               # nocov end   #
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 #' @name is.oopr

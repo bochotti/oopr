@@ -9,7 +9,7 @@
 
 /* .Call calls */
 extern SEXP find_member_refs(SEXP);
-extern SEXP find_src_ref    (SEXP, SEXP);
+extern SEXP find_src_refR   (SEXP, SEXP);
 extern SEXP get_missing_vars(SEXP, SEXP);
 extern SEXP interface       (SEXP, SEXP, SEXP, SEXP);
 extern SEXP iscall          (SEXP, SEXP, SEXP);
@@ -18,15 +18,20 @@ extern SEXP on_load         (SEXP, SEXP);
 extern SEXP oopr_make       (SEXP, SEXP, SEXP);
 extern SEXP symlinkR        (SEXP, SEXP, SEXP, SEXP);
 extern SEXP oopr_cont_init  (SEXP, SEXP);
-extern SEXP find_instances  (SEXP, SEXP, SEXP);
 extern SEXP eval_context    (SEXP, SEXP, SEXP);
 extern SEXP isooprC         (SEXP, SEXP);
 extern SEXP isoopr          (SEXP, SEXP);
 extern SEXP get_PSEXPs      ( );
+extern SEXP amend_plist     (SEXP, SEXP, SEXP);
+extern SEXP sexp_ptr        (SEXP);
+extern SEXP cmem_bindfun    (SEXP, SEXP, SEXP, SEXP);
+extern SEXP set_breakpoints (SEXP, SEXP, SEXP);
+extern SEXP LCS             (SEXP, SEXP);
 
-static const R_CallMethodDef CallEntries[] = {
+static const R_CallMethodDef CallEntries[] =
+{
     {"find_member_refs", (DL_FUNC) &find_member_refs, 1},
-    {"find_src_ref",     (DL_FUNC) &find_src_ref,     2},
+    {"find_src_ref",     (DL_FUNC) &find_src_refR,    2},
     {"get_missing_vars", (DL_FUNC) &get_missing_vars, 2},
     {"interface",        (DL_FUNC) &interface,        4},
     {"iscall",           (DL_FUNC) &iscall,           3},
@@ -35,11 +40,15 @@ static const R_CallMethodDef CallEntries[] = {
     {"oopr_make",        (DL_FUNC) &oopr_make,        3},
     {"symlink",          (DL_FUNC) &symlinkR,         4},
     {"oopr_cont_init",   (DL_FUNC) &oopr_cont_init,   3},
-    {"find_instances",   (DL_FUNC) &find_instances,   3},
     {"eval_context",     (DL_FUNC) &eval_context,     3},
     {"isooprC",          (DL_FUNC) &isooprC,          2},
     {"isoopr",           (DL_FUNC) &isoopr,           2},
     {"get_PSEXPs",       (DL_FUNC) &get_PSEXPs,       0},
+    {"amend_plist",      (DL_FUNC) &amend_plist,      3},
+    {"sexp_ptr",         (DL_FUNC) &sexp_ptr,         1},
+    {"cmem_bindfun",     (DL_FUNC) &cmem_bindfun,     4},
+    {"set_breakpoints",  (DL_FUNC) &set_breakpoints,  3},
+    {"LCS",              (DL_FUNC) &LCS,              2},
     {NULL, NULL, 0}
 };
 

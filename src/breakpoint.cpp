@@ -1,183 +1,222 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 #include "breakpoint.h"
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-class InstanceFinder
+#define LIST(X)                                                \
+  X(curl, "{")                                                 \
+  X(iff, "if")                                                 \
+  X(isTRUE)                                                    \
+  X(tri, "try")                                                \
+  X(doTrace, ".doTrace")                                       \
+  X(browser)                                                   \
+  X(srcref)                                                    \
+  X(orig)
+SYMBOLS(LIST, sym)
+#undef  LIST
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+class Breakpoints
 {
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 public:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  bool skip = false;
-  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  InstanceFinder(SEXP name, SEXP pkg, SEXP fun)
+  Breakpoints(
+    const RObj<SEXP, CLOSXP> fun
+   ,const RList<SEXP>        ats
+   ,const RList<SEXP>        cond
+  ) : body(R_ClosureExpr(*fun))
+    , orig(this->body.attr(sym.orig))
+    , ats(ats)
+    , cond(cond)
   {
-    name_  = CHAR(STRING_ELT(name, 0));
-    clazz_ = Rf_install(name_.c_str());
-    pkg_   = getEnvName(pkg);
-    if(Rf_isString(fun))
+    if(CAR(*body) != *sym.curl)
     {
-      fun_ = CHAR(STRING_ELT(fun, 0));
+      stop("body of `fun` needs to be {");
     }
-    skip   = pkg_.empty();
-  }
-
-  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  void walk(SEXP x)
-  {
-    if(Oopr::is(x))
+    if(ats.size() != cond.size())
     {
-      searchOopr(x);
+      stop("length of `ats` must == length of `cond`");
     }
-    else if(Rf_isEnvironment(x))
+    for(const RObj<SEXP, ALLSXP>& x : ats)
     {
-      searchEnv(x);
+      if(!RInt<>::is(*x)) { stop("all elements of `ats` must be integer"); }
     }
-    else if(Rf_isNewList(x))
+    switch(orig.type())
     {
-      searchList(x);
+    case LANGSXP:
+    {
+      SETCDR(*body, CDR(*orig));
+      body.attr(sym.orig) = R_NilValue;
     }
-    else if(OoprC::is(x))
-    {
-      searchOoprC(x);
-    }
-    else if(Rf_isList(x))
-    {
-      searchCAR(x);
+    case NILSXP: break;
+    default: orig = R_NilValue;
     }
   }
 
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  SEXP toList()
+  ~Breakpoints( )
   {
-    PSEXP out = Rf_allocVector(VECSXP, (R_xlen_t)instances_.size());
-    for(std::size_t i = 0; i < instances_.size(); ++i)
+    if(!succ && orig != R_NilValue) { body.attr(sym.orig) = orig; }
+  }
+
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+  void set( )
+  {
+    if(!ats.size())
     {
-      SET_VECTOR_ELT(out, (R_xlen_t)i, instances_[i]);
+      succ = true;
+      return;
     }
-    return(out);
+    RObj<PSEXP> orig = Rf_lcons(*sym.curl, Rf_duplicate(CDR(*body)));
+    orig.attr(sym.srcref) = body.attr(sym.srcref);
+    body.attr(sym.orig) = orig;
+    for(const int i : order())
+    {
+      SEXP part = nthcdr2(body, ats[i]);
+      SEXP src  = find_src_ref(ats[i], body);
+      RObj<PSEXP, ALLSXP> expr = prefixBreakpoint(part, cond[i]);
+      expr.attr(sym.srcref)    = RList<PSEXP>{src, src, src};
+      SETCAR(part, *expr);
+    }
+    succ = true;
   }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 private:
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  std::string name_;
-  SEXP        clazz_;
-  std::string pkg_;
-  std::string fun_;
-  static const Symbols sym;
-  std::vector<SEXP> searched_;
-  std::vector<SEXP> instances_;
+  RObj<SEXP, LANGSXP> body;
+  RObj<PSEXP, ALLSXP> orig;
+  const RList<SEXP>   ats;
+  const RList<SEXP>   cond;
+  bool                succ{false};
 
-  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  std::string getEnvName(SEXP x)
+  /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+   * Sort the longest at vectors to be set first. This way multiple positions
+   * do not conflict with each other.
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+  std::vector<int> order( )
   {
-    PSEXP call = Rf_lang2(sym["format.default"], x);
-    return CHAR(STRING_ELT(Rf_eval(call, R_BaseEnv), 0));
-  }
-
-  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  bool alreadySearched(SEXP x)
-  {
-    for(std::size_t i = 0; i < searched_.size(); ++i)
+    std::vector<int> idx(ats.size());
+    std::iota(idx.begin(), idx.end(), 0);
+    std::sort(idx.begin(), idx.end(), [&](int l, int r)
     {
-      if(x == searched_[i]) return true;
-    }
-    return false;
+      return ats[l].size() > ats[r].size();
+    });
+    return idx;
   }
 
-  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  void searchEnv(SEXP x)
+  /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+   * Creates the expression that calls the browser, e.g.:
+   * {
+   *   if(isTRUE(cond)) .doTrace(browser());
+   *   expr;
+   * }
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+  RObj<PSEXP, LANGSXP> prefixBreakpoint(SEXP expr, const RObj<SEXP>& cond)
   {
-    if(alreadySearched(x)) return;
-    searched_.push_back(x);
-    SEXP names = R_lsInternal3(x, TRUE, FALSE);
-    const R_xlen_t len = Rf_xlength(names);
-    for(R_xlen_t i = 0; i < len; ++i)
-    {
-      SEXP name = Rf_installChar(STRING_ELT(names, i));
-      if(!R_BindingIsActive(name, x)) walk(R_getVar(name, x, FALSE));
-    }
+    RObj<PSEXP, ALLSXP> browser = Rf_lang3(
+      *sym.iff
+     ,Rf_lang2(*sym.isTRUE, Rf_lang3(*sym.tri, *cond, Rf_ScalarLogical(1)))
+     ,Rf_lang2(*sym.doTrace, Rf_lang1(*sym.browser))
+    );
+    return Rf_lang3(*sym.curl, *browser, CAR(expr));
   }
 
-  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  void searchList(SEXP x)
-  {
-    const R_xlen_t len = Rf_xlength(x);
-    for(R_xlen_t i = 0; i < len; ++i) walk(VECTOR_ELT(x, i));
-  }
-
-  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  void searchOoprC(SEXP x)
-  {
-    SEXP encl = Rf_getAttrib(x, sym["encl"]);
-    SEXP thiz = R_getVar(sym["this"], encl, FALSE);
-
-    if(alreadySearched(thiz)) return;
-    searched_.push_back(encl);
-    searched_.push_back(R_getVar(sym[".this"], encl, FALSE));
-    searched_.push_back(thiz);
-
-    // search inside static members
-    OoprMeta meta(Rf_getAttrib(x, sym["meta"]));
-    for(R_xlen_t i = 0; i < meta.size(); ++i)
-    {
-      if(meta.isStatic(i)) walk(R_getVar(*meta.name(i), thiz, FALSE));
-    }
-  }
-
-  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  void searchCAR(SEXP x)
-  {
-    for(; x != R_NilValue; x = CDR(x)) walk(CAR(x));
-  }
-
-  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-  void searchOopr(SEXP x)
-  {
-    if(alreadySearched(x)) return;
-    searched_.push_back(x);
-
-    SEXP clazz = Rf_installChar(STRING_ELT(Rf_getAttrib(x, R_ClassSymbol), 0));
-    SEXP encl  = R_ParentEnv(x);
-
-    // check if the instance came from the ooprC
-    if(clazz_ == clazz && getEnvName(R_ParentEnv(encl)) == pkg_)
-    {
-      instances_.push_back(encl);
-    }
-    // check if the instance inherits from the ooprC. must check:
-    //   1. That the enclosure holds an instance of the ooprC
-    //   2. The instances own ooprC to see if member exists and not overridden
-    else if(Oopr::is(R_getVarEx(clazz_, encl, FALSE, R_NilValue)))
-    {
-      SEXP ooprC = R_getVar(clazz, R_ParentEnv(encl), FALSE);
-      if(OoprC::is(ooprC, { RSym(clazz).chr() }))
-      {
-        OoprMeta meta(Rf_getAttrib(ooprC, Rf_install("meta")));
-        const int i = meta.which(fun_);
-        if(i >= 0 && meta.inherit(i) == clazz_)
-        {
-          instances_.push_back(encl);
-        }
-      }
-    }
-    searchEnv(encl);
-  }
-};
-const Symbols InstanceFinder::sym{
-  "meta", "encl", "this", ".this", "format.default"
-};
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-SEXP find_instances(SEXP ooprC, SEXP frames, SEXP fun) try
+}; // Breakpoints
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+SEXP set_breakpoints(SEXP fun, SEXP ats, SEXP cond) try
 {
-  if(!OoprC::is(ooprC))                             return R_NilValue;
-  SEXP name = Rf_getAttrib(ooprC, Rf_install("name"));
-  SEXP encl = Rf_getAttrib(ooprC, Rf_install("encl"));
-  SEXP pkg  = R_ParentEnv(encl);
-  InstanceFinder obj(name, pkg, fun);
-  if(obj.skip)                                      return R_NilValue;
-  obj.walk(pkg);
-  if(pkg != R_GlobalEnv)   obj.walk(R_GlobalEnv);
-  if(frames != R_NilValue) obj.walk(frames);
-  return obj.toList();
+  Breakpoints bp(fun, ats, cond);
+  bp.set();
+  return fun;
+}
+catchR
+
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+class Matrix2D
+{
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+public:
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+  Matrix2D(int nrow, int ncol, int init = 0)
+    : data_(nrow * ncol, init)
+    , nrow_(nrow)
+    , ncol_(ncol)
+  { }
+
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+  const std::vector<int>& data( ) const noexcept { return data_; }
+  int                     nrow( ) const noexcept { return nrow_; }
+  int                     ncol( ) const noexcept { return ncol_; }
+
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+  class Row
+  {
+  friend class Matrix2D;
+  public:
+    int& operator[](const int c) { return mtx.data_[(r * mtx.ncol()) + c]; }
+  private:
+    Row(Matrix2D& mtx, const int r) : mtx(mtx), r(r) { }
+    Matrix2D& mtx;
+    const int r;
+  };
+  Row operator[](const int r) { return {*this, r}; }
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+private:
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+  std::vector<int> data_;
+  int              nrow_;
+  int              ncol_;
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+}; // Matrix2D
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+SEXP LCS(SEXP x, SEXP y) try
+{
+  const RChr<SEXP> X = x; const R_xlen_t nrow = X.size();
+  const RChr<SEXP> Y = y; const R_xlen_t ncol = Y.size();
+
+  Matrix2D M(nrow + 1, ncol + 1, 0);
+  for(int i = nrow - 1; i >= 0; --i) for(int j = ncol - 1; j >= 0; --j)
+  {
+    if(X[i] == Y[j])
+    {
+      M[i][j] = M[i + 1][j + 1] + 1;
+    }
+    else
+    {
+      M[i][j] = std::max(M[i][j + 1], M[i + 1][j]);
+    }
+  }
+
+  std::vector<int> out(nrow, NA_INTEGER);
+  int i = 0, j = 0;
+  while(i < nrow && j < ncol)
+  {
+    if(X[i] == Y[j])
+    {
+      out[i] = j + 1;
+      ++i; ++j;
+    }
+    else if(M[i + 1][j] >= M[i][j + 1])
+    {
+      ++i;
+    }
+    else
+    {
+      ++j;
+    }
+  }
+  return *RInt<PSEXP>(out);
 }
 catchR

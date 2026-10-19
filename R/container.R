@@ -115,6 +115,7 @@ public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   insert <- \(pos = this$size, x)
   {
+    pos; x;
     stopifnot(
       this$isSingleRoundNumeric(pos) && (pos == 0L || this$isInBounds(pos))
      ,is.oopr(x, this$class)
@@ -138,7 +139,8 @@ public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   emplace <- \(. = this$size, ...)
   {
-    this$insert(., do.call(this$ooprC_, args));
+    x <- do.call(this$ooprC_, args);
+    this$insert(., x);
     return(invisible(this));
   }
 
@@ -410,6 +412,7 @@ public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   insert <- \(key, x)
   {
+    key; x;
     stopifnot(this$isSingleCharacter(key), is.oopr(x, this$class));
     this$data_[[key]] <- x;
     return(invisible(this));
@@ -422,7 +425,8 @@ public:
   ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
   emplace <- \(., ...)
   {
-    this$insert(., do.call(this$ooprC_, args));
+    x <- do.call(this$ooprC_, args);
+    this$insert(., x);
     return(invisible(this));
   }
 
