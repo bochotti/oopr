@@ -65,7 +65,7 @@ public:
       succ = true;
       return;
     }
-    RObj<PSEXP> orig = LCONS(*sym.curl, Rf_duplicate(CDR(*body)));
+    RObj<PSEXP> orig = Rf_lcons(*sym.curl, Rf_duplicate(CDR(*body)));
     orig.attr(sym.srcref) = body.attr(sym.srcref);
     body.attr(sym.orig) = orig;
     for(const int i : order())
