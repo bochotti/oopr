@@ -743,14 +743,24 @@ private:
     {
       attr(rd, "Rd_tag") <- "\\description";
     }
-    verb <- list(`attr<-`("A", "Rd_tag", "VERB"));
+    verb <- list(`attr<-`("_A_", "Rd_tag", "VERB"));
     verb <- lapply(c("\\name", "\\title"), \(x) `attr<-`(verb, "Rd_tag", x));
     rd   <- c(verb, list(rd));
     tmp  <- tempfile();
     on.exit(unlink(tmp));
     tools::Rd2HTML(rd, tmp, standalone = FALSE);
     out  <- readLines(tmp);
-    out  <- out[nzchar(out)];
+    # standalone = FALSE not available until R 4.3.0
+    i    <- which.max(out == "<h2 id='_A_'>_A_</h2>");
+    if(i > 1L)
+    {
+      out <- out[seq.int(i, length(out))];
+      i   <- which.max(cumsum(out == "</div>"));
+      if(i > 1L)
+      {
+        out <- out[-seq.int(i, length(out))];
+      }
+    }
     if(desc)
     {
       out <- out[out != "<h3>Description</h3>"];

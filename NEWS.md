@@ -26,6 +26,8 @@
 
 * Completion for method arguments works again, regression from 0.2.0.
 
+* Help completion for members no longer displays `A` in R < 4.3.0.
+
 
 # oopr 0.2.0 (2026-09-06)
 
