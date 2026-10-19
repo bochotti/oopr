@@ -22,6 +22,10 @@
 * Classes with a non-public constructor can no longer be a class member at
   compile-time.
 
+## Fixed
+
+* Completion for method arguments works again, regression from 0.2.0.
+
 
 # oopr 0.2.0 (2026-09-06)
 

@@ -299,11 +299,6 @@ dollar_attr <- \(x, names)                                      # nocov start #
         meta[i] <- switch(meta[i], lgc = "lgl", meta[i]);
       }
     }
-    if(isS4(mem) && inherits(mem, "functionWithTrace"))
-    {
-      types[i] <- 6L;
-      meta[i]  <- "X";
-    }
   }
   ,error = \(e)
   {

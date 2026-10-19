@@ -952,7 +952,7 @@ private:
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 help_formals_handler.oopr <- \(topic, source)
 {
-  if(is.oopr(source, "oopr_this"))
+  if(inherits(source, "oopr_this"))
   {
     comp   <- OoprCompletion();
     source <- if(comp$isCompletion()) comp$obj() %||% stop() else stop();
