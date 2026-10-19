@@ -137,7 +137,7 @@ derived instance S3 class list.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Inherits privately by default</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span></span>
-<span><span class="co">#&gt; &lt;InheritanceExample: 0x557004283ea8&gt;</span></span>
+<span><span class="co">#&gt; &lt;InheritanceExample: 0x563fea7329e8&gt;</span></span>
 <span><span class="co">#&gt;  └─$speak:\()</span></span></code></pre></div>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Inherit as public</span></span>
@@ -151,7 +151,7 @@ derived instance S3 class list.</p>
 <span></span>
 <span><span class="co"># Base public members are visible</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span>;</span>
-<span><span class="co">#&gt; &lt;InheritanceExample: 0x557004db6578&gt;</span></span>
+<span><span class="co">#&gt; &lt;InheritanceExample: 0x563feb2650b8&gt;</span></span>
 <span><span class="co">#&gt;  ├─$speak:\()  </span></span>
 <span><span class="co">#&gt;  └─$shout:\()</span></span>
 <span></span>
@@ -228,7 +228,7 @@ class methods via <code>base$</code> instead of <code>this$</code>:</p>
 <code class="sourceCode R"><span><span class="co"># only one method</span></span>
 <span><span class="va">obj</span> <span class="op">&lt;-</span> <span class="fu">Derived</span><span class="op">(</span><span class="op">)</span>;</span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span>;</span>
-<span><span class="co">#&gt; &lt;Derived: 0x557006234598&gt;</span></span>
+<span><span class="co">#&gt; &lt;Derived: 0x563fec6e30d8&gt;</span></span>
 <span><span class="co">#&gt;  └─$method:\()</span></span>
 <span></span>
 <span><span class="co"># which calls the base class</span></span>
@@ -420,7 +420,7 @@ derived customer method:</p>
 <code class="sourceCode R"><span><span class="co"># success</span></span>
 <span><span class="va">obj</span> <span class="op">&lt;-</span> <span class="fu">Derived</span><span class="op">(</span><span class="fl">1L</span><span class="op">)</span>;</span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span>;</span>
-<span><span class="co">#&gt; &lt;Derived: 0x557004dc5158&gt;</span></span>
+<span><span class="co">#&gt; &lt;Derived: 0x563feb273cd0&gt;</span></span>
 <span><span class="co">#&gt;  └─$x: int 1</span></span></code></pre></div>
 <p>Note that base class members cannot be accessed until they are
 constructed:</p>
@@ -464,7 +464,7 @@ its constructor method as <code>protected:</code>:</p>
 <code class="sourceCode R"><span><span class="co"># allowed</span></span>
 <span><span class="fu"><a href="../reference/oopr.html">oopr</a></span><span class="op">(</span><span class="st">"Derived"</span>, <span class="va">Base</span>, <span class="op">{</span> <span class="op">}</span><span class="op">)</span></span>
 <span><span class="fu">Derived</span><span class="op">(</span><span class="op">)</span>;</span>
-<span><span class="co">#&gt; &lt;Derived: 0x5570047acb08&gt;</span></span></code></pre></div>
+<span><span class="co">#&gt; &lt;Derived: 0x563feac5b648&gt;</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="final-constructor">Final Constructor<a class="anchor" aria-label="anchor" href="#final-constructor"></a>
@@ -488,7 +488,7 @@ constructor as <code>final:</code>:</p>
 <div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># allowed</span></span>
 <span><span class="fu">Base</span><span class="op">(</span><span class="op">)</span>;</span>
-<span><span class="co">#&gt; &lt;Base: 0x557001a06180&gt;</span></span>
+<span><span class="co">#&gt; &lt;Base: 0x563fe7eb4cf8&gt;</span></span>
 <span><span class="co">#&gt;  └─$x: int 10</span></span></code></pre></div>
 <p>Note: private and protected constructors cannot be marked as final,
 as this would not be intuitive.</p>

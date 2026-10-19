@@ -96,8 +96,8 @@ the member becomes a class instance.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">obj</span> <span class="op">&lt;-</span> <span class="fu">ClassMemExample</span><span class="op">(</span><span class="op">)</span>;</span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span>;</span>
-<span><span class="co">#&gt; &lt;ClassMemExample: 0x5645fda02e08&gt;</span></span>
-<span><span class="co">#&gt;  └─$mem:&lt;MemberClass: 0x5645fda01a48&gt;</span></span>
+<span><span class="co">#&gt; &lt;ClassMemExample: 0x556d3002fa58&gt;</span></span>
+<span><span class="co">#&gt;  └─$mem:&lt;MemberClass: 0x556d3002e698&gt;</span></span>
 <span><span class="co">#&gt;          └─$x: int 1</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -179,17 +179,17 @@ Suffixing <code>[]</code> uses <code><a href="../reference/oopr_containers.html"
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">obj</span> <span class="op">&lt;-</span> <span class="fu">ClassMemExample</span><span class="op">(</span><span class="op">)</span>;</span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span>;</span>
-<span><span class="co">#&gt; &lt;ClassMemExample: 0x5645fb967360&gt;</span></span>
-<span><span class="co">#&gt;  └─$mem:&lt;OoprVec: 0x5645fb9223c0&gt;</span></span>
+<span><span class="co">#&gt; &lt;ClassMemExample: 0x556d2df96068&gt;</span></span>
+<span><span class="co">#&gt;  └─$mem:&lt;OoprVec: 0x556d2df510c8&gt;</span></span>
 <span><span class="co">#&gt;          ├─$class  : chr "MemberClass"</span></span>
 <span><span class="co">#&gt;          ├─$empty  : logi FALSE</span></span>
 <span><span class="co">#&gt;          ├─$size   : int 3</span></span>
 <span><span class="co">#&gt;          ├─$data   :List of 3</span></span>
-<span><span class="co">#&gt;          │           $:&lt;MemberClass: 0x5645fb923eb8&gt;</span></span>
+<span><span class="co">#&gt;          │           $:&lt;MemberClass: 0x556d2df52bc0&gt;</span></span>
 <span><span class="co">#&gt;          │            ..└─$x: int 1</span></span>
-<span><span class="co">#&gt;          │           $:&lt;MemberClass: 0x5645fb936b30&gt;</span></span>
+<span><span class="co">#&gt;          │           $:&lt;MemberClass: 0x556d2df65838&gt;</span></span>
 <span><span class="co">#&gt;          │            ..└─$x: int 2</span></span>
-<span><span class="co">#&gt;          │           $:&lt;MemberClass: 0x5645fb950760&gt;</span></span>
+<span><span class="co">#&gt;          │           $:&lt;MemberClass: 0x556d2df7f468&gt;</span></span>
 <span><span class="co">#&gt;          │            ..└─$x: int 3</span></span>
 <span><span class="co">#&gt;          ├─$insert :\(pos = this$size, x)  </span></span>
 <span><span class="co">#&gt;          ├─$emplace:\(. = this$size)  </span></span>
@@ -244,10 +244,10 @@ only option.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">obj</span> <span class="op">&lt;-</span> <span class="fu">ClassMemExample</span><span class="op">(</span><span class="op">)</span>;</span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span>;</span>
-<span><span class="co">#&gt; &lt;ClassMemExample: 0x5645fb35e788&gt;</span></span>
-<span><span class="co">#&gt;  ├─$mem1:&lt;MemberClass: 0x5645fb35b898&gt;</span></span>
+<span><span class="co">#&gt; &lt;ClassMemExample: 0x556d2d98dae0&gt;</span></span>
+<span><span class="co">#&gt;  ├─$mem1:&lt;MemberClass: 0x556d2d98abf0&gt;</span></span>
 <span><span class="co">#&gt;  │        └─$x: int 1</span></span>
-<span><span class="co">#&gt;  └─$mem2:&lt;MemberClass: 0x5645fb357f28&gt;</span></span>
+<span><span class="co">#&gt;  └─$mem2:&lt;MemberClass: 0x556d2d987280&gt;</span></span>
 <span><span class="co">#&gt;           └─$x: int 2</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
