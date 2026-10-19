@@ -76,6 +76,10 @@ For more information on specifiers see `...`.
   `environment`  
   A template of what the class looks like.
 
+## See also
+
+`browseVignettes("oopr")`
+
 ## Examples
 
 ``` r
@@ -134,7 +138,7 @@ private:
 
 john <- Human("john", "smith", 50L);
 print(john);
-#> <Human: 0x55b2fc53e370>
+#> <Human: 0x562240c7bbd8>
 #>  ├─$name : chr "john smith"
 #>  └─$greet:\()  
 john$greet();

@@ -26,9 +26,74 @@ public:
 
 obj <- ClassMemExample();
 print(obj);
-#> <ClassMemExample: 0x5565644acc08>
-#>  └─$mem:<MemberClass: 0x5565644ad340>
+#> <ClassMemExample: 0x5645fda02e08>
+#>  └─$mem:<MemberClass: 0x5645fda01a48>
 #>          └─$x: int 1
+```
+
+## Protection
+
+Class members are automatically protected via an active binding. When
+assigning into a class member, the incoming value is checked for the
+same class:
+
+``` r
+
+# allowed
+obj$mem$x <- 2L;
+
+# not allowed
+obj$mem <- 1L;
+#> Error:
+#> ! Incoming value to member `mem` must be oopr class `MemberClass`
+
+# allowed
+obj$mem <- MemberClass();
+
+# not allowed
+obj$mem <- ClassMemExample();
+#> Error:
+#> ! Incoming value to member `mem` must be oopr class `MemberClass`
+```
+
+Using set properties (or the absence of one for read-only) with classes
+may not work as intended as R expressions are evaluated from right to
+left. An expression such as `obj$mem$a <- 1L;` will evaluate
+`mem$a <- 1L;` before the set property for `obj$mem` is called.
+
+A useful set property to ensure the class instance is never replaced
+could be:
+
+``` r
+
+oopr("ClassMemPropertyExample",,
+{
+public:
+  get:x <- \( ) { return(this$x_); }
+  set:x <- \(rhs)
+  {
+    if(!identical(this$x_, rhs)) 
+    { 
+      stop(call. = FALSE, "`x` cannot be replaced"); 
+    }
+    return(this$x_);
+  }
+private:
+  x_ <- MemberClass;
+})
+```
+
+``` r
+
+obj <- ClassMemPropertyExample();
+
+# allowed
+obj$x$x <- 2L;
+
+# not allowed
+obj$x <- MemberClass();
+#> Error:
+#> ! `x` cannot be replaced
 ```
 
 ## Containers
@@ -60,17 +125,17 @@ public:
 
 obj <- ClassMemExample();
 print(obj);
-#> <ClassMemExample: 0x55655fb73b38>
-#>  └─$mem:<OoprVec: 0x55655fbac0c0>
+#> <ClassMemExample: 0x5645fb967360>
+#>  └─$mem:<OoprVec: 0x5645fb9223c0>
 #>          ├─$class  : chr "MemberClass"
 #>          ├─$empty  : logi FALSE
 #>          ├─$size   : int 3
 #>          ├─$data   :List of 3
-#>          │           $:<MemberClass: 0x55655fba8c90>
+#>          │           $:<MemberClass: 0x5645fb923eb8>
 #>          │            ..└─$x: int 1
-#>          │           $:<MemberClass: 0x55655fb908d8>
+#>          │           $:<MemberClass: 0x5645fb936b30>
 #>          │            ..└─$x: int 2
-#>          │           $:<MemberClass: 0x55655fb7e360>
+#>          │           $:<MemberClass: 0x5645fb950760>
 #>          │            ..└─$x: int 3
 #>          ├─$insert :\(pos = this$size, x)  
 #>          ├─$emplace:\(. = this$size)  
@@ -100,6 +165,9 @@ public:
   MemberClass <- \(x) { this$x <- x; }
   x <- 1L; 
 })
+```
+
+``` r
 
 # not allowed, needs constructing
 oopr("ClassMemExample",,
@@ -132,9 +200,9 @@ public:
 
 obj <- ClassMemExample();
 print(obj);
-#> <ClassMemExample: 0x5565620ca958>
-#>  ├─$mem1:<MemberClass: 0x5565620cb020>
+#> <ClassMemExample: 0x5645fb35e788>
+#>  ├─$mem1:<MemberClass: 0x5645fb35b898>
 #>  │        └─$x: int 1
-#>  └─$mem2:<MemberClass: 0x5565620c98a8>
+#>  └─$mem2:<MemberClass: 0x5645fb357f28>
 #>           └─$x: int 2
 ```

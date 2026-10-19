@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Class Members • oopr</title>
-<script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
@@ -16,11 +16,11 @@
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+    <nav class="navbar navbar-expand-lg fixed-top " aria-label="Site navigation"><div class="container">
 
     <a class="navbar-brand me-2" href="../index.html">oopr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -48,6 +48,14 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
+  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch">
+<li><button class="dropdown-item" data-bs-theme-value="light"><span class="fa fa-sun"></span> Light</button></li>
+    <li><button class="dropdown-item" data-bs-theme-value="dark"><span class="fa fa-moon"></span> Dark</button></li>
+    <li><button class="dropdown-item" data-bs-theme-value="auto"><span class="fa fa-adjust"></span> Auto</button></li>
+  </ul>
+</li>
       </ul>
 </div>
 
@@ -88,9 +96,65 @@ the member becomes a class instance.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">obj</span> <span class="op">&lt;-</span> <span class="fu">ClassMemExample</span><span class="op">(</span><span class="op">)</span>;</span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span>;</span>
-<span><span class="co">#&gt; &lt;ClassMemExample: 0x5565644acc08&gt;</span></span>
-<span><span class="co">#&gt;  └─$mem:&lt;MemberClass: 0x5565644ad340&gt;</span></span>
+<span><span class="co">#&gt; &lt;ClassMemExample: 0x5645fda02e08&gt;</span></span>
+<span><span class="co">#&gt;  └─$mem:&lt;MemberClass: 0x5645fda01a48&gt;</span></span>
 <span><span class="co">#&gt;          └─$x: int 1</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="protection">Protection<a class="anchor" aria-label="anchor" href="#protection"></a>
+</h2>
+<p>Class members are automatically protected via an active binding. When
+assigning into a class member, the incoming value is checked for the
+same class:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># allowed</span></span>
+<span><span class="va">obj</span><span class="op">$</span><span class="va">mem</span><span class="op">$</span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fl">2L</span>;</span>
+<span></span>
+<span><span class="co"># not allowed</span></span>
+<span><span class="va">obj</span><span class="op">$</span><span class="va">mem</span> <span class="op">&lt;-</span> <span class="fl">1L</span>;</span>
+<span><span class="co">#&gt; <span style="color: #BBBB00; font-weight: bold;">Error</span><span style="font-weight: bold;">:</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> Incoming value to member `mem` must be oopr class `MemberClass`</span></span>
+<span></span>
+<span><span class="co"># allowed</span></span>
+<span><span class="va">obj</span><span class="op">$</span><span class="va">mem</span> <span class="op">&lt;-</span> <span class="fu">MemberClass</span><span class="op">(</span><span class="op">)</span>;</span>
+<span></span>
+<span><span class="co"># not allowed</span></span>
+<span><span class="va">obj</span><span class="op">$</span><span class="va">mem</span> <span class="op">&lt;-</span> <span class="fu">ClassMemExample</span><span class="op">(</span><span class="op">)</span>;</span>
+<span><span class="co">#&gt; <span style="color: #BBBB00; font-weight: bold;">Error</span><span style="font-weight: bold;">:</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> Incoming value to member `mem` must be oopr class `MemberClass`</span></span></code></pre></div>
+<p>Using set properties (or the absence of one for read-only) with
+classes may not work as intended as R expressions are evaluated from
+right to left. An expression such as <code>obj$mem$a &lt;- 1L;</code>
+will evaluate <code>mem$a &lt;- 1L;</code> before the set property for
+<code>obj$mem</code> is called.</p>
+<p>A useful set property to ensure the class instance is never replaced
+could be:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/oopr.html">oopr</a></span><span class="op">(</span><span class="st">"ClassMemPropertyExample"</span>,,</span>
+<span><span class="op">{</span></span>
+<span><span class="va">public</span><span class="op">:</span></span>
+<span>  <span class="va">get</span><span class="op">:</span><span class="va">x</span> <span class="op">&lt;-</span> \<span class="op">(</span> <span class="op">)</span> <span class="op">{</span> <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">this</span><span class="op">$</span><span class="va">x_</span><span class="op">)</span>; <span class="op">}</span></span>
+<span>  <span class="va">set</span><span class="op">:</span><span class="va">x</span> <span class="op">&lt;-</span> \<span class="op">(</span><span class="va">rhs</span><span class="op">)</span></span>
+<span>  <span class="op">{</span></span>
+<span>    <span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="va">this</span><span class="op">$</span><span class="va">x_</span>, <span class="va">rhs</span><span class="op">)</span><span class="op">)</span> </span>
+<span>    <span class="op">{</span> </span>
+<span>      <span class="kw"><a href="https://rdrr.io/r/base/stop.html" class="external-link">stop</a></span><span class="op">(</span>call. <span class="op">=</span> <span class="cn">FALSE</span>, <span class="st">"`x` cannot be replaced"</span><span class="op">)</span>; </span>
+<span>    <span class="op">}</span></span>
+<span>    <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">this</span><span class="op">$</span><span class="va">x_</span><span class="op">)</span>;</span>
+<span>  <span class="op">}</span></span>
+<span><span class="va">private</span><span class="op">:</span></span>
+<span>  <span class="va">x_</span> <span class="op">&lt;-</span> <span class="va">MemberClass</span>;</span>
+<span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">obj</span> <span class="op">&lt;-</span> <span class="fu">ClassMemPropertyExample</span><span class="op">(</span><span class="op">)</span>;</span>
+<span></span>
+<span><span class="co"># allowed</span></span>
+<span><span class="va">obj</span><span class="op">$</span><span class="va">x</span><span class="op">$</span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fl">2L</span>;</span>
+<span></span>
+<span><span class="co"># not allowed</span></span>
+<span><span class="va">obj</span><span class="op">$</span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu">MemberClass</span><span class="op">(</span><span class="op">)</span>;</span>
+<span><span class="co">#&gt; <span style="color: #BBBB00; font-weight: bold;">Error</span><span style="font-weight: bold;">:</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> `x` cannot be replaced</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="containers">Containers<a class="anchor" aria-label="anchor" href="#containers"></a>
@@ -98,7 +162,7 @@ the member becomes a class instance.</p>
 <p>Members can become containers of classes using syntactic sugar.
 Suffixing <code>[]</code> uses <code><a href="../reference/oopr_containers.html">OoprVec()</a></code> and
 <code>[[]]</code> uses <code><a href="../reference/oopr_containers.html">OoprMap()</a></code>.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/oopr.html">oopr</a></span><span class="op">(</span><span class="st">"ClassMemExample"</span>,,</span>
 <span><span class="op">{</span></span>
 <span><span class="va">public</span><span class="op">:</span></span>
@@ -112,20 +176,20 @@ Suffixing <code>[]</code> uses <code><a href="../reference/oopr_containers.html"
 <span>  <span class="op">}</span></span>
 <span>  <span class="va">mem</span> <span class="op">&lt;-</span> <span class="va">MemberClass</span><span class="op">[</span><span class="op">]</span>; <span class="co"># &lt;- use of []</span></span>
 <span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">obj</span> <span class="op">&lt;-</span> <span class="fu">ClassMemExample</span><span class="op">(</span><span class="op">)</span>;</span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span>;</span>
-<span><span class="co">#&gt; &lt;ClassMemExample: 0x55655fb73b38&gt;</span></span>
-<span><span class="co">#&gt;  └─$mem:&lt;OoprVec: 0x55655fbac0c0&gt;</span></span>
+<span><span class="co">#&gt; &lt;ClassMemExample: 0x5645fb967360&gt;</span></span>
+<span><span class="co">#&gt;  └─$mem:&lt;OoprVec: 0x5645fb9223c0&gt;</span></span>
 <span><span class="co">#&gt;          ├─$class  : chr "MemberClass"</span></span>
 <span><span class="co">#&gt;          ├─$empty  : logi FALSE</span></span>
 <span><span class="co">#&gt;          ├─$size   : int 3</span></span>
 <span><span class="co">#&gt;          ├─$data   :List of 3</span></span>
-<span><span class="co">#&gt;          │           $:&lt;MemberClass: 0x55655fba8c90&gt;</span></span>
+<span><span class="co">#&gt;          │           $:&lt;MemberClass: 0x5645fb923eb8&gt;</span></span>
 <span><span class="co">#&gt;          │            ..└─$x: int 1</span></span>
-<span><span class="co">#&gt;          │           $:&lt;MemberClass: 0x55655fb908d8&gt;</span></span>
+<span><span class="co">#&gt;          │           $:&lt;MemberClass: 0x5645fb936b30&gt;</span></span>
 <span><span class="co">#&gt;          │            ..└─$x: int 2</span></span>
-<span><span class="co">#&gt;          │           $:&lt;MemberClass: 0x55655fb7e360&gt;</span></span>
+<span><span class="co">#&gt;          │           $:&lt;MemberClass: 0x5645fb950760&gt;</span></span>
 <span><span class="co">#&gt;          │            ..└─$x: int 3</span></span>
 <span><span class="co">#&gt;          ├─$insert :\(pos = this$size, x)  </span></span>
 <span><span class="co">#&gt;          ├─$emplace:\(. = this$size)  </span></span>
@@ -147,15 +211,15 @@ need to:</p>
 </ol>
 <p>If the member is specified as <code>static:</code>, then 2. is the
 only option.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/oopr.html">oopr</a></span><span class="op">(</span><span class="st">"MemberClass"</span>,, </span>
 <span><span class="op">{</span> </span>
 <span><span class="va">public</span><span class="op">:</span></span>
 <span>  <span class="va">MemberClass</span> <span class="op">&lt;-</span> \<span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span> <span class="va">this</span><span class="op">$</span><span class="va">x</span> <span class="op">&lt;-</span> <span class="va">x</span>; <span class="op">}</span></span>
 <span>  <span class="va">x</span> <span class="op">&lt;-</span> <span class="fl">1L</span>; </span>
-<span><span class="op">}</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># not allowed, needs constructing</span></span>
+<span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># not allowed, needs constructing</span></span>
 <span><span class="fu"><a href="../reference/oopr.html">oopr</a></span><span class="op">(</span><span class="st">"ClassMemExample"</span>,,</span>
 <span><span class="op">{</span></span>
 <span><span class="va">public</span><span class="op">:</span></span>
@@ -165,7 +229,7 @@ only option.</p>
 <span><span class="co">#&gt;   `this$mem(...)`.</span></span>
 <span><span class="co">#&gt; <span style="color: #BBBB00; font-weight: bold;">Error</span><span style="font-weight: bold;"> in `oopr()`:</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> Compilation errors</span></span></code></pre></div>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># both approaches</span></span>
 <span><span class="fu"><a href="../reference/oopr.html">oopr</a></span><span class="op">(</span><span class="st">"ClassMemExample"</span>,,</span>
 <span><span class="op">{</span></span>
@@ -177,13 +241,13 @@ only option.</p>
 <span>  <span class="va">mem1</span> <span class="op">&lt;-</span> <span class="va">MemberClass</span>;</span>
 <span>  <span class="va">mem2</span> <span class="op">&lt;-</span> <span class="fu">MemberClass</span><span class="op">(</span><span class="fl">2L</span><span class="op">)</span>; <span class="co"># &lt;- args given in-line</span></span>
 <span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">obj</span> <span class="op">&lt;-</span> <span class="fu">ClassMemExample</span><span class="op">(</span><span class="op">)</span>;</span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span>;</span>
-<span><span class="co">#&gt; &lt;ClassMemExample: 0x5565620ca958&gt;</span></span>
-<span><span class="co">#&gt;  ├─$mem1:&lt;MemberClass: 0x5565620cb020&gt;</span></span>
+<span><span class="co">#&gt; &lt;ClassMemExample: 0x5645fb35e788&gt;</span></span>
+<span><span class="co">#&gt;  ├─$mem1:&lt;MemberClass: 0x5645fb35b898&gt;</span></span>
 <span><span class="co">#&gt;  │        └─$x: int 1</span></span>
-<span><span class="co">#&gt;  └─$mem2:&lt;MemberClass: 0x5565620c98a8&gt;</span></span>
+<span><span class="co">#&gt;  └─$mem2:&lt;MemberClass: 0x5645fb357f28&gt;</span></span>
 <span><span class="co">#&gt;           └─$x: int 2</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

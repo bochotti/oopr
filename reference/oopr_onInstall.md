@@ -35,7 +35,7 @@ oopr_onLoad(libname, pkgname, refhook = NULL)
 ## Details
 
 Active bindings are not preserved during package installation (see
-[`bindenv`](https://rdrr.io/r/base/bindenv.html)), threatening some
+[`bindenv`](https://rdrr.io/r/base/bindenv.html)), threatening the
 functionality of `oopr` classes.
 
 Proposed solution is to serialise all `ooprC` objects within the package
@@ -44,15 +44,23 @@ loading.
 
 The `ooprC` objects are serialised together during `oopr_onInstall` so
 they maintain any references between them (see
-[serialize](https://rdrr.io/r/base/serialize.html)). However, defining
-any environments from outside the classes will lose its reference.
+[`serialize`](https://rdrr.io/r/base/serialize.html)). Note that using
+environments assigned outside the classes will lose their reference.
 
-Inherited classes and class members from a different package are taken
-from their respective originating namespace during `oopr_onLoad`.
+Serializing has two major draw-backs:
 
-TODO: would it be better to convert all active bindings back to their
-functions and save their location on install, then convert back to
-active bindings onLoad?
+1.  References to classes from other packages are *not* preserved, which
+    will break any static members.
+
+2.  Objects no longer share bindings, and each binding is provided its
+    own memory address (i.e. copied), which increases RAM usage.
+
+Running `oopr_onLoad` within a packages
+[`.onLoad()`](https://rdrr.io/r/base/ns-hooks.html) will reverse the two
+items above. Inherited classes and class members from a different
+packages are taken from their respective originating namespace, and any
+inherited functions (including active binding functions) are
+de-duplicated.
 
 ## Examples
 

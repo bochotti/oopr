@@ -36,6 +36,10 @@ oopr("InheritanceExample", Base1,
 public:
   speak <- \( ) { this$shout(); }
 })
+```
+
+``` r
+
 obj <- InheritanceExample();
 obj$speak();
 #> [1] "HELLO!"
@@ -47,12 +51,16 @@ obj$speak();
 oopr("InheritanceExample", { Base1; Base2; },
 {
 public:
-  speak <- \( ) 
-  { 
-    this$shout(); 
-    this$whisper(); 
+  speak <- \( )
+  {
+    this$shout();
+    this$whisper();
   }
 })
+```
+
+``` r
+
 obj <- InheritanceExample();
 obj$speak();
 #> [1] "HELLO!"
@@ -70,10 +78,13 @@ S3 class list.
 
 ``` r
 
-# Inherits private by default
+# Inherits privately by default
 print(obj)
-#> <InheritanceExample: 0x56394db7cd48>
+#> <InheritanceExample: 0x557004283ea8>
 #>  └─$speak:\()
+```
+
+``` r
 
 # Inherit as public
 oopr("InheritanceExample", public:Base1,
@@ -81,11 +92,15 @@ oopr("InheritanceExample", public:Base1,
 public:
   speak <- \( ) { this$shout(); }
 })
+```
+
+``` r
+
 obj <- InheritanceExample();
 
 # Base public members are visible
 print(obj);
-#> <InheritanceExample: 0x56394cb6abd0>
+#> <InheritanceExample: 0x557004db6578>
 #>  ├─$speak:\()  
 #>  └─$shout:\()
 
@@ -137,10 +152,10 @@ public:
 oopr("Derived", public:Base,
 {
 public:
-  method <- \( ) 
-  { 
+  method <- \( )
+  {
     Base$method();
-    print("Method"); 
+    print("Method");
   }
 })
 ```
@@ -150,7 +165,7 @@ public:
 # only one method
 obj <- Derived();
 print(obj);
-#> <Derived: 0x56394fcb7218>
+#> <Derived: 0x557006234598>
 #>  └─$method:\()
 
 # which calls the base class
@@ -175,6 +190,7 @@ public:
 
 ``` r
 
+# not allowed
 oopr("Derived", public:Base,
 {
 public:
@@ -205,7 +221,7 @@ public:
 ``` r
 
 # does not match arguments
-oopr("Derived", public:Base, 
+oopr("Derived", public:Base,
 {
 public:
   method <- \( ) { }
@@ -220,7 +236,7 @@ public:
 ``` r
 
 # does not have a default argument
-oopr("Derived", public:Base, 
+oopr("Derived", public:Base,
 {
 public:
   method <- \(x = 1L, y) { }
@@ -232,11 +248,8 @@ public:
 #> ! Compilation errors
 ```
 
-Virtual methods are *overridden* should a derived class choose to, I
-consider this a form of “reverse inheritance”.
-
-Although popular in other languages, virtual methods with `oopr` cannot
-be specified as `private`.
+Virtual methods inside the base class instance are *overridden* if the
+derived class creates its own implementation of the method.
 
 ``` r
 
@@ -267,6 +280,80 @@ obj$speak()
 #> [1] "Derived"
 ```
 
+Although popular in other languages, virtual methods with `oopr` cannot
+be specified as `private:`.
+
+### Abstract
+
+Virtual methods can be marked as abstract. An abstract method requires
+derived classes to create their own implementation. Any class with an
+abstract method cannot have an instance constructed.
+
+To mark a virtual method as abstract, append `= 0` after its body.
+
+``` r
+
+# mark an abstract method
+oopr("AbstractClass",,
+{
+public:
+  doWork <- \(x, y, z)
+  {
+    o <- this$doStep1(x, y);
+    o <- this$doStep2(o, z);
+    return(o);
+  }
+protected:
+  virtual:doStep1 <- \(x, y) { } = 0 #<- = 0 here
+  virtual:doStep2 <- \(o, z) { } = 0 #<- = 0 here
+})
+```
+
+``` r
+
+# Cannot create an instance
+AbstractClass()
+#> Error in `AbstractClass()`:
+#> ! AbstractClass constructor is abstract
+
+# Cannot be a class member
+oopr("AbstractClassMem",,
+{
+public:
+  abs <- AbstractClass
+})
+#>   Member `abs` cannot be class `AbstractClass` as it has abstract
+#>   methods c("doStep1", "doStep2").
+#> Error in `oopr()`:
+#> ! Compilation errors
+
+# Derived class cannot be final
+oopr("AbstractClassInhr", public:AbstractClass,
+{
+public:
+  final:AbstractClassInhr <- \( ) { }
+})
+#>   Constructor method `AbstractClassInhr` cannot be final as methods
+#>   c("doStep1", "doStep2") are abstract.
+#> Error in `oopr()`:
+#> ! Compilation errors
+```
+
+``` r
+
+# correct
+oopr("DerivedClass", public:AbstractClass,
+{
+protected:
+  doStep1 <- \(x, y) { return(x + y); }
+  doStep2 <- \(o, z) { return(o * z);   }
+})
+
+obj <- DerivedClass();
+obj$doWork(1, 2, 3);
+#> [1] 9
+```
+
 ## Constructing
 
 When the base class has a constructor method, then it must be explicitly
@@ -281,6 +368,9 @@ public:
   Base <- \(x) { this$x <- x; }
   x    <- integer(1L);
 })
+```
+
+``` r
 
 # unable to create the derived class
 oopr("Derived", Base, {})
@@ -296,16 +386,19 @@ customer method:
 ``` r
 
 # call Base(...)
-oopr("Derived", public:Base, 
+oopr("Derived", public:Base,
 {
 public:
   Derived <- \(x) { Base(x); }
 })
+```
+
+``` r
 
 # success
 obj <- Derived(1L);
 print(obj);
-#> <Derived: 0x563951c6f248>
+#> <Derived: 0x557004dc5158>
 #>  └─$x: int 1
 ```
 
@@ -347,17 +440,59 @@ oopr("Base",,
 protected:
   Base <- \( ) { }
 })
+```
+
+``` r
 
 # not allowed
 Base();
 #> Error in `Base()`:
 #> ! Base constructor is protected
+```
+
+``` r
 
 # allowed
 oopr("Derived", Base, { })
 Derived();
-#> <Derived: 0x5639502835b0>
+#> <Derived: 0x5570047acb08>
 ```
+
+### Final Constructor
+
+To prevent a class from being inherited by other classes, mark its
+constructor as `final:`:
+
+``` r
+
+# final constructor
+oopr("Base",,
+{
+public:
+  final:Base <- \( ) { this$x <- 10L; }
+  x <- integer(1L);
+})
+```
+
+``` r
+
+# not allowed
+oopr("Derived", Base, { })
+#>   Cannot inherit class `Base` as its constructor is final.
+#> Error in `oopr()`:
+#> ! Compilation errors
+```
+
+``` r
+
+# allowed
+Base();
+#> <Base: 0x557001a06180>
+#>  └─$x: int 10
+```
+
+Note: private and protected constructors cannot be marked as final, as
+this would not be intuitive.
 
 [^1]: As R is not type safe, just the argument names apply, not the
     return type.

@@ -114,7 +114,7 @@ public:
 
 ConstructorExample(2L);
 #> Constructing with x = 2L
-#> <ConstructorExample: 0x55713cad5f38>
+#> <ConstructorExample: 0x5618f2ab53d0>
 ```
 
 Private constructors stop users from being able to construct a class

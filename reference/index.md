@@ -6,7 +6,7 @@
   [`is.ooprC()`](https://bochotti.github.io/oopr/reference/is.oopr.md) :
   Is it an oopr?
 - [`oopr()`](https://bochotti.github.io/oopr/reference/oopr.md) : oopr
-- [`oopr_breakpoints()`](https://bochotti.github.io/oopr/reference/oopr_breakpoints.md)
+- [`OoprBreakpoints`](https://bochotti.github.io/oopr/reference/oopr_breakpoints.md)
   : Breakpoints for oopr
 - [`this`](https://bochotti.github.io/oopr/reference/oopr_completion.md)
   : Completion for oopr
